@@ -238,10 +238,13 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
 
             while True:
             # Main nodemanager Loop
+                work_beg=time.time()
                 logger.log('nodemanager: mainloop - calling GetSlivers - period=%d random=%d'%(iperiod,irandom))
                 self.GetSlivers(config, plc)
                 delay=iperiod + random.randrange(0,irandom)
-                logger.log('nodemanager: mainloop - sleeping for %d s'%delay)
+                work_end=time.time()
+                work_duration=int(work_end-work_beg)
+                logger.log('nodemanager: mainloop has worked for %s s - sleeping for %d s'%(work_duration,delay))
                 time.sleep(delay)
         except: logger.log_exc("nodemanager: failed in run")
 
