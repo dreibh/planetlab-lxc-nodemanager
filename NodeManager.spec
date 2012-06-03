@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.0
-%define taglevel 35
+%define taglevel 36
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -132,6 +132,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Sun Jun 03 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-36
+- /var/log/nodemanager shows duration of mainloop
+
 * Fri Apr 13 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-35
 - remove Requires to deprecated vserver-* rpms, use sliceimage-* instead
 
