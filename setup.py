@@ -15,7 +15,7 @@ from distutils.core import setup, Extension
 
 setup(
     py_modules=[
-        'accounts',
+        'account',
         'api',
         'api_calls',
         'bwmon',

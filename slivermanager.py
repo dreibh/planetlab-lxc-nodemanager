@@ -14,7 +14,7 @@ import time
 import logger
 import api, api_calls
 import database
-import accounts
+import account
 import controller
 import sliver_vs
 
@@ -208,8 +208,8 @@ def start():
     for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
         DEFAULT_ALLOCATION[resname]=default_amount
 
-    accounts.register_class(sliver_vs.Sliver_VS)
-    accounts.register_class(controller.Controller)
+    account.register_class(sliver_vs.Sliver_VS)
+    account.register_class(controller.Controller)
     database.start()
     api_calls.deliver_ticket = deliver_ticket
     api.start()

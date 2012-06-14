@@ -71,7 +71,7 @@ def get(name):
 
 class Account:
     def __init__(self, rec):
-        logger.verbose('accounts: Initing account %s'%rec['name'])
+        logger.verbose('account: Initing account %s'%rec['name'])
         self.name = rec['name']
         self.keys = ''
         self.configure(rec)
@@ -84,7 +84,7 @@ class Account:
 
     def configure(self, rec):
         """Write <rec['keys']> to my authorized_keys file."""
-        logger.verbose('accounts: configuring %s'%self.name)
+        logger.verbose('account: configuring %s'%self.name)
         new_keys = rec['keys']
         if new_keys != self.keys:
             # get the unix account info
@@ -98,7 +98,7 @@ class Account:
             dot_ssh = os.path.join(pw_dir,'.ssh')
             if not os.path.isdir(dot_ssh):
                 if not os.path.isdir(pw_dir):
-                    logger.verbose('accounts: WARNING: homedir %s does not exist for %s!'%(pw_dir,self.name))
+                    logger.verbose('account: WARNING: homedir %s does not exist for %s!'%(pw_dir,self.name))
                     os.mkdir(pw_dir)
                     os.chown(pw_dir, uid, gid)
                 os.mkdir(dot_ssh)
@@ -115,7 +115,7 @@ class Account:
             # set self.keys to new_keys only when all of the above ops succeed
             self.keys = new_keys
 
-            logger.log('accounts: %s: installed ssh keys' % self.name)
+            logger.log('account: %s: installed ssh keys' % self.name)
 
     def start(self, delay=0): pass
     def stop(self): pass
@@ -140,7 +140,7 @@ If still valid, check if running and configure/start if not."""
             try: next_class.create(self.name, rec)
             finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
-        logger.verbose("accounts.ensure_created: %s, running=%r"%(self.name,self.is_running()))
+        logger.verbose("account.ensure_created: %s, running=%r"%(self.name,self.is_running()))
 
         # reservation_alive is set on reervable nodes, and its value is a boolean
         if 'reservation_alive' in rec:
@@ -176,7 +176,7 @@ If still valid, check if running and configure/start if not."""
             status = True
         else:
             status = False
-            logger.verbose("accounts: Worker(%s): is not running" % self.name)
+            logger.verbose("account: Worker(%s): is not running" % self.name)
         return status
 
     def _destroy(self, curr_class):

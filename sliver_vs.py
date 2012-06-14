@@ -29,7 +29,7 @@ import subprocess
 # the util-vserver-pl module
 import vserver
 
-import accounts
+import account
 import logger
 import tools
 
@@ -45,7 +45,7 @@ for rlimit in vserver.RLIMITS.keys():
     DEFAULT_ALLOCATION["%s_soft"%rlim]=KEEP_LIMIT
     DEFAULT_ALLOCATION["%s_hard"%rlim]=KEEP_LIMIT
 
-class Sliver_VS(accounts.Account, vserver.VServer):
+class Sliver_VS(account.Account, vserver.VServer):
     """This class wraps vserver.VServer to make its interface closer to what we need."""
 
     SHELL = '/bin/vsh'
@@ -151,7 +151,7 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             #self.initscriptchanged = True
             self.refresh_slice_vinit()
 
-        accounts.Account.configure(self, rec)  # install ssh keys
+        account.Account.configure(self, rec)  # install ssh keys
 
     # unconditionnally install and enable the generic vinit script
     # mimicking chkconfig for enabling the generic vinit script

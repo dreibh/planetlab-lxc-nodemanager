@@ -20,10 +20,7 @@ import threading
 import xmlrpclib
 import sys
 
-import accounts
 import database
-import sliver_vs
-import ticket
 import tools
 from api_calls import *
 import logger

@@ -17,7 +17,7 @@ import cPickle
 import threading
 import time
 
-import accounts
+import account
 import coresched
 import logger
 import tools
@@ -127,16 +127,16 @@ It may be necessary in the future to do something smarter."""
 
         # create and destroy accounts as needed
         logger.verbose("database: sync : fetching accounts")
-        existing_acct_names = accounts.all()
+        existing_acct_names = account.all()
         for name in existing_acct_names:
             if name not in self:
                 logger.verbose("database: sync : ensure_destroy'ing %s"%name)
-                accounts.get(name).ensure_destroyed()
+                account.get(name).ensure_destroyed()
         for name, rec in self.iteritems():
             # protect this; if anything fails for a given sliver
             # we still need the other ones to be handled
             try:
-                sliver = accounts.get(name)
+                sliver = account.get(name)
                 logger.verbose("database: sync : looping on %s (shell account class from pwd %s)" %(name,sliver._get_class()))
                 # Make sure we refresh accounts that are running
                 if rec['instantiation'] == 'plc-instantiated':
