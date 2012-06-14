@@ -195,26 +195,6 @@ class Sliver_VS(accounts.Account, vserver.VServer):
             else:
                 logger.log("vsliver_vs: %s: Removed obsolete initscript %s"%(self.name,sliver_initscript))
 
-    # bind mount root side dir to sliver side
-    # needs to be done before sliver starts
-    def expose_ssh_dir (self):
-        try:
-            root_ssh="/home/%s/.ssh"%self.name
-            sliver_ssh="/vservers/%s/home/%s/.ssh"%(self.name,self.name)
-            # any of both might not exist yet
-            for path in [root_ssh,sliver_ssh]:
-                if not os.path.exists (path):
-                    os.mkdir(path)
-                if not os.path.isdir (path):
-                    raise Exception
-            mounts=file('/proc/mounts').read()
-            if mounts.find(sliver_ssh)<0:
-                # xxx perform mount
-                subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
-                logger.log("expose_ssh_dir: %s mounted into slice %s"%(root_ssh,self.name))
-        except:
-            logger.log_exc("expose_ssh_dir with slice %s failed"%self.name)
-
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
             logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
