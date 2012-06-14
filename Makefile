@@ -68,7 +68,7 @@ endif
 TESTMASTER ?= testmaster.onelab.eu
 
 ifdef BUILD
-KEYURL:=root@$(TESTMASTER):$(BUILD)/keys/key1.rsa
+KEYURL:=root@$(TESTMASTER):$(BUILD)/keys/key_admin.rsa
 endif
 
 key: $(NODE).key.rsa
