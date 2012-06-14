@@ -1,6 +1,3 @@
-# $Id$
-# $URL$
-
 """Codemux configurator.  Monitors slice attributes and configures CoDemux to mux port 80 based on HOST field in HTTP request.  Forwards to localhost port belonging to configured slice."""
 
 import logger

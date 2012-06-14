@@ -1,8 +1,6 @@
 #!/usr/bin/python -tt
 # vim:set ts=4 sw=4 expandtab:
 #
-# $Id$
-# $URL$
 #
 # NodeManager plugin to create special accounts
 

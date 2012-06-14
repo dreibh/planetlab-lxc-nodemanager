@@ -1,6 +1,3 @@
-# $Id$
-# $URL$
-
 """
 vsys sub-configurator.  Maintains configuration parameters associated with vsys scripts.
 All slice attributes with the prefix vsys_ are written into configuration files on the

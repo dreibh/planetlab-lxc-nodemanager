@@ -1,14 +1,9 @@
 #!/usr/bin/python
 #
-# $Id$
-# $URL$
-#
 # Setup script for the Node Manager application
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
-#
-# $Id$
 #
 
 from distutils.core import setup, Extension
