@@ -1,14 +1,10 @@
 #!/bin/bash
 #
-# $Id$
-# $URL$
-#
 # fuse-pl      Start FUSE support on PlanetLab
 #
 # chkconfig: 3 87 27
 # description: Start FUSE support on PlanetLab
 #
-# $Id$
 
 # Source function library.
 . /etc/init.d/functions

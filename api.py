@@ -20,9 +20,7 @@ import threading
 import xmlrpclib
 import sys
 
-import accounts
 import database
-import ticket
 import tools
 from api_calls import *
 import logger

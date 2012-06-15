@@ -11,7 +11,7 @@ import time
 import threading
 
 import logger
-import accounts
+import account
 import database
 
 # there is an implicit assumption that this triggers after slicemanager
@@ -227,15 +227,15 @@ class reservation:
 
     def is_running (self, slicename):
         try:
-            return accounts.get(slicename).is_running()
+            return account.get(slicename).is_running()
         except:
             return False
 
-    # quick an d dirty - this does not obey the accounts/sliver_vs/controller hierarchy
+    # quick an d dirty - this does not obey the account/sliver_vs/controller hierarchy
     def suspend_slice(self, slicename):
         logger.log('reservation: Suspending slice %s'%(slicename))
         self.debug_box('before suspending',slicename)
-        worker=accounts.get(slicename)
+        worker=account.get(slicename)
         try:
             logger.log("reservation: Located worker object %r"%worker)
             worker.stop()
@@ -264,7 +264,7 @@ class reservation:
     def restart_slice(self, slicename):
         logger.log('reservation: Restarting slice %s'%(slicename))
         self.debug_box('before restarting',slicename)
-        worker=accounts.get(slicename)
+        worker=account.get(slicename)
         try:
             # dig in self.data to retrieve corresponding rec
             slivers = [ sliver for sliver in self.data['slivers'] if sliver['name']==slicename ]

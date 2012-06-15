@@ -1,6 +1,3 @@
-# $Id$
-# $URL$
-
 """A few things that didn't seem to fit anywhere else."""
 
 import os, os.path

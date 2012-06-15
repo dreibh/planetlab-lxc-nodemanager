@@ -1,14 +1,10 @@
 #!/bin/bash
 #
-# $Id$
-# $URL$
-#
 # conf_files       Updates node configuration files at startup
 #
 # chkconfig: 3 20 80
 # description: Updates node configuration files at startup
 #
-# $Id$
 
 # Source function library.
 . /etc/init.d/functions

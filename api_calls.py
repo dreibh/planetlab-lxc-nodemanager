@@ -27,7 +27,7 @@ except:
     def Mixed(a = None, b = None, c = None): pass
 
 
-import accounts
+import account
 import logger
 
 # TODO: These try/excepts are a hack to allow doc/DocBookLocal.py to
@@ -171,7 +171,7 @@ def Create(sliver_name):
     """Create a non-PLC-instantiated sliver"""
     rec = sliver_name
     if rec['instantiation'] == 'delegated':
-        accounts.get(rec['name']).ensure_created(rec)
+        account.get(rec['name']).ensure_created(rec)
         logger.log("api_calls: Create %s"%rec['name'])
     else:
         raise Exception, "Only PLC can create non delegated slivers."
@@ -185,7 +185,7 @@ def Destroy(sliver_name):
     """Destroy a non-PLC-instantiated sliver"""
     rec = sliver_name
     if rec['instantiation'] == 'delegated':
-        accounts.get(rec['name']).ensure_destroyed()
+        account.get(rec['name']).ensure_destroyed()
         logger.log("api_calls: Destroy %s"%rec['name'])
     else:
         raise Exception, "Only PLC can destroy non delegated slivers."
@@ -198,7 +198,7 @@ def Destroy(sliver_name):
 def Start(sliver_name):
     """Configure and start sliver."""
     rec = sliver_name
-    accounts.get(rec['name']).start(rec)
+    account.get(rec['name']).start(rec)
     logger.log("api_calls: Start %s"%rec['name'])
 
 
@@ -209,7 +209,7 @@ def Start(sliver_name):
 def Stop(sliver_name):
     """Kill all processes belonging to the specified sliver"""
     rec = sliver_name
-    accounts.get(rec['name']).stop()
+    account.get(rec['name']).stop()
     logger.log("api_calls: Stop %s"%rec['name'])
 
 
@@ -220,9 +220,9 @@ def Stop(sliver_name):
 def ReCreate(sliver_name):
     """Stop, Destroy, Create, Start sliver in order to reinstall it."""
     rec = sliver_name
-    accounts.get(rec['name']).stop()
-    accounts.get(rec['name']).ensure_created(rec)
-    accounts.get(rec['name']).start(rec)
+    account.get(rec['name']).stop()
+    account.get(rec['name']).ensure_created(rec)
+    account.get(rec['name']).start(rec)
     logger.log("api_calls: ReCreate %s"%rec['name'])
 
 @export_to_docbook(roles=['nm-controller', 'self'],

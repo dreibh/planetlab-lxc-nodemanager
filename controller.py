@@ -7,9 +7,9 @@ from grp import getgrnam
 
 import logger
 import tools
-import accounts
+import account
 
-class Controller(accounts.Account):
+class Controller(account.Account):
     SHELL = '/usr/bin/forward_api_calls'  # tunneling shell
     TYPE = 'controller.Controller'
 

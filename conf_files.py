@@ -1,6 +1,3 @@
-# $Id$
-# $URL$
-
 """configuration files"""
 
 import grp
