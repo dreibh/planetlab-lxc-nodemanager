@@ -138,12 +138,12 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitearch}/bwlimit.py*
 
 %changelog
+* Sun Jun 03 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-36
+- /var/log/nodemanager shows duration of mainloop
+
 * Fri Apr 13 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-1
 - first working draft for dealing with libvirt/lxc on f16 nodes
 - not expected to work with mainline nodes (use 2.0 for that for now)
-
-* Sun Jun 03 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-36
-- /var/log/nodemanager shows duration of mainloop
 
 * Fri Apr 13 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-35
 - remove Requires to deprecated vserver-* rpms, use sliceimage-* instead
