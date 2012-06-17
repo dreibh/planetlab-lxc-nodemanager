@@ -2,7 +2,6 @@
 
 """LXC slivers"""
 
-import accounts
 import logger
 import subprocess
 import os, os.path

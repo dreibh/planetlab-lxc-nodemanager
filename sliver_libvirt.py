@@ -1,6 +1,6 @@
 """LibVirt slivers"""
 
-import accounts
+import account
 import logger
 import subprocess
 import os
@@ -42,7 +42,7 @@ def debuginfo(dom):
 
 # Common Libvirt code
 
-class Sliver_Libvirt(accounts.Account):
+class Sliver_Libvirt(account.Account):
 
     def __init__(self, rec):
         self.name = rec['name']
@@ -157,5 +157,5 @@ class Sliver_Libvirt(accounts.Account):
             cgroups.write(self.name, 'cpu.shares', cpu_share)
 
         # Call the upper configure method (ssh keys...)
-        accounts.Account.configure(self, rec)
+        account.Account.configure(self, rec)
 

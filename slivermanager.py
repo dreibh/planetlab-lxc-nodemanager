@@ -210,7 +210,7 @@ def start():
     #for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
     #    DEFAULT_ALLOCATION[resname]=default_amount
 
-    account.register_class(sliver_vs.Sliver_VS)
+    account.register_class(sliver_lxc.Sliver_LXC)
     account.register_class(controller.Controller)
     database.start()
     api_calls.deliver_ticket = deliver_ticket
