@@ -18,4 +18,6 @@ if [ -n "$verbose" ]; then
     echo "========== end /var/lib/libvirt/dnsmasq/default.leases"
 fi
 
+[ -z "$IP" ] && { echo "No IP found" ; exit 1; }
+
 exec ssh -o StrictHostKeyChecking=no root@$IP "$@"
