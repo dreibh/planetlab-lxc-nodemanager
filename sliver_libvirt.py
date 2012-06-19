@@ -63,7 +63,7 @@ class Sliver_Libvirt(Account):
             dom = self.conn.lookupByName(self.name)
         except:
             logger.log('sliver_libvirt: Domain %s does not exist. ' \
-                       'Will try to create it again.' \ % (self.name))
+                       'Will try to create it again.' % (self.name))
             self.__class__.create(rec['name'], rec)
             dom = self.conn.lookupByName(self.name)
         self.dom = dom
