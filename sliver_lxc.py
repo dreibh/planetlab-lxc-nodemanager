@@ -53,6 +53,11 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         command = ['chmod', '755', containerDir]
         logger.log_call(command, timeout=15*60)
 
+        # customize prompt for slice owner
+        dot_profile=os.path.join(containerDir,"root/.profile")
+        with open(dot_profile,'w') as f:
+            f.write("export PS1='%s@\H \$ '\n"%(name))
+
         # TODO: set quotas...
 
         # Set hostname. A valid hostname cannot have '_'
