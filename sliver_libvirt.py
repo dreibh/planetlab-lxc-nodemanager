@@ -1,18 +1,16 @@
 """LibVirt slivers"""
 
-import account
-import logger
-import subprocess
-import os
-import os.path
-import libvirt
 import sys
-import shutil
-import bwlimit
-import cgroups
+import os, os.path
+import subprocess
 import pprint
 
-from string import Template
+import libvirt
+
+from account import Account
+import logger
+import bwlimit
+import cgroups
 
 STATES = {
     libvirt.VIR_DOMAIN_NOSTATE:  'no state',
@@ -26,23 +24,25 @@ STATES = {
 
 connections = dict()
 
-# Helper methods
-
-def getConnection(sliver_type):
-    # TODO: error checking
-    # vtype is of the form sliver.[LXC/QEMU] we need to lower case to lxc/qemu
-    vtype = sliver_type.split('.')[1].lower()
-    uri = vtype + '://'
-    return connections.setdefault(uri, libvirt.open(uri))
-
-def debuginfo(dom):
-    ''' Helper method to get a "nice" output of the info struct for debug'''
-    [state, maxmem, mem, ncpu, cputime] = dom.info()
-    return '%s is %s, maxmem = %s, mem = %s, ncpu = %s, cputime = %s' % (dom.name(), STATES.get(state, state), maxmem, mem, ncpu, cputime)
-
 # Common Libvirt code
 
-class Sliver_Libvirt(account.Account):
+class Sliver_Libvirt(Account):
+
+    # Helper methods
+
+    @staticmethod
+    def getConnection(sliver_type):
+        # TODO: error checking
+        # vtype is of the form sliver.[LXC/QEMU] we need to lower case to lxc/qemu
+        vtype = sliver_type.split('.')[1].lower()
+        uri = vtype + '://'
+        return connections.setdefault(uri, libvirt.open(uri))
+
+    @staticmethod
+    def debuginfo(dom):
+        ''' Helper method to get a "nice" output of the info struct for debug'''
+        [state, maxmem, mem, ncpu, cputime] = dom.info()
+        return '%s is %s, maxmem = %s, mem = %s, ncpu = %s, cputime = %s' % (dom.name(), STATES.get(state, state), maxmem, mem, ncpu, cputime)
 
     def __init__(self, rec):
         self.name = rec['name']
@@ -161,5 +161,5 @@ class Sliver_Libvirt(account.Account):
             cgroups.write(self.name, 'cpu.shares', cpu_share)
 
         # Call the upper configure method (ssh keys...)
-        account.Account.configure(self, rec)
+        Account.configure(self, rec)
 

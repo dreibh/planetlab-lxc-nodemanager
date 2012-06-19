@@ -11,9 +11,9 @@ from string import Template
 
 import logger
 import bwlimit
-import sliver_libvirt
+from sliver_libvirt import Sliver_Libvirt
 
-class Sliver_LXC(sliver_libvirt.Sliver_Libvirt):
+class Sliver_LXC(Sliver_Libvirt):
     """This class wraps LXC commands"""
 
     SHELL = '/bin/sshsh'
@@ -28,7 +28,7 @@ class Sliver_LXC(sliver_libvirt.Sliver_Libvirt):
     def create(name, rec=None):
         ''' Create dirs, copy fs image, lxc_create '''
         logger.verbose ('sliver_lxc: %s create'%(name))
-        conn = sliver_libvirt.getConnection(Sliver_LXC.TYPE)
+        conn = Sliver_Libvirt.getConnection(Sliver_LXC.TYPE)
 
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
@@ -122,13 +122,13 @@ class Sliver_LXC(sliver_libvirt.Sliver_Libvirt):
             dom = conn.lookupByName(name)
         except:
             dom = conn.defineXML(xml)
-        logger.verbose('lxc_create: %s -> %s'%(name, sliver_libvirt.debuginfo(dom)))
+        logger.verbose('lxc_create: %s -> %s'%(name, Sliver_Libvirt.debuginfo(dom)))
 
 
     @staticmethod
     def destroy(name):
         logger.verbose ('sliver_lxc: %s destroy'%(name))
-        conn = sliver_libvirt.getConnection(Sliver_LXC.TYPE)
+        conn = Sliver_Libvirt.getConnection(Sliver_LXC.TYPE)
 
         containerDir = Sliver_LXC.CON_BASE_DIR + '/%s'%(name)
 
