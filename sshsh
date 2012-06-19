@@ -1,5 +1,21 @@
 #!/bin/bash
+# turn on debugging:
+# either set verbose to true right here
+# or call ssh slice@node -- -v ....
+verbose=
 MAC=$(virsh --connect lxc:// --readonly dumpxml $USER|grep mac|awk -F\' '{print $2}')
 IP=$(cat /var/lib/libvirt/dnsmasq/default.leases | grep $MAC | awk '{print $3}')
 shift
+case "$1" in -v|--verbose) verbose=true; shift ;; esac
+
+if [ -n "$verbose" ]; then
+    echo "sshsh: login=$USER"
+    echo "sshsh: args=>$@<"
+    echo "MAC=>$MAC<"
+    echo "IP=>$IP<"
+    echo "========== beg /var/lib/libvirt/dnsmasq/default.leases"
+    cat /var/lib/libvirt/dnsmasq/default.leases
+    echo "========== end /var/lib/libvirt/dnsmasq/default.leases"
+fi
+
 exec ssh -o StrictHostKeyChecking=no root@$IP "$@"

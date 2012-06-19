@@ -58,7 +58,8 @@ ifeq (,$(NODEURL))
 	@echo "  e.g. make sync NODE=vnode01.inria.fr"
 	@exit 1
 else
-	+$(RSYNC) ./ $(NODEURL)/usr/share/NodeManager/
+	+$(RSYNC) --exclude sshsh ./ $(NODEURL)/usr/share/NodeManager/
+	+$(RSYNC) ./sshsh $(NODEURL)/bin/
 	+$(RSYNC) ./initscripts/nm $(NODEURL)/etc/init.d/nm
 	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
 endif
