@@ -58,11 +58,15 @@ class Sliver_Libvirt(account.Account):
         self.conn = getConnection(rec['type'])
         self.xid = bwlimit.get_xid(self.name)
 
+        dom = None
         try:
-            self.dom = self.conn.lookupByName(self.name)
+            dom = self.conn.lookupByName(self.name)
         except:
-            logger.log('sliver_libvirt: Domain %s does not exist ' \
-                       'UNEXPECTED: %s'%(self.name, sys.exc_info()[1]))
+            logger.log('sliver_libvirt: Domain %s does not exist. ' \
+                       'Will try to create it again.' \ % (self.name))
+            self.__class__.create(rec['name'], rec)
+            dom = self.conn.lookupByName(self.name)
+        self.dom = dom
 
     def start(self, delay=0):
         ''' Just start the sliver '''

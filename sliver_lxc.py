@@ -45,13 +45,15 @@ class Sliver_LXC(sliver_libvirt.Sliver_Libvirt):
         # check the template exists -- there's probably a better way..
         if not os.path.isdir(refImgDir):
             logger.log('sliver_lxc: %s: ERROR Could not create sliver - reference image %s not found' % (name,vref))
-            logger.log('sliver_lxc: %s: ERROR ctd expected reference image in %s'%(name,refImgDir))
+            logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name,refImgDir))
             return
 
         # Snapshot the reference image fs (assume the reference image is in its own
         # subvolume)
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
-        logger.log_call(command, timeout=15*60)
+        if not logger.log_call(command, timeout=15*60):
+            logger.log('sliver_lxc: ERROR Could not create BTRFS snapshot at', containDir)
+            return
         command = ['chmod', '755', containerDir]
         logger.log_call(command, timeout=15*60)
 
@@ -134,15 +136,17 @@ class Sliver_LXC(sliver_libvirt.Sliver_Libvirt):
             # Destroy libvirt domain
             dom = conn.lookupByName(name)
         except:
-            logger.verbose('sliver_lxc: Domain %s does not exist! UNEXPECTED'%name)
-            return
+            logger.verbose('sliver_lxc: Domain %s does not exist!' % name)
 
         try:
             dom.destroy()
         except:
-            logger.verbose('sliver_lxc: Domain %s not running... continuing.'%name)
+            logger.verbose('sliver_lxc: Domain %s not running... continuing.' % name)
 
-        dom.undefine()
+        try:
+            dom.undefine()
+        except:
+            logger.verbose('sliver_lxc: Domain %s is not defined... continuing.' % name)
 
         # Remove user after destroy domain to force logout
         command = ['/usr/sbin/userdel', '-f', '-r', name]
