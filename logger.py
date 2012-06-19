@@ -16,12 +16,15 @@ LOG_NONE=0
 LOG_NODE=1
 LOG_VERBOSE=2
 # default is to log a reasonable amount of stuff for when running on operational nodes
-LOG_LEVEL=1
+LOG_LEVEL=LOG_NODE
 
 def set_level(level):
     global LOG_LEVEL
-    assert level in [LOG_NONE,LOG_NODE,LOG_VERBOSE]
-    LOG_LEVEL=level
+    try:
+        assert level in [LOG_NONE,LOG_NODE,LOG_VERBOSE]
+        LOG_LEVEL=level
+    except:
+        logger.log("Failed to set LOG_LEVEL to %s"%level)
 
 def verbose(msg):
     log('(v) '+msg,LOG_VERBOSE)
