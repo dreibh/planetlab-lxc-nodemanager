@@ -69,15 +69,16 @@ def get(name):
     finally: name_worker_lock.release()
 
 
+# xxx strictly speaking this class should not use self.name that in fact
+# is accidentally inited by the subclasses constructor...
 class Account:
-    def __init__(self, rec):
-        logger.verbose('account: Initing account %s'%rec['name'])
-        self.name = rec['name']
+    def __init__(self, name):
+        self.name = name
         self.keys = ''
-        self.configure(rec)
+        logger.verbose('account: Initing account %s'%name)
 
-    @staticmethod
-    def create(name, vref = None): abstract
+#    @staticmethod
+#    def create(name, vref = None): abstract
 
     @staticmethod
     def destroy(name): abstract
@@ -140,7 +141,7 @@ If still valid, check if running and configure/start if not."""
             try: next_class.create(self.name, rec)
             finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
-        logger.verbose("account.ensure_created: %s, running=%r"%(self.name,self.is_running()))
+        logger.verbose("account.Worker.ensure_created: %s, running=%r"%(self.name,self.is_running()))
 
         # reservation_alive is set on reervable nodes, and its value is a boolean
         if 'reservation_alive' in rec:

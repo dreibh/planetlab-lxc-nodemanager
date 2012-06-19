@@ -29,9 +29,10 @@ import subprocess
 # the util-vserver-pl module
 import vserver
 
-import account
 import logger
 import tools
+from account import Account
+from initscript import Initscript
 
 # special constant that tells vserver to keep its existing settings
 KEEP_LIMIT = vserver.VC_LIM_KEEP
@@ -45,7 +46,7 @@ for rlimit in vserver.RLIMITS.keys():
     DEFAULT_ALLOCATION["%s_soft"%rlim]=KEEP_LIMIT
     DEFAULT_ALLOCATION["%s_hard"%rlim]=KEEP_LIMIT
 
-class Sliver_VS(account.Account, vserver.VServer):
+class Sliver_VS(vserver.VServer, Account, Initscript):
     """This class wraps vserver.VServer to make its interface closer to what we need."""
 
     SHELL = '/bin/vsh'
@@ -58,6 +59,8 @@ class Sliver_VS(account.Account, vserver.VServer):
         try:
             logger.log("sliver_vs: %s: first chance..."%name)
             vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
+            Account.__init__ (self, name)
+            Initscript.__init__ (self, name)
         except Exception, err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
@@ -65,15 +68,15 @@ class Sliver_VS(account.Account, vserver.VServer):
                 logger.log('sliver_vs: %s: recreating bad vserver' % name)
                 self.destroy(name)
             self.create(name, rec)
-            logger.log("sliver_vs: %s: second chance..."%name)
             vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
+            Account.__init__ (self, name)
+            Initscript.__init__ (self, name)
 
-        self.keys = ''
         self.rspec = {}
         self.slice_id = rec['slice_id']
         self.disk_usage_initialized = False
-        self.initscript = ''
         self.enabled = True
+        # xxx this almost certainly is wrong...
         self.configure(rec)
 
     @staticmethod
@@ -120,7 +123,6 @@ class Sliver_VS(account.Account, vserver.VServer):
         command += [ '-t', vref, ]
         # slice name
         command += [ name, ]            
-#        logger.log_call(['/usr/sbin/vuseradd', '-t', vref, name, ], timeout=15*60)
         logger.log_call(command, timeout=15*60)
         # export slicename to the slice in /etc/slicename
         file('/vservers/%s/etc/slicename' % name, 'w').write(name)
@@ -132,7 +134,6 @@ class Sliver_VS(account.Account, vserver.VServer):
 
     @staticmethod
     def destroy(name):
-#        logger.log_call(['/usr/sbin/vuserdel', name, ])
         logger.log_call(['/bin/bash','-x','/usr/sbin/vuserdel', name, ])
 
     def configure(self, rec):
@@ -144,56 +145,10 @@ class Sliver_VS(account.Account, vserver.VServer):
             self.rspec = new_rspec
             self.set_resources()
 
-        new_initscript = rec['initscript']
-        if new_initscript != self.initscript:
-            self.initscript = new_initscript
-            # not used anymore, we always check against the installed script
-            #self.initscriptchanged = True
-            self.refresh_slice_vinit()
+        # do the configure part from Initscript
+        Initscript.configure(self,rec)
 
-        account.Account.configure(self, rec)  # install ssh keys
-
-    # unconditionnally install and enable the generic vinit script
-    # mimicking chkconfig for enabling the generic vinit script
-    # this is hardwired for runlevel 3
-    def install_and_enable_vinit (self):
-        vinit_source="/usr/share/NodeManager/sliver-initscripts/vinit"
-        vinit_script="/vservers/%s/etc/rc.d/init.d/vinit"%self.name
-        rc3_link="/vservers/%s/etc/rc.d/rc3.d/S99vinit"%self.name
-        rc3_target="../init.d/vinit"
-        # install in sliver
-        code=file(vinit_source).read()
-        if tools.replace_file_with_string(vinit_script,code,chmod=0755):
-            logger.log("vsliver_vs: %s: installed generic vinit rc script"%self.name)
-        # create symlink for runlevel 3
-        if not os.path.islink(rc3_link):
-            try:
-                logger.log("vsliver_vs: %s: creating runlevel3 symlink %s"%(self.name,rc3_link))
-                os.symlink(rc3_target,rc3_link)
-            except:
-                logger.log_exc("vsliver_vs: %s: failed to create runlevel3 symlink %s"%rc3_link)
-
-    def rerun_slice_vinit(self):
-        command = "/usr/sbin/vserver %s exec /etc/rc.d/init.d/vinit restart" % (self.name)
-        logger.log("vsliver_vs: %s: Rerunning slice initscript: %s" % (self.name, command))
-        subprocess.call(command + "&", stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=True)
-
-    # this one checks for the existence of the slice initscript
-    # install or remove the slice inistscript, as instructed by the initscript tag
-    def refresh_slice_vinit(self):
-        code=self.initscript
-        sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice"%self.name
-        if tools.replace_file_with_string(sliver_initscript,code,remove_if_empty=True,chmod=0755):
-            if code:
-                logger.log("vsliver_vs: %s: Installed new initscript in %s"%(self.name,sliver_initscript))
-                if self.is_running():
-                    # Only need to rerun the initscript if the vserver is
-                    # already running. If the vserver isn't running, then the
-                    # initscript will automatically be started by
-                    # /etc/rc.d/vinit when the vserver is started.
-                    self.rerun_slice_vinit()
-            else:
-                logger.log("vsliver_vs: %s: Removed obsolete initscript %s"%(self.name,sliver_initscript))
+        Account.configure(self, rec)  # install ssh keys
 
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
@@ -224,6 +179,14 @@ class Sliver_VS(account.Account, vserver.VServer):
 
     def is_running(self):
         return vserver.VServer.is_running(self)
+
+    # this one seems to belong in Initscript at first sight, 
+    # but actually depends on the underlying vm techno
+    # so let's keep it here
+    def rerun_slice_vinit(self):
+        command = "/usr/sbin/vserver %s exec /etc/rc.d/init.d/vinit restart" % (self.name)
+        logger.log("vsliver_vs: %s: Rerunning slice initscript: %s" % (self.name, command))
+        subprocess.call(command + "&", stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=True)
 
     def set_resources(self):
         disk_max = self.rspec['disk_max']
