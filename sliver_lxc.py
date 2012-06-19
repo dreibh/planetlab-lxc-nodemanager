@@ -2,16 +2,18 @@
 
 """LXC slivers"""
 
-import logger
 import subprocess
-import os, os.path
-import libvirt
 import sys
+import os, os.path
+import grp
+import libvirt
 from string import Template
-import bwlimit
-import sliver_libvirt as lv
 
-class Sliver_LXC(lv.Sliver_Libvirt):
+import logger
+import bwlimit
+import sliver_libvirt
+
+class Sliver_LXC(sliver_libvirt.Sliver_Libvirt):
     """This class wraps LXC commands"""
 
     SHELL = '/bin/sshsh'
@@ -26,7 +28,7 @@ class Sliver_LXC(lv.Sliver_Libvirt):
     def create(name, rec=None):
         ''' Create dirs, copy fs image, lxc_create '''
         logger.verbose ('sliver_lxc: %s create'%(name))
-        conn = lv.getConnection(Sliver_LXC.TYPE)
+        conn = sliver_libvirt.getConnection(Sliver_LXC.TYPE)
 
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
@@ -65,8 +67,11 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         #    print >>f, name.replace('_', '-')
 
         # Add slices group if not already present
-        command = ['/usr/sbin/groupadd', 'slices']
-        logger.log_call(command, timeout=15*60)
+        try:
+            group = grp.getgrnam('slices')
+        except:
+            command = ['/usr/sbin/groupadd', 'slices']
+            logger.log_call(command, timeout=15*60)
 
         # Add unix account (TYPE is specified in the subclass)
         command = ['/usr/sbin/useradd', '-g', 'slices', '-s', Sliver_LXC.SHELL, name, '-p', '*']
@@ -94,20 +99,12 @@ class Sliver_LXC(lv.Sliver_Libvirt):
         xid = bwlimit.get_xid(name)
 
         # Template for libvirt sliver configuration
-#        template_filename = Sliver_LXC.REF_IMG_BASE_DIR + '/lxc_template.xml'
-        # for compat with lxc-reference package, hopefully temporary
-        template_filename_lxcreference = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR,'config_template.xml')
         template_filename_sliceimage = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR,'lxc_template.xml')
-        if os.path.isfile (template_filename_lxcreference):
-            logger.log("WARNING: using compat template %s"%template_filename_lxcreference)
-            template_filename=template_filename_lxcreference
-        elif os.path.isfile (template_filename_sliceimage):
+        if os.path.isfile (template_filename_sliceimage):
             logger.log("WARNING: using compat template %s"%template_filename_sliceimage)
             template_filename=template_filename_sliceimage
         else:
-            logger.log("Cannot find XML template")
-            logger.log("neither %s"%template_filename_lxcreference)
-            logger.log("nor     %s"%template_filename_sliceimage)
+            logger.log("Cannot find XML template %s"%template_filename_sliceimage)
             return
         try:
             with open(template_filename) as f:
@@ -123,13 +120,13 @@ class Sliver_LXC(lv.Sliver_Libvirt):
             dom = conn.lookupByName(name)
         except:
             dom = conn.defineXML(xml)
-        logger.verbose('lxc_create: %s -> %s'%(name, lv.debuginfo(dom)))
+        logger.verbose('lxc_create: %s -> %s'%(name, sliver_libvirt.debuginfo(dom)))
 
 
     @staticmethod
     def destroy(name):
         logger.verbose ('sliver_lxc: %s destroy'%(name))
-        conn = lv.getConnection(Sliver_LXC.TYPE)
+        conn = sliver_libvirt.getConnection(Sliver_LXC.TYPE)
 
         containerDir = Sliver_LXC.CON_BASE_DIR + '/%s'%(name)
 
