@@ -55,7 +55,7 @@ class Sliver_Libvirt(Account):
         self.rspec = {}
         self.slice_id = rec['slice_id']
         self.enabled = True
-        self.conn = getConnection(rec['type'])
+        self.conn = Sliver_Libvirt.getConnection(rec['type'])
         self.xid = bwlimit.get_xid(self.name)
 
         dom = None
