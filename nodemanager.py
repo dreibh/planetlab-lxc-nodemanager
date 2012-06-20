@@ -15,16 +15,16 @@ import xmlrpclib
 import socket
 import os
 import sys
-import resource
 import glob
 import pickle
+import random
+import resource
 
 import logger
 import tools
 
 from config import Config
 from plcapi import PLCAPI
-import random
 
 
 class NodeManager:
@@ -199,7 +199,10 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                     m.start()
                     self.loaded_modules.append(m)
                 except ImportError, err:
-                    print "Warning while loading module %s:" % module, err
+                    logger.log_exc ("ERROR while loading module %s - skipping:" % module)
+                    # if we fail to load any of these, it's really no need to go on any further
+                    if module in NodeManager.core_modules:
+                        logger.log("FATAL : failed to load core module %s"%module)
 
             # sort on priority (lower first)
             def sort_module_priority (m1,m2):

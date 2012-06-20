@@ -68,7 +68,8 @@ def adjustReservedSlivers (data):
     if 'reservation_policy' not in data: return
     policy=data['reservation_policy'] 
     if policy not in ['lease_or_idle', 'lease_or_shared']:
-        logger.log ("unexpected reservation_policy %(policy)s"%locals())
+        if policy is not None:
+            logger.log ("unexpected reservation_policy %(policy)s"%locals())
         return
 
     logger.log("slivermanager.adjustReservedSlivers")
