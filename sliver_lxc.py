@@ -85,16 +85,16 @@ class Sliver_LXC(Sliver_Libvirt):
         # password... maybe remove the need for authentication inside the
         # guest?
         command = ['su', '-s', '/bin/bash', '-c', 'ssh-keygen -t rsa -N "" -f /home/%s/.ssh/id_rsa'%(name)]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command, timeout=60)
 
         command = ['chown', '-R', '%s.slices'%name, '/home/%s/.ssh'%name]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command, timeout=30)
 
         command = ['mkdir', '%s/root/.ssh'%containerDir]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command, timeout=10)
 
         command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command, timeout=30)
 
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
@@ -154,7 +154,7 @@ class Sliver_LXC(Sliver_Libvirt):
 
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command, timeout=60)
 
         logger.verbose('sliver_libvirt: %s destroyed.'%name)
 
