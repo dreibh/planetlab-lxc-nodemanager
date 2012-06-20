@@ -20,6 +20,7 @@ setup(
         'coresched',
         'curlwrapper',
         'database',
+        'initscript',
         'iptables',
         'logger',
         'net',
