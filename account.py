@@ -77,8 +77,8 @@ class Account:
         self.keys = ''
         logger.verbose('account: Initing account %s'%name)
 
-#    @staticmethod
-#    def create(name, vref = None): abstract
+    @staticmethod
+    def create(name, vref = None): abstract
 
     @staticmethod
     def destroy(name): abstract
