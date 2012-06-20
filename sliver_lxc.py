@@ -6,14 +6,16 @@ import subprocess
 import sys
 import os, os.path
 import grp
-import libvirt
 from string import Template
+
+import libvirt
 
 import logger
 import bwlimit
+from initscript import Initscript
 from sliver_libvirt import Sliver_Libvirt
 
-class Sliver_LXC(Sliver_Libvirt):
+class Sliver_LXC(Sliver_Libvirt, Initscript):
     """This class wraps LXC commands"""
 
     SHELL = '/bin/sshsh'
@@ -23,6 +25,37 @@ class Sliver_LXC(Sliver_Libvirt):
 
     REF_IMG_BASE_DIR = '/vservers/.lvref'
     CON_BASE_DIR     = '/vservers'
+
+    def __init__ (self, rec):
+        name=rec['name']
+        Sliver_Libvirt.__init__ (self,rec)
+        Initscript.__init__ (self,name)
+
+    def configure (self, rec):
+        Sliver_Libvirt.configure (self,rec)
+
+        # in case we update nodemanager..
+        self.install_and_enable_vinit()
+        # do the configure part from Initscript
+        Initscript.configure(self,rec)
+
+    def start(self, delay=0):
+        if 'enabled' in self.rspec and self.rspec['enabled'] <= 0:
+            logger.log('sliver_lxc: not starting %s, is not enabled'%self.name)
+            return
+        # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
+        self.install_and_enable_vinit()
+        Sliver_Libvirt.start (self, delay)
+        # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
+        self.refresh_slice_vinit()
+
+    def rerun_slice_vinit (self):
+        """This is called whenever the initscript code changes"""
+        # xxx - todo - not sure exactly how to:
+        # (.) invoke something in the guest
+        # (.) which options of systemctl should be used to trigger a restart
+        # should not prevent the first run from going fine hopefully
+        logger.log("WARNING: sliver_lxc.rerun_slice_vinit not implemented yet")
 
     @staticmethod
     def create(name, rec=None):
