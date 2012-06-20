@@ -202,8 +202,7 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                     logger.log_exc ("ERROR while loading module %s - skipping:" % module)
                     # if we fail to load any of these, it's really no need to go on any further
                     if module in NodeManager.core_modules:
-                        logger.log("FATAL : failed to load core module %s -- exiting"%module)
-                        sys.exit(1)
+                        logger.log("FATAL : failed to load core module %s"%module)
 
             # sort on priority (lower first)
             def sort_module_priority (m1,m2):
