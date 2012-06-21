@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.1
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -138,6 +138,11 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitearch}/bwlimit.py*
 
 %changelog
+* Thu Jun 21 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-2
+- merged nodemanager-2.0-37 in 2.1/lxc_devel and add initscript support to lxc
+- passes tests with lxc but won't build against vs due to conflict
+- as bwlimit.py also ships with util-vserver-pl
+
 * Thu Jun 21 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-37
 - refactoring: isolate initscript functionality
 - aimed at making initscript implementation with lxc straightforward
