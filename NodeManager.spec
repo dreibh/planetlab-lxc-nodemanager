@@ -138,6 +138,12 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitearch}/bwlimit.py*
 
 %changelog
+* Thu Jun 21 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-37
+- refactoring: isolate initscript functionality
+- aimed at making initscript implementation with lxc straightforward
+- show stack trace when module loading fails
+- accounts.py renamed into account.py for consistency
+
 * Sun Jun 03 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-36
 - /var/log/nodemanager shows duration of mainloop
 
