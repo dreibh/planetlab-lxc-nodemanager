@@ -76,7 +76,7 @@ install -d -m 755 $RPM_BUILD_ROOT/var/lib/nodemanager
 
 install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nodemanager
 install -D -m 755 sshsh $RPM_BUILD_ROOT/bin/sshsh
-install -D -m 644 bwlimit.py ${RPM_BUILD_ROOT}/${PYTHON_SITEARCH}/bwlimit.py
+install -D -m 644 bwlimitlxc.py ${RPM_BUILD_ROOT}/${PYTHON_SITEARCH}/bwlimitlxc.py
 
 ##########
 %post
@@ -135,7 +135,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/nodemanager
 /var/lib/
 /bin/sshsh
-%{python_sitearch}/bwlimit.py*
+%{python_sitearch}/bwlimitlxc.py*
 
 %changelog
 * Thu Jun 21 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-2

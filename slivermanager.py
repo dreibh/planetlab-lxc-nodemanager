@@ -18,7 +18,7 @@ import account
 import controller
 import sliver_lxc
 
-try: from bwlimit import bwmin, bwmax
+try: from bwlimitlxc import bwmin, bwmax
 except ImportError: bwmin, bwmax = 8, 1000*1000*1000
 
 priority=10

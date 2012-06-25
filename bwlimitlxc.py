@@ -1,4 +1,14 @@
 #!/usr/bin/python
+#
+# TEMPORARY
+# this file historically came with util-vserver-pl which is not available
+# on lxc-powered nodes
+# it is thus intended to become packaged separately at some point
+#
+# It was renamed into bwlimitlxc so that this branch can be tested on
+# vserver nodes as well
+# TEMPORARY
+
 # 
 # Bandwidth limit module for PlanetLab nodes. The intent is to use the
 # Hierarchical Token Bucket (HTB) queueing discipline (qdisc) to allow
@@ -45,8 +55,6 @@
 # Andy Bavier <acb@cs.princeton.edu>
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
-#
-# $Id: bwlimit.py,v 1.15 2007/02/07 04:21:11 mlhuang Exp $
 #
 
 import sys, os, re, getopt

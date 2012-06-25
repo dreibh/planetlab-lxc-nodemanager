@@ -9,7 +9,7 @@ import libvirt
 
 from account import Account
 import logger
-import bwlimit
+import bwlimitlxc as bwlimit
 import cgroups
 
 STATES = {

@@ -23,9 +23,9 @@ import socket
 import copy
 import threading
 
+import bwlimitlxc as bwlimit
 import logger
 import tools
-import bwlimit
 import database
 from config import Config
 
