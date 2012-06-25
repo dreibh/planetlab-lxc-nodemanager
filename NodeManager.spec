@@ -2,7 +2,7 @@
 
 %define name NodeManager
 %define version 2.1
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -138,6 +138,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitearch}/bwlimitlxc.py*
 
 %changelog
+* Mon Jun 25 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-3
+- renamed bwlimit as bwlimitlxc to avoid conflicts with util-vserver-pl
+- purpose being to be able to run this branch on vserver nodes as well
+
 * Thu Jun 21 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-2
 - merged nodemanager-2.0-37 in 2.1/lxc_devel and add initscript support to lxc
 - passes tests with lxc but won't build against vs due to conflict
