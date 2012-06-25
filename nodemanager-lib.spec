@@ -1,12 +1,12 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
-%define name NodeManager
+%define name nodemanager-lib
 %define version 2.0
 %define taglevel 37
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
-Summary: PlanetLab Node Manager
+Summary: PlanetLab Node Manager Library
 Name: %{name}
 Version: %{version}
 Release: %{release}
@@ -23,24 +23,16 @@ URL: %{SCMURL}
 # not possible because of forward_api_calls
 #BuildArch: noarch
 
-# old name
-#Obsoletes: sidewinder, sidewinder-common
-
 # Uses function decorators
 Requires: python >= 2.4
 # connecting PLC
 Requires: python-pycurl
 # Signed tickets
 Requires: gnupg
-# vserver-sliceimage or lxc-sliceimage to be added explicitly in nodeimage.pkgs
-# we do need the slice images in any case
-Requires: sliceimage-%{slicefamily}
-# our interface to the vserver patch
-Requires: util-vserver >= 0.30.208-17
-# vserver.py
-Requires: util-vserver-python > 0.3-16
 # sioc/plnet
 Requires: pyplnet >= 4.3
+# we do need the slice images in any case
+Requires: sliceimage-%{slicefamily}
 
 %description
 The PlanetLab Node Manager manages all aspects of PlanetLab node and
@@ -48,18 +40,20 @@ slice management once the node has been initialized and configured by
 the Boot Manager. It periodically contacts its management authority
 for configuration updates. It provides an XML-RPC API for performing
 local operations on slices.
+nodemanager-lib only provides a skeleton and needs as a companion
+either nodemanager-vs or nodemanager-lxc
 
 %prep
 %setup -q
 
 %build
 # make manages the C and Python stuff
-%{__make} %{?_smp_mflags}
+%{__make} %{?_smp_mflags} lib
 
 %install
 # make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
-%{__make} %{?_smp_mflags} install DESTDIR="$RPM_BUILD_ROOT"
+%{__make} %{?_smp_mflags} install-lib DESTDIR="$RPM_BUILD_ROOT"
 
 # install the sliver initscript (that triggers the slice initscript if any)
 mkdir -p $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/

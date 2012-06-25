@@ -27,7 +27,6 @@ setup(
         'nodemanager',
         'plcapi',
         'safexmlrpc',
-        'sliver_vs',
         'slivermanager',
         'ticket',
         'tools',

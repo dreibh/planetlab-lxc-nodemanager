@@ -496,6 +496,9 @@ def sync(nmdbcopy):
     if default_MaxRate == -1:
         default_MaxRate = 1000000
 
+    # xxx $Id$ 
+    # with svn we used to have a trick to detect upgrades of this file
+    # this has gone with the move to git, without any noticeable effect on operations though
     try:
         f = open(DB_FILE, "r+")
         logger.verbose("bwmon: Loading %s" % DB_FILE)

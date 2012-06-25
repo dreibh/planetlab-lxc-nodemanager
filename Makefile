@@ -5,29 +5,38 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: Makefile,v 1.2 2006/11/13 20:04:44 mlhuang Exp $
-#
 
 # autoconf compatible variables
 datadir := /usr/share
 bindir := /usr/bin
 
-all: forward_api_calls
-	python setup.py build
+lib: forward_api_calls
+	python setup-lib.py build
+
+vs: 
+	python setup-vs.py build
 
 forward_api_calls: forward_api_calls.c
 	$(CC) -Wall -Os -o $@ $?
 	strip $@
 
-install:
-	python setup.py install \
+install-lib:
+	python setup-lib.py install \
+	    --install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
+	    --install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
+	    --install-scripts=$(DESTDIR)/$(bindir)
+	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
+
+install-vs:
+	python setup-vs.py install \
 	    --install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
 	    --install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
 	    --install-scripts=$(DESTDIR)/$(bindir)
 	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
 
 clean:
-	python setup.py clean
+	python setup-lib.py clean
+	python setup-vs.py clean
 	rm -f forward_api_calls *.pyc build
 
 .PHONY: all install clean
