@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 2.0
-%define taglevel 37
+%define taglevel 38
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -126,6 +126,9 @@ rm -rf $RPM_BUILD_ROOT
 /var/lib/
 
 %changelog
+* Tue Jun 26 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-38
+- split packaging, nodemanager-vs (obsoletes NodeManager) and nodemanager-lib
+
 * Thu Jun 21 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-37
 - refactoring: isolate initscript functionality
 - aimed at making initscript implementation with lxc straightforward
