@@ -58,3 +58,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Tue Jun 26 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-38
+- split packaging, nodemanager-vs (obsoletes NodeManager) and nodemanager-lib
+

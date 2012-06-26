@@ -132,6 +132,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitearch}/bwlimitlxc.py*
 
 %changelog
+* Tue Jun 26 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-38
+- split packaging, nodemanager-vs (obsoletes NodeManager) and nodemanager-lib
+
 * Mon Jun 25 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-3
 - renamed bwlimit as bwlimitlxc to avoid conflicts with util-vserver-pl
 - purpose being to be able to run this branch on vserver nodes as well
