@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 2.1
-%define taglevel 3
+%define taglevel 4
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitearch}/bwlimitlxc.py*
 
 %changelog
+* Tue Jun 26 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-4
+- split packaging in 3 (lib, lxc, vs)
+- this tag will only work with lxc though
+
 * Tue Jun 26 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.0-38
 - split packaging, nodemanager-vs (obsoletes NodeManager) and nodemanager-lib
 
