@@ -1,4 +1,3 @@
-#
 """Sliver manager.
 
 The sliver manager has several functions.  It is responsible for
@@ -16,10 +15,26 @@ import api, api_calls
 import database
 import account
 import controller
-import sliver_lxc
 
-try: from bwlimitlxc import bwmin, bwmax
-except ImportError: bwmin, bwmax = 8, 1000*1000*1000
+try:
+    import sliver_lxc
+    implementation='lxc'
+    sliver_default_type='sliver.LXC'
+    sliver_class_to_register = sliver_lxc.Sliver_LXC
+    sliver_password_shell = sliver_lxc.Sliver_LXC.SHELL
+except:
+    import sliver_vs
+    implementation='vs'
+    sliver_default_type='sliver.VServer'
+    sliver_class_to_register = sliver_vs.Sliver_VS
+    sliver_password_shell = sliver_vs.Sliver_VS.SHELL
+
+# temporary - hopefully bwlimit will be packaged separately and there will be no need to do this any longer
+try: 
+    from bwlimitlxc import bwmin, bwmax
+except: 
+    try : from bwlimit import bwmin, bwmax
+    except: bwmin, bwmax = 8, 1000*1000*1000
 
 priority=10
 
@@ -159,7 +174,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         if rec['instantiation'].lower() == 'nm-controller':
             rec.setdefault('type', attributes.get('type', 'controller.Controller'))
         else:
-            rec.setdefault('type', attributes.get('type', 'sliver.LXC'))
+            rec.setdefault('type', attributes.get('type', sliver_default_type))
 
         # set the vserver reference.  If none, set to default.
         rec.setdefault('vref', attributes.get('vref', 'default'))
@@ -208,11 +223,29 @@ def deliver_ticket(data):
 def start():
     # No default allocation values for LXC yet, think if its necessary given
     # that they are also default allocation values in this module
-    #for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
-    #    DEFAULT_ALLOCATION[resname]=default_amount
+    if implementation == 'vs':
+        for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
+            DEFAULT_ALLOCATION[resname]=default_amount
 
-    account.register_class(sliver_lxc.Sliver_LXC)
+    account.register_class(sliver_class_to_register)
     account.register_class(controller.Controller)
     database.start()
     api_calls.deliver_ticket = deliver_ticket
     api.start()
+
+### check if a sliver is running
+### a first step to a unified code for codemux
+def is_running (name):
+    if implementation=='vs':
+        import vserver
+        return vserver.VServer(name).is_running()
+    else:
+        import libvirt
+        running = False
+        try:
+            conn = libvirt.open('lxc://')
+            dom  = conn.lookupByName(name)
+            running = dom.info()[0] == libvirt.VIR_DOMAIN_RUNNING
+        finally:
+            conn.close()
+        return running

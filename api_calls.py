@@ -18,7 +18,7 @@ import socket
 import struct
 import threading
 import xmlrpclib
-import sliver_lxc
+import slivermanager
 
 try:
     from PLC.Parameter import Parameter, Mixed
@@ -36,8 +36,6 @@ import logger
 # A better approach will involve more extensive code splitting, I think.
 try: import database
 except: import logger as database
-#try: import sliver_vs
-#except: import logger as sliver_vs
 import ticket as ticket_module
 import tools
 
@@ -148,7 +146,7 @@ def AdminTicket(ticket):
 @export_to_api(0)
 def GetXIDs():
     """Return an dictionary mapping Slice names to XIDs"""
-    return dict([(pwent[0], pwent[2]) for pwent in pwd.getpwall() if pwent[6] == sliver_lxc.Sliver_LXC.SHELL])
+    return dict([(pwent[0], pwent[2]) for pwent in pwd.getpwall() if pwent[6] == slivermanager.sliver_password_shell])
 
 @export_to_docbook(roles=['self'],
                    accepts=[],
