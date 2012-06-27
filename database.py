@@ -18,10 +18,14 @@ import threading
 import time
 
 import account
-import coresched
 import logger
 import tools
 import bwmon
+
+# hopefully temporary
+# is there a good reason to have this done here and not in a plugin ?
+try:    from coresched_lxc import CoreSched
+except: from coresched_vs  import CoreSched
 
 # We enforce minimum allocations to keep the clueless from hosing their slivers.
 # Disallow disk loans because there's currently no way to punish slivers over quota.
@@ -120,8 +124,8 @@ It may be necessary in the future to do something smarter."""
         self._compute_effective_rspecs()
 
         try:
-            x = coresched.CoreSched()
-            x.adjustCores(self)
+            coresched = CoreSched()
+            coresched.adjustCores(self)
         except:
             logger.log_exc("database: exception while doing core sched")
 

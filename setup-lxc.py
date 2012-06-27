@@ -12,6 +12,8 @@ setup(
     py_modules=[
         'sliver_libvirt',
         'sliver_lxc',
+        'cgroups',
+        'coresched_lxc',
         ],
     scripts = [
         ],

@@ -11,6 +11,7 @@ from distutils.core import setup, Extension
 setup(
     py_modules=[
         'sliver_vs',
+        'coresched_vs',
         ],
     scripts = [
         ],
