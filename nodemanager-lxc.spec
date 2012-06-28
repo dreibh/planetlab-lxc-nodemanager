@@ -25,6 +25,8 @@ URL: %{SCMURL}
 
 # we use libvirt
 Requires: libvirt-python
+# cgroups.py needs this
+Requires: python-inotify
 # the common package for nodemanager
 Requires: nodemanager-lib
 # the lxc-specific tools for using slice images
