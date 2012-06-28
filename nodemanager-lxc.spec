@@ -24,6 +24,7 @@ Distribution: PlanetLab %{plrelease}
 URL: %{SCMURL}
 
 # we use libvirt
+Requires: libvirt
 Requires: libvirt-python
 # cgroups.py needs this
 Requires: python-inotify
