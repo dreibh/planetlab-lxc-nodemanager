@@ -90,10 +90,15 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         command = ['chmod', '755', containerDir]
         logger.log_call(command, timeout=15*60)
 
-        # customize prompt for slice owner
+        # customize prompt for slice owner, + LD_PRELOAD for transparently wrap bind
         dot_profile=os.path.join(containerDir,"root/.profile")
+        ld_preload_msg="""# by default, we define this setting so that calls to bind(2),
+# when invoked on 0.0.0.0, get transparently redirected to the public interface of this node
+# see https://svn.planet-lab.org/wiki/LxcPortForwarding"""
         with open(dot_profile,'w') as f:
             f.write("export PS1='%s@\H \$ '\n"%(name))
+            f.write("%s\n"%ld_preload_msg)
+            f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
 
         # TODO: set quotas...
 
