@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 2.1
-%define taglevel 5
+%define taglevel 6
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -56,6 +56,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Mon Jul 09 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-6
+- set LD_PRELOAD for linux-containers nodes
+
 * Thu Jun 28 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-5
 - first complete version for vs and lxc - functional but not thoroughly tested though
 
