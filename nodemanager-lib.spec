@@ -34,6 +34,8 @@ Requires: gnupg
 Requires: pyplnet >= 4.3
 # we do need the slice images in any case
 Requires: sliceimage-%{slicefamily}
+# for bwlimit
+Requires: plnode-utils
 
 %description
 The PlanetLab Node Manager manages all aspects of PlanetLab node and

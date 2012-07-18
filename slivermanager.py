@@ -29,12 +29,9 @@ except:
     sliver_class_to_register = sliver_vs.Sliver_VS
     sliver_password_shell = sliver_vs.Sliver_VS.SHELL
 
-# temporary - hopefully bwlimit will be packaged separately and there will be no need to do this any longer
-try: 
-    from bwlimitlxc import bwmin, bwmax
-except: 
-    try : from bwlimit import bwmin, bwmax
-    except: bwmin, bwmax = 8, 1000*1000*1000
+# just being safe
+try : from plnode.bwlimit import bwmin, bwmax
+except: bwmin, bwmax = 8, 1000*1000*1000
 
 priority=10
 

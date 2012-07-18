@@ -23,7 +23,8 @@ import socket
 import copy
 import threading
 
-import bwlimitlxc as bwlimit
+import plnode.bwlimit as bwlimit
+
 import logger
 import tools
 import database

@@ -11,7 +11,7 @@ from string import Template
 import libvirt
 
 import logger
-import bwlimitlxc as bwlimit
+import plnode.bwlimit as bwlimit
 from initscript import Initscript
 from sliver_libvirt import Sliver_Libvirt
 

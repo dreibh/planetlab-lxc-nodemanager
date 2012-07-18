@@ -14,7 +14,6 @@ setup(
         'api',
         'api_calls',
         'bwmon',
-        'bwlimitlxc',
         'conf_files',
         'config',
         'controller',

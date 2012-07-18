@@ -7,8 +7,7 @@ import os, string, time, socket
 import sioc, plnet
 
 # local modules
-try:    import bwlimit as bwlimit
-except: import bwlimitlxc as bwlimit
+import plnode.bwlimit as bwlimit
 import logger, iptables, tools
 
 # we can't do anything without a network
