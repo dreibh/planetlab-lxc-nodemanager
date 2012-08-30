@@ -122,6 +122,26 @@ class Account:
     def stop(self): pass
     def is_running(self): pass
 
+    # bind mount root side dir to sliver side
+    # needs to be done before sliver starts, in the vserver case at least
+    def expose_ssh_dir (self):
+        try:
+            root_ssh="/home/%s/.ssh"%self.name
+            sliver_ssh="/vservers/%s/home/%s/.ssh"%(self.name,self.name)
+            # any of both might not exist yet
+            for path in [root_ssh,sliver_ssh]:
+                if not os.path.exists (path):
+                    os.mkdir(path)
+                if not os.path.isdir (path):
+                    raise Exception
+            mounts=file('/proc/mounts').read()
+            if mounts.find(sliver_ssh)<0:
+                # xxx perform mount
+                subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
+                logger.log("expose_ssh_dir: %s mounted into slice %s"%(root_ssh,self.name))
+        except:
+            logger.log_exc("expose_ssh_dir with slice %s failed"%self.name)
+
 class Worker:
 
     def __init__(self, name):
@@ -191,24 +211,4 @@ If still valid, check if running and configure/start if not."""
         try: shell = pwd.getpwnam(self.name)[6]
         except KeyError: return None
         return shell_acct_class[shell]
-
-    # bind mount root side dir to sliver side
-    # needs to be done before sliver starts, in the vserver case at least
-    def expose_ssh_dir (self):
-        try:
-            root_ssh="/home/%s/.ssh"%self.name
-            sliver_ssh="/vservers/%s/home/%s/.ssh"%(self.name,self.name)
-            # any of both might not exist yet
-            for path in [root_ssh,sliver_ssh]:
-                if not os.path.exists (path):
-                    os.mkdir(path)
-                if not os.path.isdir (path):
-                    raise Exception
-            mounts=file('/proc/mounts').read()
-            if mounts.find(sliver_ssh)<0:
-                # xxx perform mount
-                subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
-                logger.log("expose_ssh_dir: %s mounted into slice %s"%(root_ssh,self.name))
-        except:
-            logger.log_exc("expose_ssh_dir with slice %s failed"%self.name)
 
