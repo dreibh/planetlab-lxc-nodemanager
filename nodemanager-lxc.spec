@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 2.1
-%define taglevel 7
+%define taglevel 8
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -56,6 +56,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Thu Aug 30 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-8
+- tag 2.1-7 was broken for OMF-friendly slices
+- expose_ssh_dir was erroneously defined on the Worker class
+
 * Thu Jul 19 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-7
 - bwlimitlxc now ships with plnode-utils
 
