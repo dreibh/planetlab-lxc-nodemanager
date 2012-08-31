@@ -27,6 +27,7 @@ maximum stack size.
 import os
 import pwd, grp
 import threading
+import subprocess
 
 import logger
 import tools
