@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 2.1
-%define taglevel 7
+%define taglevel 8
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,10 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Thu Aug 30 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-8
+- tag 2.1-7 was broken for OMF-friendly slices
+- expose_ssh_dir was erroneously defined on the Worker class
+
 * Thu Jul 19 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-7
 - bwlimitlxc now ships with plnode-utils
 
