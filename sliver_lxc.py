@@ -18,7 +18,7 @@ from sliver_libvirt import Sliver_Libvirt
 class Sliver_LXC(Sliver_Libvirt, Initscript):
     """This class wraps LXC commands"""
 
-    SHELL = '/bin/sshsh'
+    SHELL = '/bin/vsh'
     TYPE = 'sliver.LXC'
     # Need to add a tag at myplc to actually use this account
     # type = 'sliver.LXC'
