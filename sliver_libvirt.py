@@ -163,3 +163,28 @@ class Sliver_Libvirt(Account):
         # Call the upper configure method (ssh keys...)
         Account.configure(self, rec)
 
+    # A placeholder until we get true VirtualInterface objects
+    @staticmethod
+    def get_interfaces_xml(rec):
+        xml = """
+    <interface type='network'>
+      <source network='default'/>
+    </interface>
+"""
+        try:
+            tags = rec['rspec']['tags']
+            if 'interface' in tags:
+                interface = eval(tags['interface'])
+                if 'bridge' in interface:
+                    xml = """
+    <interface type='bridge'>
+      <source bridge='%s'/>
+      <virtualport type='openvswitch'/>
+    </interface>
+""" % interface['bridge']
+                    logger.log('sliver_libvirty.py: interface XML is: %s' % xml)
+        except:
+            logger.log('sliver_libvirt.py: ERROR parsing "interface" tag for slice %s' % rec['name'])
+            logger.log('sliver_libvirt.py: tag value: %s' % tags['interface'])
+
+        return xml

@@ -146,10 +146,13 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         else:
             logger.log("Cannot find XML template %s"%template_filename_sliceimage)
             return
+
+        interfaces = Sliver_Libvirt.get_interfaces_xml(rec)
+
         try:
             with open(template_filename) as f:
                 template = Template(f.read())
-                xml  = template.substitute(name=name, xid=xid)
+                xml  = template.substitute(name=name, interfaces=interfaces)
         except IOError:
             logger.log('Failed to parse or use XML template file %s'%template_filename)
             return
