@@ -32,6 +32,7 @@ Requires: python-inotify
 Requires: nodemanager-lib
 # the lxc-specific tools for using slice images
 Requires: lxc-sliceimage
+Requires: openvswitch
 
 %description
 nodemanager-lxc provides the lxc code for the PlanetLab Node Manager.
