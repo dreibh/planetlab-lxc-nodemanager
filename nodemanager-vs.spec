@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 2.1
-%define taglevel 10
+%define taglevel 11
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Thu Oct 18 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-11
+- Support for freezing BestEffort slices for Vicci
+
 * Wed Sep 05 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-2.1-10
 - Change to use new vsh (wrapper for lxcsu)
 
