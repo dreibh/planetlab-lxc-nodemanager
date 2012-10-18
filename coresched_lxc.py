@@ -197,12 +197,21 @@ class CoreSched:
         reservations["_default"] = cpus[:]
         mem_reservations["_default"] = mems[:]
 
+        freezeList = {}
+
         # now check and see if any of our slices had the besteffort flag
         # set
         for name, rec in slivers.iteritems():
             rspec = rec["_rspec"]
             cores = rspec.get(self.slice_attr_name, 0)
             (cores, bestEffort) = self.decodeCoreSpec(cores)
+
+            freezable = rspec.get("cpu_freezable", 0)
+            logger.log("CoreSched: " + str(name) + " " + str(freezable) + " " + str(type(freezable)) + " " + str(cores) + " " + str(type(cores)))
+            if (cores==0) and (freezable == 1):
+               freezeList[name] = "FROZEN"
+            else:
+               freezeList[name] = "THAWED"
 
             # if the bestEffort flag isn't set then we have nothing to do
             if not bestEffort:
@@ -219,6 +228,21 @@ class CoreSched:
         self.reserveUnits(self.cgroup_var_name, reservations)
 
         self.reserveUnits(self.cgroup_mem_name, mem_reservations)
+
+        self.freezeUnits("freezer.state", freezeList)
+
+    def freezeUnits (self, var_name, freezeList):
+        for (cgroup, freeze) in freezeList.items():
+            try:
+                logger.log("CoreSched: setting freezer for " + cgroup + " to " + freeze)
+                if glo_coresched_simulate:
+                    print "F", "/dev/cgroup/" + cgroup + "/" + var_name, freeze
+                else:
+                    #file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write(freeze)
+                    file("/sys/fs/cgroup/freezer/libvirt/lxc/" + cgroup + "/" + var_name, "w").write(freeze)
+            except:
+                # the cgroup probably didn't exit...
+                logger.log("CoreSched: exception while setting freeze for " + cgroup)
 
     def reserveUnits (self, var_name, reservations):
         """ give a set of reservations (dictionary of slicename:cpuid_list),
