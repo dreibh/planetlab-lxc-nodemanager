@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 2.1
-%define taglevel 11
+%define taglevel 12
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Wed Oct 24 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-2.1-12
+- Add support for L2 bridged interfaces with public IPs inside a slice
+
 * Thu Oct 18 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-11
 - Support for freezing BestEffort slices for Vicci
 
