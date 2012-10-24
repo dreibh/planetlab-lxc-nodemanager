@@ -42,6 +42,7 @@ DEFAULT_ALLOCATION = {
     'cpu_pct': 0, # percent CPU reserved
     'cpu_share': 1, # proportional share
     'cpu_cores': "0b", # reserved cpu cores <num_cores>[b]
+    'cpu_freezable': 0, # freeze processes if cpu_cores is 0
     # bandwidth parameters
     'net_min_rate': bwmin / 1000, # kbps
     'net_max_rate': bwmax / 1000, # kbps
