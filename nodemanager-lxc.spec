@@ -33,7 +33,7 @@ Requires: nodemanager-lib
 # the lxc-specific tools for using slice images
 Requires: lxc-sliceimage
 Requires: openvswitch
-Requires: sliceimage-lxc >= 5.1-3
+# Requires: sliceimage-lxc-f16-x86_64 >= 5.1-3
 
 %description
 nodemanager-lxc provides the lxc code for the PlanetLab Node Manager.
