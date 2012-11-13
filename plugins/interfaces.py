@@ -53,7 +53,7 @@ def GetSlivers(data, config=None, plc=None):
                         continue
 
                     for key, value in mydict.items():
-                        if key in ['bridge']: 
+                        if key in ['bridge', 'vlan']: 
                             continue
                         contents += '%s="%s"\n' % (key, value)
 

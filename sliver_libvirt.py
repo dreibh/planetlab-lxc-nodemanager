@@ -175,13 +175,18 @@ class Sliver_Libvirt(Account):
             tags = rec['rspec']['tags']
             if 'interface' in tags:
                 interface = eval(tags['interface'])
+                if 'vlan' in interface:
+                    vlanxml = "<vlan><tag id='%s'/></vlan>" % interface['vlan']
+                else:
+                    vlanxml = ""
                 if 'bridge' in interface:
                     xml = """
     <interface type='bridge'>
       <source bridge='%s'/>
+      %s
       <virtualport type='openvswitch'/>
     </interface>
-""" % interface['bridge']
+""" % (interface['bridge'], vlanxml)
                     logger.log('sliver_libvirty.py: interface XML is: %s' % xml)
         except:
             logger.log('sliver_libvirt.py: ERROR parsing "interface" tag for slice %s' % rec['name'])
