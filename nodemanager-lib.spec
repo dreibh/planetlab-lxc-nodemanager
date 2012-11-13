@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 2.1
-%define taglevel 12
+%define taglevel 13
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,9 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Tue Nov 13 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-2.1-13
+- Bridge virtual interfaces to VLANs
+
 * Wed Oct 24 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-2.1-12
 - Add support for L2 bridged interfaces with public IPs inside a slice
 

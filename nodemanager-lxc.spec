@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 2.1
-%define taglevel 12
+%define taglevel 13
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Tue Nov 13 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-2.1-13
+- Bridge virtual interfaces to VLANs
+
 * Wed Oct 24 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-2.1-12
 - Add support for L2 bridged interfaces with public IPs inside a slice
 
