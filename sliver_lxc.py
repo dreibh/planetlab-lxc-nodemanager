@@ -6,6 +6,7 @@ import subprocess
 import sys
 import os, os.path
 import grp
+from pwd import getpwnam
 from string import Template
 
 import libvirt
@@ -133,6 +134,33 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 
         command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
         logger.log_call(command, timeout=30)
+
+        logger.log("creating /etc/slicename file in %s" % os.path.join(containerDir,'etc/slicename'))
+        try:
+            file(os.path.join(containerDir,'etc/slicename'), 'w').write(name)
+        except:
+            logger.log_exc("exception while creating /etc/slicename")
+
+        try:
+            file(os.path.join(containerDir,'etc/slicefamily'), 'w').write(vref)
+        except:
+            logger.log_exc("exception while creating /etc/slicefamily")
+
+        uid = None
+        try:
+            uid = getpwnam(name).pw_uid
+        except KeyError:
+            # keyerror will happen if user id was not created successfully
+            logger.log_exc("exception while getting user id")
+
+        if uid is not None:
+            logger.log("uid is %d" % uid)
+            command = ['mkdir', '%s/home/%s' % (containerDir, name)]
+            logger.log_call(command, timeout=10)
+            etcpasswd = os.path.join(containerDir, 'etc/passwd')
+            if os.path.exists(etcpasswd):
+                logger.log("adding user %s id %d to %s" % (name, uid, etcpasswd))
+                file(etcpasswd,'a').write("%s:x:%d:%d::/home/%s:/bin/bash\n" % (name, uid, uid, name))
 
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
