@@ -8,6 +8,7 @@ import errno
 import threading
 import subprocess
 import shutil
+import sys
 
 import logger
 
@@ -191,3 +192,96 @@ class NMLock:
     def release(self):
         logger.log("tools: Lock released.", 2)
         fcntl.lockf(self.fd, fcntl.LOCK_UN)
+
+####################
+# Utilities for getting the IP address of a LXC/Openvswitch slice. Do this by
+# running ifconfig inside of the slice's context.
+
+def get_sliver_process(slice_name, process_cmdline):
+    """ Utility function to find a process inside of an LXC sliver. Returns
+        (cgroup_fn, pid). cgroup_fn is the filename of the cgroup file for
+        the process, for example /proc/2592/cgroup. Pid is the process id of
+        the process. If the process is not found then (None, None) is returned.
+    """
+    try:
+            cmd = 'grep %s /proc/*/cgroup | grep freezer'%slice_name
+            output = os.popen(cmd).readlines()
+    except:
+            # the slice couldn't be found
+            logger.log("get_sliver_process: couldn't find slice %s" % slice_name)
+            return (None, None)
+
+    cgroup_fn = None
+    pid = None
+    for e in output:
+            try:
+                    l = e.rstrip()
+                    path = l.split(':')[0]
+                    comp = l.rsplit(':')[-1]
+                    slice_name_check = comp.rsplit('/')[-1]
+
+                    if (slice_name_check == slice_name):
+                            slice_path = path
+                            pid = slice_path.split('/')[2]
+                            cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
+                            if (cmdline == process_cmdline):
+                                    cgroup_fn = slice_path
+                                    break
+            except:
+                    break
+
+    if (not cgroup_fn) or (not pid):
+        logger.log("get_sliver_process: process %s not running in slice %s" % (process_cmdline, slice_name))
+        return (None, None)
+
+    return (cgroup_fn, pid)
+
+def get_sliver_ifconfig(slice_name, device="eth0"):
+    """ return the output of "ifconfig" run from inside the sliver.
+
+        side effects: adds "/usr/sbin" to sys.path
+    """
+
+    # setns is part of lxcsu and is installed to /usr/sbin
+    if not "/usr/sbin" in sys.path:
+        sys.path.append("/usr/sbin")
+    import setns
+
+    (cgroup_fn, pid) = get_sliver_process(slice_name, "/sbin/init")
+    if (not cgroup_fn) or (not pid):
+        return None
+
+    path = '/proc/%s/ns/net'%pid
+    r3 = setns.chcontext(path)
+
+    result = None
+    try:
+        setns.chcontext(path)
+
+        args = ["/sbin/ifconfig", device]
+        sub = subprocess.Popen(args, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+        sub.wait()
+
+        if (sub.returncode != 0):
+            logger.log("get_slice_ifconfig: error in ifconfig: %s" % sub.stderr.read())
+
+        result = sub.stdout.read()
+    finally:
+        setns.chcontext("/proc/1/ns/net")
+
+    return result
+
+def get_sliver_ip(slice_name):
+    ifconfig = get_sliver_ifconfig(slice_name)
+    if not ifconfig:
+        return None
+
+    for line in ifconfig.split("\n"):
+        if "inet addr:" in line:
+            # example: '          inet addr:192.168.122.189  Bcast:192.168.122.255  Mask:255.255.255.0'
+            parts = line.strip().split()
+            if len(parts)>=2 and parts[1].startswith("addr:"):
+                return parts[1].split(":")[1]
+
+    return None
+

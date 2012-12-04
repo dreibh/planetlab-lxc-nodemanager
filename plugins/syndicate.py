@@ -5,6 +5,7 @@
 import httplib
 import os
 import shutil
+import tools
 
 from threading import Thread
 import logger
@@ -52,35 +53,12 @@ def disable_syndicate_mount(sliver, mountpoint, syndicate_ip):
        except:
            logger.log_exc("failed to delete syndicate mountpoint", "Syndicate")
 
-def get_syndicate_ip():
-    fn = "/vservers/princeton_syndicate/var/lib/dhclient/dhclient-eth0.leases"
-    if not os.path.exists(fn):
-        logger.log("Syndicate: cannot find princeton_syndicate's dhclient lease db")
-        return None
-
-    fixed_address = None
-    for line in open(fn).readlines():
-        line = line.strip()
-        if line.startswith("fixed-address"):
-            fixed_address = line
-
-    if not fixed_address:
-        logger.log("Syndicate: no fixed_address line in dhclient lease db")
-        return None
-
-    parts=fixed_address.split(" ")
-    if len(parts)!=2:
-        logger.log("Syndicate: malformed fixed-address line in dhclient: %s" % line)
-        return None
-
-    ip = parts[1].strip(";")
-
-    #logger.log("Syndicate ip is %s" % ip)
-
-    return ip
-
 def GetSlivers(data, conf = None, plc = None):
     node_id = tools.node_id()
+
+    syndicate_ip = tools.get_syndicate_ip("princeton_syndicate")
+    if not syndicate_ip:
+        logger.log("Syndicate: unable to get syndicate sliver ip. aborting.")
 
     if 'slivers' not in data:
         logger.log_missing_data("syndicate.GetSlivers",'slivers')
@@ -101,13 +79,13 @@ def GetSlivers(data, conf = None, plc = None):
 
         if enable_syndicate and (not has_syndicate):
             logger.log("Syndicate: enabling syndicate for %s" % sliver_name)
-            #enable_syndicate_mount(sliver, syndicate_mountpoint, get_syndicate_ip())
-            t = Thread(target=enable_syndicate_mount, args=(sliver, syndicate_mountpoint, get_syndicate_ip()))
+            #enable_syndicate_mount(sliver, syndicate_mountpoint, syndicate_ip)
+            t = Thread(target=enable_syndicate_mount, args=(sliver, syndicate_mountpoint, syndicate_ip))
             t.start()
 
         elif (not enable_syndicate) and (has_syndicate):
             logger.log("Syndicate: disabling syndicate for %s" % sliver_name)
-            #disable_syndicate_mount(sliver, syndicate_mountpoint, get_syndicate_ip())
-            t = Thread(target=disable_syndicate_mount, args=(sliver, syndicate_mountpoint, get_syndicate_ip()))
+            #disable_syndicate_mount(sliver, syndicate_mountpoint, syndicate_ip)
+            t = Thread(target=disable_syndicate_mount, args=(sliver, syndicate_mountpoint, syndicate_ip))
             t.start()
 
