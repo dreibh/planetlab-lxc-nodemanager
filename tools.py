@@ -252,7 +252,6 @@ def get_sliver_ifconfig(slice_name, device="eth0"):
         return None
 
     path = '/proc/%s/ns/net'%pid
-    r3 = setns.chcontext(path)
 
     result = None
     try:
