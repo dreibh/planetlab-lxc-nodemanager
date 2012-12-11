@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 2.1
-%define taglevel 13
+%define taglevel 14
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Mon Dec 10 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-14
+- Add syndicate plugin, create /etc/hostname and home directory in LXC guests
+
 * Tue Nov 13 2012 Andy Bavier <acb@cs.princeton.edu> - nodemanager-2.1-13
 - Bridge virtual interfaces to VLANs
 
