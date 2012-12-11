@@ -203,6 +203,12 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                     # if we fail to load any of these, it's really no need to go on any further
                     if module in NodeManager.core_modules:
                         logger.log("FATAL : failed to load core module %s"%module)
+                except AttributeError, err:
+                    # triggered when module doesn't have a 'start' method
+                    logger.log_exc ("ERROR while starting module %s - skipping:" % module)
+                    # if we fail to load any of these, it's really no need to go on any further
+                    if module in NodeManager.core_modules:
+                        logger.log("FATAL : failed to start core module %s"%module)
 
             # sort on priority (lower first)
             def sort_module_priority (m1,m2):
