@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 2.1
-%define taglevel 14
+%define taglevel 15
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Mon Dec 10 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-15
+- fix error in syndicate plugin, add error message to nodemanager for attributeerror during load/start
+
 * Mon Dec 10 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-14
 - Add syndicate plugin, create /etc/hostname and home directory in LXC guests
 
