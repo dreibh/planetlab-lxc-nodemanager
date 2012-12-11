@@ -4,6 +4,7 @@
 
 import subprocess
 import sys
+import time
 import os, os.path
 import grp
 from pwd import getpwnam
@@ -221,9 +222,21 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command, timeout=15*60)
 
+        if os.path.exists(os.path.join(containerDir,"vsys")):
+            # Slivers with vsys running will fail the subvolume delete.
+            # A more permanent solution may be to ensure that the vsys module
+            # is called before the sliver is destroyed.
+            logger.log("destroying vsys directory and restarting vsys")
+            logger.log_call(["rm", "-fR", os.path.join(containerDir, "vsys")])
+            logger.log_call(["/etc/init.d/vsys", "restart", ])
+
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=60)
+
+        if os.path.exists(containerDir):
+           # oh no, it's still here...
+           logger.log("WARNING: failed to destroy container %s" % containerDir)
 
         logger.verbose('sliver_libvirt: %s destroyed.'%name)
 
