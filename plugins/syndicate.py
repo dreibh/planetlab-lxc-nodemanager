@@ -56,7 +56,7 @@ def disable_syndicate_mount(sliver, mountpoint, syndicate_ip):
 def GetSlivers(data, conf = None, plc = None):
     node_id = tools.node_id()
 
-    syndicate_ip = tools.get_syndicate_ip("princeton_syndicate")
+    syndicate_ip = tools.get_sliver_ip("princeton_syndicate")
     if not syndicate_ip:
         logger.log("Syndicate: unable to get syndicate sliver ip. aborting.")
 
