@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 2.1
-%define taglevel 15
+%define taglevel 16
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,9 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Wed Dec 12 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-16
+- fix slices not deleted properly when they use vsys
+
 * Mon Dec 10 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-15
 - fix error in syndicate plugin, add error message to nodemanager for attributeerror during load/start
 
