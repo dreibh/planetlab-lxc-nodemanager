@@ -133,6 +133,9 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         command = ['mkdir', '%s/root/.ssh'%containerDir]
         logger.log_call(command, timeout=10)
 
+        command = ['chown', name, '%s/root/.ssh'%containerDir]
+        logger.log_call(command, timeout=10)
+
         command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
         logger.log_call(command, timeout=30)
 
@@ -158,10 +161,15 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             logger.log("uid is %d" % uid)
             command = ['mkdir', '%s/home/%s' % (containerDir, name)]
             logger.log_call(command, timeout=10)
+            command = ['chown', name, '%s/home/%s' % (containerDir, name)]
+            logger.log_call(command, timeout=10)
             etcpasswd = os.path.join(containerDir, 'etc/passwd')
             if os.path.exists(etcpasswd):
                 logger.log("adding user %s id %d to %s" % (name, uid, etcpasswd))
                 file(etcpasswd,'a').write("%s:x:%d:%d::/home/%s:/bin/bash\n" % (name, uid, uid, name))
+            sudoers = os.path.join(containerDir, 'etc/sudoers')
+            if os.path.exists(sudoers):
+                file(sudoers,'a').write("%s ALL=(ALL) NOPASSWD: ALL\n" % name)
 
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
