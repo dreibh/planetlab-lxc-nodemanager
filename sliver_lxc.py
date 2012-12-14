@@ -163,10 +163,16 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             etcpasswd = os.path.join(containerDir, 'etc/passwd')
             if os.path.exists(etcpasswd):
                 logger.log("adding user %s id %d to %s" % (name, uid, etcpasswd))
-                file(etcpasswd,'a').write("%s:x:%d:%d::/home/%s:/bin/bash\n" % (name, uid, uid, name))
+                try:
+                    file(etcpasswd,'a').write("%s:x:%d:%d::/home/%s:/bin/bash\n" % (name, uid, uid, name))
+                except:
+                    logger.log_exc("exception while updating etc/passwd")
             sudoers = os.path.join(containerDir, 'etc/sudoers')
             if os.path.exists(sudoers):
-                file(sudoers,'a').write("%s ALL=(ALL) NOPASSWD: ALL\n" % name)
+                try:
+                    file(sudoers,'a').write("%s ALL=(ALL) NOPASSWD: ALL\n" % name)
+                except:
+                    logger.log_exc("exception while updating /etc/sudoers")
 
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
