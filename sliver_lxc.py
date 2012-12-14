@@ -133,9 +133,6 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         command = ['mkdir', '%s/root/.ssh'%containerDir]
         logger.log_call(command, timeout=10)
 
-        command = ['chown', name, '%s/root/.ssh'%containerDir]
-        logger.log_call(command, timeout=10)
-
         command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
         logger.log_call(command, timeout=30)
 
