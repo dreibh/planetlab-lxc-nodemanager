@@ -87,7 +87,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # subvolume)
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
         if not logger.log_call(command, timeout=15*60):
-            logger.log('sliver_lxc: ERROR Could not create BTRFS snapshot at', containDir)
+            logger.log('sliver_lxc: ERROR Could not create BTRFS snapshot at', containerDir)
             return
         command = ['chmod', '755', containerDir]
         logger.log_call(command, timeout=15*60)
