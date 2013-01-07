@@ -207,7 +207,6 @@ class CoreSched:
             (cores, bestEffort) = self.decodeCoreSpec(cores)
 
             freezable = rspec.get("cpu_freezable", 0)
-            logger.log("CoreSched: " + str(name) + " " + str(freezable) + " " + str(type(freezable)) + " " + str(cores) + " " + str(type(cores)))
             if (cores==0) and (freezable == 1):
                freezeList[name] = "FROZEN"
             else:
