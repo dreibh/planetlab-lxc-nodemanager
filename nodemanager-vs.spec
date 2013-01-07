@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 2.1
-%define taglevel 17
+%define taglevel 18
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Mon Jan 07 2013 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-18
+- Support passing a list of interfaces in slice interface tag to configure multiple interfaces,
+- initial check-in of privatebridge plugin.
+
 * Fri Dec 14 2012 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-17
 - set ownership of slice homedir, att slice user to etc/sudoers inside of slice
 
