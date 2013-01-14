@@ -1,5 +1,5 @@
 """
-Configure interfaces inside a container by pulling down files via URL.
+Update /etc/hosts in slivers to contain the contents of the sliver_hostmap tag.
 """
 
 import logger
