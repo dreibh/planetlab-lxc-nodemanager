@@ -71,7 +71,7 @@ def GetSlivers(data, config=None, plc=None):
 
                 # remove anything between PREFIX and SUFFIX from contents
 
-                pattern = PREFIX + ".*" + SUFFIX
+                pattern = PREFIX + ".*" + SUFFIX + "\n"
                 regex = re.compile(pattern, re.DOTALL)
                 if regex.search(contents) != None:
                     contents = regex.sub(hostmap, contents)
