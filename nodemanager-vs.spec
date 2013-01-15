@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 2.1
-%define taglevel 19
+%define taglevel 20
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Mon Jan 14 2013 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-20
+- fix wrong gre tunnel deleted when topology changes
+
 * Mon Jan 14 2013 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-19
 - Update /etc/hosts in slivers from sliver_hostmap tag.
 
