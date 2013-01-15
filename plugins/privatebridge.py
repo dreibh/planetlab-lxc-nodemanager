@@ -120,8 +120,8 @@ def ensure_slicebridge_neighbors(name, sliver_id, neighbors):
         if not portname in ports:
             ovs_addport(name, portname, "gre", neighbor_ip, sliver_id)
 
-    for port in ports:
-        if port.startswith("gre") and (port not in want_ports):
+    for portname in ports:
+        if portname.startswith("gre") and (portname not in want_ports):
             ovs_delport(name, portname)
 
 def configure_slicebridge(sliver, attributes):
