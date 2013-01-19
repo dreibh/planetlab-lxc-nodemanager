@@ -52,13 +52,13 @@ def GetSlivers(data, config=None, plc=None):
                 for index, entry in enumerate(tag["value"].split("\n")):
                     parts = entry.split(" ")
                     if len(parts)==2:
-                       if parts[1] == hostname:
-                           line = "127.0.0.1 %s.%s private%d" % (slicename, parts[1], index)
-                       else:
-                           line = "%s %s.%s private%d" % (parts[0], slicename, parts[1], index)
+                       line = "%s pvt.%s private%d" % (parts[0], parts[1], index)
 
                        if (index==0):
                            line = line + " headnode"
+
+                       if parts[1] == hostname:
+                           line = line + " pvt.self"
 
                        hostmap.append(line)
 
@@ -82,6 +82,5 @@ def GetSlivers(data, config=None, plc=None):
                     file(fn, "w").write(contents)
                 except:
                     logger.log_exc("hostmap (%s): failed to write %s" % (slicename, fn))
-
 
 
