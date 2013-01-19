@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 2.1
-%define taglevel 20
+%define taglevel 21
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Sat Jan 19 2013 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-21
+- change hostnames related to private IPs to use pvt.hostname instead of slice_name.hostname
+
 * Mon Jan 14 2013 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-20
 - fix wrong gre tunnel deleted when topology changes
 
