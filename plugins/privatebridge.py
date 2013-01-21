@@ -80,6 +80,11 @@ def ovs_listports(name):
         raise OvsException()
     return stdout.split()
 
+def ovs_delbridge(name):
+    (returncode, stdout) = ovs_vsctl(["del-br",name])
+    if (returncode != 0):
+        raise OvsException()
+
 def ovs_addport(name, portname, type, remoteip, key):
     args = ["add-port", name, portname, "--", "set", "interface", portname, "type="+type]
     if remoteip:
@@ -152,6 +157,7 @@ def GetSlivers(data, conf = None, plc = None):
         logger.log_missing_data("privatebridge.GetSlivers",'slivers')
         return
 
+    valid_bridges = []
     for sliver in data['slivers']:
         sliver_name = sliver['name']
 
@@ -160,7 +166,25 @@ def GetSlivers(data, conf = None, plc = None):
         for attribute in sliver['attributes']:
             attributes[attribute['tagname']] = attribute['value']
 
-        if attributes.get('slice_bridge_name',None):
+        bridge_name = attributes.get('slice_bridge_name',None)
+        if bridge_name:
             configure_slicebridge(sliver, attributes)
+            valid_bridges.append(bridge_name)
+
+    # now, delete the bridges that we don't want
+    bridges = ovs_listbridge()
+    for bridge_name in bridges:
+        if not bridge_name.startswith("br-slice-"):
+            # ignore ones we didn't create
+            continue
+
+        if bridge_name in valid_bridges:
+            # ignore ones we want to keep
+            continue
+
+        logger.log("privatebridge: deleting unused bridge %s" % bridge_name)
+
+        ovs_delbridge(bridge_name)
+
 
 
