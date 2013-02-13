@@ -16,6 +16,11 @@ import tools
 
 priority = 9
 
+class OvsException (Exception) :
+    def __init__ (self, message="no message"):
+        self.message=message
+    def __repr__ (self): return message
+
 def start():
     logger.log('private bridge plugin starting up...')
 
@@ -65,25 +70,21 @@ def ovs_vsctl(args):
 
 def ovs_listbridge():
     (returncode, stdout) = ovs_vsctl(["list-br"])
-    if (returncode != 0):
-        raise OvsException()
+    if (returncode != 0): raise OvsException("list-br")
     return stdout.split()
 
 def ovs_addbridge(name):
     (returncode, stdout) = ovs_vsctl(["add-br",name])
-    if (returncode != 0):
-        raise OvsException()
+    if (returncode != 0): raise OvsException("add-br")
 
 def ovs_listports(name):
     (returncode, stdout) = ovs_vsctl(["list-ports", name])
-    if (returncode != 0):
-        raise OvsException()
+    if (returncode != 0): raise OvsException("list-ports")
     return stdout.split()
 
 def ovs_delbridge(name):
     (returncode, stdout) = ovs_vsctl(["del-br",name])
-    if (returncode != 0):
-        raise OvsException()
+    if (returncode != 0): raise OvsException("del-br")
 
 def ovs_addport(name, portname, type, remoteip, key):
     args = ["add-port", name, portname, "--", "set", "interface", portname, "type="+type]
@@ -93,13 +94,11 @@ def ovs_addport(name, portname, type, remoteip, key):
         args = args + ["options:key=" + str(key)]
 
     (returncode, stdout) = ovs_vsctl(args)
-    if (returncode != 0):
-        raise OvsException()
+    if (returncode != 0): raise OvsException("add-port")
 
 def ovs_delport(name, portname):
     (returncode, stdout) = ovs_vsctl(["del-port",name,portname])
-    if (returncode != 0):
-        raise OvsException()
+    if (returncode != 0): raise OvsException("del-port")
 
 def ensure_slicebridge_created(name, addr):
     bridges = ovs_listbridge()
