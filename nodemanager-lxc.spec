@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 2.1
-%define taglevel 21
+%define taglevel 22
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Thu Feb 21 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-22
+- improvements to privatebridge
+
 * Sat Jan 19 2013 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-21
 - change hostnames related to private IPs to use pvt.hostname instead of slice_name.hostname
 

@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 2.1
-%define taglevel 21
+%define taglevel 22
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,9 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Thu Feb 21 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-22
+- improvements to privatebridge
+
 * Sat Jan 19 2013 Scott Baker <smbaker@gmail.com> - nodemanager-2.1-21
 - change hostnames related to private IPs to use pvt.hostname instead of slice_name.hostname
 
