@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,9 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Thu Mar 07 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-1
+- no-op bump to 5.2 to be in line with the rest of the system
+
 * Thu Feb 21 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-22
 - improvements to privatebridge
 

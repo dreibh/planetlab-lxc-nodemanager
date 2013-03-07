@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 5.2
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Thu Mar 07 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-1
+- no-op bump to 5.2 to be in line with the rest of the system
+
 * Thu Feb 21 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-2.1-22
 - improvements to privatebridge
 
