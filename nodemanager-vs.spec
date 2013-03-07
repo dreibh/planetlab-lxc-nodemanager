@@ -4,8 +4,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name nodemanager-vs
-%define version 2.1
-%define taglevel 22
+%define version 5.2
+%define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 

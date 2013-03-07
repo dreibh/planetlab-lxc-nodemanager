@@ -1,8 +1,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name nodemanager-lib
-%define version 2.1
-%define taglevel 22
+%define version 5.2
+%define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
