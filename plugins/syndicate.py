@@ -56,12 +56,22 @@ def disable_syndicate_mount(sliver, mountpoint, syndicate_ip):
 def GetSlivers(data, conf = None, plc = None):
     node_id = tools.node_id()
 
+    if 'slivers' not in data:
+        logger.log_missing_data("syndicate.GetSlivers",'slivers')
+        return
+
+    syndicate_sliver = None
+    for sliver in data['slivers']:
+        if sliver['name'] == "princeton_syndicate":
+            syndicate_sliver = sliver
+
+    if not syndicate_sliver:
+        logger.log("Syndicate: no princeton_syndicate sliver on this node. aborting.")
+        return
+
     syndicate_ip = tools.get_sliver_ip("princeton_syndicate")
     if not syndicate_ip:
         logger.log("Syndicate: unable to get syndicate sliver ip. aborting.")
-
-    if 'slivers' not in data:
-        logger.log_missing_data("syndicate.GetSlivers",'slivers')
         return
 
     for sliver in data['slivers']:

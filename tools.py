@@ -242,6 +242,11 @@ def get_sliver_ifconfig(slice_name, device="eth0"):
         side effects: adds "/usr/sbin" to sys.path
     """
 
+    # See if setns is installed. If it's not then we're probably not running
+    # LXC.
+    if not os.path.exists("/usr/sbin/setns.so"):
+        return None
+
     # setns is part of lxcsu and is installed to /usr/sbin
     if not "/usr/sbin" in sys.path:
         sys.path.append("/usr/sbin")
