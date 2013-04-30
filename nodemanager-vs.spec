@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 5.2
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Tue Apr 30 2013 Stephen Soltesz <soltesz@opentechinstitute.org> - nodemanager-5.2-2
+
 * Thu Mar 07 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-1
 - no-op bump to 5.2 to be in line with the rest of the system
 
