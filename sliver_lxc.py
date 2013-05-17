@@ -97,10 +97,27 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         ld_preload_msg="""# by default, we define this setting so that calls to bind(2),
 # when invoked on 0.0.0.0, get transparently redirected to the public interface of this node
 # see https://svn.planet-lab.org/wiki/LxcPortForwarding"""
+        usrmove_path_msg="""# VM's before Features/UsrMove need /bin and /sbin in their PATH"""
+        usrmove_path_code="""
+pathmunge () {
+        if ! echo $PATH | /bin/egrep -q "(^|:)$1($|:)" ; then
+           if [ "$2" = "after" ] ; then
+              PATH=$PATH:$1
+           else
+              PATH=$1:$PATH
+           fi
+        fi
+}
+pathmunge /bin after
+pathmunge /sbin after
+unset pathmunge
+"""
         with open(dot_profile,'w') as f:
             f.write("export PS1='%s@\H \$ '\n"%(name))
             f.write("%s\n"%ld_preload_msg)
             f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
+            f.write("%s\n"%usrmove_path_msg)
+            f.write("%s\n"%usrmove_path_code)
 
         # TODO: set quotas...
 
