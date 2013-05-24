@@ -69,6 +69,14 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # pldistro = lxc
         # fcdistro = squeeze
         # arch x86_64
+
+        arch = 'x86_64'
+        tags = rec['rspec']['tags']
+        if 'arch' in tags:
+            arch = tags['arch']
+            if arch == 'i386':
+                arch = 'i686'
+
         vref = rec['vref']
         if vref is None:
             logger.log('sliver_libvirt: %s: WARNING - no vref attached defaults to lxc-f14' % (name))
@@ -209,7 +217,7 @@ unset pathmunge
         try:
             with open(template_filename) as f:
                 template = Template(f.read())
-                xml  = template.substitute(name=name, interfaces=interfaces)
+                xml  = template.substitute(name=name, interfaces=interfaces, arch=arch)
         except IOError:
             logger.log('Failed to parse or use XML template file %s'%template_filename)
             return
