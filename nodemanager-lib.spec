@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 2
+%define taglevel 3
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,9 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Fri May 24 2013 Andy Bavier <acb@cs.princeton.edu> - nodemanager-5.2-3
+- Fix path, machine arch in slivers
+
 * Tue Apr 30 2013 Stephen Soltesz <soltesz@opentechinstitute.org> - nodemanager-5.2-2
 
 * Thu Mar 07 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-1
