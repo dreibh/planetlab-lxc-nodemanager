@@ -423,7 +423,7 @@ class Slice:
         if (runningrates['maxrate'] != new_maxrate) or \
         (runningrates['minrate'] != self.MinRate * 1000) or \
         (runningrates['maxexemptrate'] != new_maxi2rate) or \
-        (runningrates['minexemptrate'] != self.Mini2Rate * 1000) or \
+        ('minexemptrate' in runningrates and runningrates['minexemptrate'] != self.Mini2Rate * 1000) or \
         (runningrates['share'] != self.Share):
             # Apply parameters
             bwlimit.set(xid = self.xid, dev = dev_default,
