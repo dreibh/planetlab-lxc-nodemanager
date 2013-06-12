@@ -8,10 +8,13 @@
 
 from distutils.core import setup, Extension
 
+# vserver-specific stuff
 setup(
     py_modules=[
         'sliver_vs',
         'coresched_vs',
+        # this plugin uses vserver for now
+        'plugins.drl',
         ],
     scripts = [
         ],
