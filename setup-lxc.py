@@ -14,6 +14,7 @@ setup(
         'sliver_lxc',
         'cgroups',
         'coresched_lxc',
+        'plugins.privatebridge',
         ],
     scripts = [
         ],

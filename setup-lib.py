@@ -33,7 +33,6 @@ setup(
         'plugins.hostmap',
         'plugins.interfaces',
         'plugins.omf',
-        'plugins.privatebridge',
         'plugins.rawdisk',
         'plugins.reservation',
         'plugins.sfagids',
