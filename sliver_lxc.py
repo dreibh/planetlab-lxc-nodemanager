@@ -47,6 +47,9 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             return
         # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
         self.install_and_enable_vinit()
+        # expose .ssh for omf_friendly slivers
+        if 'omf_control' in self.rspec['tags']:
+            Account.mount_ssh_dir(self.name)
         Sliver_Libvirt.start (self, delay)
         # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
         self.refresh_slice_vinit()
@@ -233,6 +236,8 @@ unset pathmunge
 
     @staticmethod
     def destroy(name):
+        # umount .ssh directory - only if mounted
+        Account.umount_ssh_dir(name)
         logger.verbose ('sliver_lxc: %s destroy'%(name))
         conn = Sliver_Libvirt.getConnection(Sliver_LXC.TYPE)
 

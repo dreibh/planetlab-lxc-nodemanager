@@ -134,7 +134,14 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
 
     @staticmethod
     def destroy(name):
+        # need to umount before we trash, otherwise we end up with sequels in 
+        # /vservers/slicename/ (namely in home/ )
+        # also because this is a static method we cannot check for 'omf_control'
+        # but it is no big deal as umount_ssh_dir checks before it umounts..
+        Account.umount_ssh_dir(name)
+        logger.log("sliver_vs: destroying %s"%name)
         logger.log_call(['/bin/bash','-x','/usr/sbin/vuserdel', name, ])
+
 
     def configure(self, rec):
         # in case we update nodemanager..
@@ -153,25 +160,25 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
             logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
+            return
+        logger.log('sliver_vs: %s: starting in %d seconds' % (self.name, delay))
+        time.sleep(delay)
+        # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
+        self.install_and_enable_vinit()
+        # expose .ssh for omf_friendly slivers
+        if 'omf_control' in self.rspec['tags']:
+            Account.mount_ssh_dir(self.name)
+        # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
+        self.refresh_slice_vinit()
+        child_pid = os.fork()
+        if child_pid == 0:
+            # VServer.start calls fork() internally,
+            # so just close the nonstandard fds and fork once to avoid creating zombies
+            tools.close_nonstandard_fds()
+            vserver.VServer.start(self)
+            os._exit(0)
         else:
-            logger.log('sliver_vs: %s: starting in %d seconds' % (self.name, delay))
-            time.sleep(delay)
-            # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
-            self.install_and_enable_vinit()
-            # expose .ssh for omf_friendly slivers
-            if 'omf_control' in self.rspec['tags']:
-                self.expose_ssh_dir()
-            # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
-            self.refresh_slice_vinit()
-            child_pid = os.fork()
-            if child_pid == 0:
-                # VServer.start calls fork() internally,
-                # so just close the nonstandard fds and fork once to avoid creating zombies
-                tools.close_nonstandard_fds()
-                vserver.VServer.start(self)
-                os._exit(0)
-            else:
-                os.waitpid(child_pid, 0)
+            os.waitpid(child_pid, 0)
 
     def stop(self):
         logger.log('sliver_vs: %s: stopping' % self.name)

@@ -123,25 +123,43 @@ class Account:
     def stop(self): pass
     def is_running(self): pass
 
-    # bind mount root side dir to sliver side
-    # needs to be done before sliver starts, in the vserver case at least
-    def expose_ssh_dir (self):
+    ### this used to be a plain method but because it needs to be invoked by destroy
+    # which is a static method, they need to become static as well
+    # needs to be done before sliver starts (checked with vs and lxc)
+    @staticmethod
+    def mount_ssh_dir (slicename): return Account._manage_ssh_dir (slicename, do_mount=True)
+    @staticmethod
+    def umount_ssh_dir (slicename): return Account._manage_ssh_dir (slicename, do_mount=False)
+
+    # bind mount / umount root side dir to sliver side
+    @staticmethod
+    def _manage_ssh_dir (slicename, do_mount):
+        logger.log ("_manage_ssh_dir, requested to "+("mount" if do_mount else "umount")+" ssh dir for "+ slicename)
         try:
-            root_ssh="/home/%s/.ssh"%self.name
-            sliver_ssh="/vservers/%s/home/%s/.ssh"%(self.name,self.name)
-            # any of both might not exist yet
-            for path in [root_ssh,sliver_ssh]:
-                if not os.path.exists (path):
-                    os.mkdir(path)
-                if not os.path.isdir (path):
-                    raise Exception
-            mounts=file('/proc/mounts').read()
-            if mounts.find(sliver_ssh)<0:
-                # xxx perform mount
-                subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
-                logger.log("expose_ssh_dir: %s mounted into slice %s"%(root_ssh,self.name))
+            root_ssh="/home/%s/.ssh"%slicename
+            sliver_ssh="/vservers/%s/home/%s/.ssh"%(slicename,slicename)
+            def is_mounted (root_ssh):
+                for mount_line in file('/proc/mounts').readlines():
+                    if mount_line.find (root_ssh)>=0: return True
+                return False
+            if do_mount:
+                # any of both might not exist yet
+                for path in [root_ssh,sliver_ssh]:
+                    if not os.path.exists (path):
+                        os.mkdir(path)
+                    if not os.path.isdir (path):
+                        raise Exception
+                if not is_mounted(root_ssh):
+                    # xxx perform mount
+                    subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
+                    logger.log("_manage_ssh_dir: mounted %s into slice %s"%(root_ssh,slicename))
+            else:
+                if is_mounted (root_ssh):
+                    # xxx perform umount
+                    subprocess.call("umount %s"%(root_ssh),shell=True)
+                    logger.log("_manage_ssh_dir: umounted %s"%(root_ssh))
         except:
-            logger.log_exc("expose_ssh_dir with slice %s failed"%self.name)
+            logger.log_exc("_manage_ssh_dir with slice %s failed"%slicename)
 
 class Worker:
 
