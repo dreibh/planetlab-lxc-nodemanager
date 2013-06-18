@@ -136,31 +136,37 @@ class Sliver_Libvirt(Account):
         # Btrfs support quota per volumes
 
         if rec.has_key("rspec") and rec["rspec"].has_key("tags"):
-            tags = rec["rspec"]["tags"]
-            # It will depend on the FS selection
-            if tags.has_key('disk_max'):
-                disk_max = tags['disk_max']
-                if disk_max == 0:
-                    # unlimited
-                    pass
-                else:
-                    # limit to certain number
-                    pass
+            if cgroups.get_cgroup_path(self.name) == None:
+                # If configure is called before start, then the cgroups won't exist
+                # yet. NM will eventually re-run configure on the next iteration.
+                # TODO: Add a post-start configure, and move this stuff there
+                logger.log("Configure: postponing tag check on %s as cgroups are not yet populated" % self.name)
+            else:
+                tags = rec["rspec"]["tags"]
+                # It will depend on the FS selection
+                if tags.has_key('disk_max'):
+                    disk_max = tags['disk_max']
+                    if disk_max == 0:
+                        # unlimited
+                        pass
+                    else:
+                        # limit to certain number
+                        pass
 
-            # Memory allocation
-            if tags.has_key('memlock_hard'):
-                mem = str(int(tags['memlock_hard']) * 1024) # hard limit in bytes
-                cgroups.write(self.name, 'memory.limit_in_bytes', mem, subsystem="memory")
-            if tags.has_key('memlock_soft'):
-                mem = str(int(tags['memlock_soft']) * 1024) # soft limit in bytes
-                cgroups.write(self.name, 'memory.soft_limit_in_bytes', mem, subsystem="memory")
+                # Memory allocation
+                if tags.has_key('memlock_hard'):
+                    mem = str(int(tags['memlock_hard']) * 1024) # hard limit in bytes
+                    cgroups.write(self.name, 'memory.limit_in_bytes', mem, subsystem="memory")
+                if tags.has_key('memlock_soft'):
+                    mem = str(int(tags['memlock_soft']) * 1024) # soft limit in bytes
+                    cgroups.write(self.name, 'memory.soft_limit_in_bytes', mem, subsystem="memory")
 
-            # CPU allocation
-            # Only cpu_shares until figure out how to provide limits and guarantees
-            # (RT_SCHED?)
-            if tags.has_key('cpu_share'):
-                cpu_share = tags['cpu_share']
-                cgroups.write(self.name, 'cpu.shares', cpu_share)
+                # CPU allocation
+                # Only cpu_shares until figure out how to provide limits and guarantees
+                # (RT_SCHED?)
+                if tags.has_key('cpu_share'):
+                    cpu_share = tags['cpu_share']
+                    cgroups.write(self.name, 'cpu.shares', cpu_share)
 
         # Call the upper configure method (ssh keys...)
         Account.configure(self, rec)
