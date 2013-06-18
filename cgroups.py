@@ -50,16 +50,16 @@ class CgroupWatch(pyinotify.ProcessEvent):
 #notifier.daemon = True
 #notifier.start()
 
-def get_cgroup_paths():
-    cpusetBase  = os.path.join(BASE_DIR, 'cpuset', 'libvirt', 'lxc')
+def get_cgroup_paths(subsystem="cpuset"):
+    cpusetBase  = os.path.join(BASE_DIR, subsystem, 'libvirt', 'lxc')
     return filter(os.path.isdir,
                   map(lambda f: os.path.join(cpusetBase, f),
                       os.listdir(cpusetBase)))
 
-def get_cgroup_path(name):
+def get_cgroup_path(name, subsystem="cpuset"):
     """ Returns the base path for the cgroup with a specific name or None."""
     return reduce(lambda a, b: b if os.path.basename(b) == name else a,
-                  get_cgroup_paths(), None)
+                  get_cgroup_paths(subsystem), None)
 
 def get_base_path():
     return BASE_DIR
@@ -68,14 +68,14 @@ def get_cgroups():
     """ Returns the list of cgroups active at this moment on the node """
     return map(os.path.basename, get_cgroup_paths())
 
-def write(name, key, value):
+def write(name, key, value, subsystem="cpuset"):
     """ Writes a value to the file key with the cgroup with name """
-    base_path = get_cgroup_path(name)
+    base_path = get_cgroup_path(name, subsystem)
     with open(os.path.join(base_path, key), 'w') as f:
         print >>f, value
 
-def append(name, key, value):
+def append(name, key, value, subsystem="cpuset"):
     """ Appends a value to the file key with the cgroup with name """
-    base_path = get_cgroup_path(name)
+    base_path = get_cgroup_path(name, subsystem)
     with open(os.path.join(base_path, key), 'a') as f:
         print >>f, value
