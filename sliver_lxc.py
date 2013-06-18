@@ -220,7 +220,7 @@ unset pathmunge
         try:
             with open(template_filename) as f:
                 template = Template(f.read())
-                xml  = template.substitute(name=name, interfaces=interfaces, arch=arch)
+                xml  = template.substitute(name=name, xid=xid, interfaces=interfaces, arch=arch)
         except IOError:
             logger.log('Failed to parse or use XML template file %s'%template_filename)
             return
