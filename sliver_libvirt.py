@@ -135,30 +135,32 @@ class Sliver_Libvirt(Account):
 
         # Btrfs support quota per volumes
 
-        # It will depend on the FS selection
-        if rec.has_key('disk_max'):
-            disk_max = rec['disk_max']
-            if disk_max == 0:
-                # unlimited 
-                pass
-            else:
-                # limit to certain number
-                pass
+        if rec.has_key("rspec") and rec["rspec"].has_key("tags"):
+            tags = rec["rspec"]["tags"]
+            # It will depend on the FS selection
+            if tags.has_key('disk_max'):
+                disk_max = tags['disk_max']
+                if disk_max == 0:
+                    # unlimited
+                    pass
+                else:
+                    # limit to certain number
+                    pass
 
-        # Memory allocation
-        if rec.has_key('memlock_hard'):
-            mem = rec['memlock_hard'] * 1024 # hard limit in bytes
-            cgroups.write(self.name, 'memory.limit_in_bytes', mem)
-        if rec.has_key('memlock_soft'):
-            mem = rec['memlock_soft'] * 1024 # soft limit in bytes
-            cgroups.write(self.name, 'memory.soft_limit_in_bytes', mem)
+            # Memory allocation
+            if tags.has_key('memlock_hard'):
+                mem = str(int(tags['memlock_hard']) * 1024) # hard limit in bytes
+                cgroups.write(self.name, 'memory.limit_in_bytes', mem, subsystem="memory")
+            if tags.has_key('memlock_soft'):
+                mem = str(int(tags['memlock_soft']) * 1024) # soft limit in bytes
+                cgroups.write(self.name, 'memory.soft_limit_in_bytes', mem, subsystem="memory")
 
-        # CPU allocation
-        # Only cpu_shares until figure out how to provide limits and guarantees
-        # (RT_SCHED?)
-        if rec.has_key('cpu_share'):
-            cpu_share = rec['cpu_share']
-            cgroups.write(self.name, 'cpu.shares', cpu_share)
+            # CPU allocation
+            # Only cpu_shares until figure out how to provide limits and guarantees
+            # (RT_SCHED?)
+            if tags.has_key('cpu_share'):
+                cpu_share = tags['cpu_share']
+                cgroups.write(self.name, 'cpu.shares', cpu_share)
 
         # Call the upper configure method (ssh keys...)
         Account.configure(self, rec)
