@@ -48,7 +48,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # the generic /etc/init.d/vinit script is permanently refreshed, and enabled
         self.install_and_enable_vinit()
         # expose .ssh for omf_friendly slivers
-        if 'omf_control' in self.rspec['tags']:
+        if 'tags' in self.rspec and 'omf_control' in self.rspec['tags']:
             Account.mount_ssh_dir(self.name)
         Sliver_Libvirt.start (self, delay)
         # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
