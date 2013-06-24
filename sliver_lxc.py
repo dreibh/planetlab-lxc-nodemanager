@@ -127,7 +127,7 @@ pathmunge /bin after
 pathmunge /sbin after
 unset pathmunge
 """
-        with open(dot_profile,'w') as f:
+        with open(pl_profile,'w') as f:
             f.write("export PS1='%s@\H \$ '\n"%(name))
             f.write("%s\n"%ld_preload_msg)
             f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
