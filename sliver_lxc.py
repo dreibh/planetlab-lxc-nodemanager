@@ -15,6 +15,7 @@ import libvirt
 import logger
 import plnode.bwlimit as bwlimit
 from initscript import Initscript
+from account import Account
 from sliver_libvirt import Sliver_Libvirt
 
 class Sliver_LXC(Sliver_Libvirt, Initscript):
@@ -103,8 +104,11 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         command = ['chmod', '755', containerDir]
         logger.log_call(command, timeout=15*60)
 
-        # customize prompt for slice owner, + LD_PRELOAD for transparently wrap bind
-        dot_profile=os.path.join(containerDir,"root/.profile")
+        # customizations for the user environment - root or slice uid
+        # we save the whole business in /etc/planetlab.profile 
+        # and source this file for both root and the slice uid's .profile
+        # prompt for slice owner, + LD_PRELOAD for transparently wrap bind
+        pl_profile=os.path.join(containerDir,"etc/planetlab.profile")
         ld_preload_msg="""# by default, we define this setting so that calls to bind(2),
 # when invoked on 0.0.0.0, get transparently redirected to the public interface of this node
 # see https://svn.planet-lab.org/wiki/LxcPortForwarding"""
@@ -129,6 +133,21 @@ unset pathmunge
             f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
             f.write("%s\n"%usrmove_path_msg)
             f.write("%s\n"%usrmove_path_code)
+
+        # make sure this file is sourced from both root's and slice's .profile
+        enforced_line = "[ -f /etc/planetlab.profile ] && source /etc/planetlab.profile\n"
+        for path in [ 'root/.profile', 'home/%s/.profile'%name ]:
+            from_root=os.path,join(containerDir,path)
+            found=False
+            try: 
+                contents=file(from_root).readlnes()
+                for content in contents:
+                    if content==enforced_line: found=True
+            except:
+                pass
+            if not found:
+                with open(from_root,"a") as user_profile:
+                    user_profile.write(enforced_line)
 
         # TODO: set quotas...
 
