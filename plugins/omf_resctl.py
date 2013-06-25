@@ -18,6 +18,31 @@ priority = 50
 def start():
     logger.log("omf_resctl: plugin starting up...")
 
+### the new template for v6
+# hard-wire this for now
+# once the variables are expanded, this is expected to go into
+config_ple_template="""---
+# Example:
+# _slicename_ = nicta_ruby
+# _hostname_ = planetlab1.research.nicta.com.au
+# _xmpp_server_ = xmpp.planet-lab.eu
+ 
+:uid: _slicename_@_hostname_
+:uri: xmpp://_slicename_-_hostname_-<%= "#{Process.pid}" %>:_slicename_-_hostname_-<%= "#{Process.pid}" %>@_xmpp_server_
+:environment: production
+:debug: false
+ 
+:auth:
+  :root_cert_dir: /home/_slicename_/root_certs
+  :entity_cert: /home/_slicename_/entity.crt
+  :entity_key: /home/_slicename_/.ssh/id_rsa
+"""
+
+# the path where the config is expected from within the sliver
+yaml_slice_path="/etc/omf_rc/config.yml"
+# the path for the script that we call when a change occurs
+omf_rc_trigger_script="/some/path/to/the/change/script"
+
 def GetSlivers(data, conf = None, plc = None):
     if 'accounts' not in data:
         logger.log_missing_data("omf_resctl.GetSlivers",'accounts')
@@ -34,50 +59,35 @@ def GetSlivers(data, conf = None, plc = None):
         logger.log("PLC config unsufficient (not enabled, or no server set), see the PLC_OMF category -- plugin exiting")
         return
 
-    # as hrn is set only at AddNode-time, upgraded myplcs might still miss this
-    # clue: just overwrite the hostname of all nodes
-    # for node in GetNodes(): UpdateNode(node['node_id'],{'hostname':node['hostname']})
-    try:
-        node_hrn = data['hrn']
-        if not node_hrn: raise Exception
-    except:
-        logger.log("Failed to read hrn from GetSlivers, using 'default' - *please upgrade PLCAPI*")
-        node_hrn='default   # Failed to read hrn from GetSlivers, please upgrade PLCAPI'
+    hostname = data['hostname']
+
+    def is_omf_friendly (sliver):
+        for chunk in sliver['attributes']:
+            if chunk['tagname']=='omf_control': return True
 
     for sliver in data['slivers']:
-        name=sliver['name']
-        sliver_pub_key_dir=os.path.join("/home", name, ".ssh/")
-        sliver_private_key=os.path.join(sliver_pub_key_dir, "id_rsa")
-        for chunk in sliver['attributes']:
-            if chunk['tagname']=='omf_control':
-                # scan all versions of omf-resctl
-                etc_path="/vservers/%s/etc/"%name
-                pattern = etc_path + "omf-resctl-*/omf-resctl.yaml.in"
-                templates = glob.glob (pattern)
-                if not templates:
-                    logger.log("WARNING: omf_resctl plugin, no template found for slice %s using pattern %s"\
-                                   %(name,pattern))
-                    continue
-                for template in templates:
-                    # remove the .in extension
-                    yaml=template[:-3]
-                    # figure service name as subdir under etc/
-                    service_name=os.path.split(template.replace(etc_path,''))[0]
-                    # read template and replace
-                    template_contents=file(template).read()
-                    yaml_contents=template_contents\
-                        .replace('@XMPP_SERVER@',xmpp_server)\
-                        .replace('@NODE_HRN@',node_hrn)\
-                        .replace('@SLICE_NAME@',name)\
-                        .replace('@SLIVER_PRIVATE_KEY@',sliver_private_key)\
-                        .replace('@SLIVER_PUB_KEY_DIR@',sliver_pub_key_dir)
-                    changes=tools.replace_file_with_string(yaml,yaml_contents)
-                    logger.log("yaml_contents length=%d, changes=%r"%(len(yaml_contents),changes))
-                    if changes:
-                        sp=subprocess.Popen(['vserver',name,'exec','service',service_name,'restart'],
-                                            stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-                        (output,retcod)=sp.communicate()
-                        logger.log("omf_resctl: %s: restarted resource controller (retcod=%r)"%(name,retcod))
-                        logger.log("omf_resctl: got output\n%s"%output)
-                    else:
-                        logger.log("omf_resctl: %s: omf_control'ed sliver has no change" % name)
+        # skip non OMF-friendly slices
+        if not is_omf_friendly (sliver): continue
+        slicename=sliver['name']
+        yaml_template = config_ple_template
+        yaml_contents = yaml_template\
+            .replace('_xmpp_server_',xmpp_server)\
+            .replace('_slicename_',slicename)\
+            .replace('_hostname_',hostname)
+        yaml_full_path="/vservers/%s/%s"%(slicename,yaml_slice_path)
+        yaml_full_dir=os.path.dirname(yaml_full_path)
+        if not isdir(yaml_full_dir):
+            try: os.makedirs(yaml_full_dir)
+            except OSError: pass
+
+        changes=tools.replace_file_with_string(yaml_full_path,yaml_contents)
+        logger.log("yaml_contents length=%d, changes=%r"%(len(yaml_contents),changes))
+        if changes:
+            # instead of restarting the service we call a companion script
+            sp=subprocess.Popen([omf_rc_trigger_script],
+                                stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+            (output,retcod)=sp.communicate()
+            logger.log("omf_resctl: %s: called OMF rc control script (retcod=%r)"%(slicename,retcod))
+            logger.log("omf_resctl: got output\n%s"%output)
+        else:
+            logger.log("omf_resctl: %s: omf_control'ed sliver has no change" % slicename)
