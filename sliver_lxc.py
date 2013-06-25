@@ -138,13 +138,14 @@ unset pathmunge
         enforced_line = "[ -f /etc/planetlab.profile ] && source /etc/planetlab.profile\n"
         for path in [ 'root/.profile', 'home/%s/.profile'%name ]:
             from_root=os.path.join(containerDir,path)
+            # if dir is not yet existing let's forget it for now
+            if not os.path.isdir(os.path.dirname(from_root)): continue
             found=False
             try: 
-                contents=file(from_root).readlnes()
+                contents=file(from_root).readlines()
                 for content in contents:
                     if content==enforced_line: found=True
-            except:
-                pass
+            except IOError: pass
             if not found:
                 with open(from_root,"a") as user_profile:
                     user_profile.write(enforced_line)
