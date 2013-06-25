@@ -137,7 +137,7 @@ unset pathmunge
         # make sure this file is sourced from both root's and slice's .profile
         enforced_line = "[ -f /etc/planetlab.profile ] && source /etc/planetlab.profile\n"
         for path in [ 'root/.profile', 'home/%s/.profile'%name ]:
-            from_root=os.path,join(containerDir,path)
+            from_root=os.path.join(containerDir,path)
             found=False
             try: 
                 contents=file(from_root).readlnes()
