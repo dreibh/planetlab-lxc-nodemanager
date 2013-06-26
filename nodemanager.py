@@ -74,7 +74,10 @@ class NodeManager:
         # Deal with plugins directory
         if os.path.exists(self.options.path):
             sys.path.append(self.options.path)
-            plugins = [ os.path.split(os.path.splitext(x)[0])[1] for x in glob.glob( os.path.join(self.options.path,'*.py') ) ]
+            plugins = [ os.path.split(os.path.splitext(x)[0])[1]
+                        for x in glob.glob( os.path.join(self.options.path,'*.py') )
+                        if not x.endswith("/__init__.py")
+                        ]
             self.modules += plugins
         if self.options.user_module:
             assert self.options.user_module in self.modules
