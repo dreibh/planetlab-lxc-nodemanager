@@ -16,7 +16,7 @@ import logger
 priority = 50
 
 def start():
-    logger.log("omf_resctl: plugin starting up...")
+    pass
 
 ### the new template for v6
 # hard-wire this for now
@@ -44,6 +44,7 @@ yaml_slice_path="/etc/omf_rc/config.yml"
 omf_rc_trigger_script="/some/path/to/the/change/script"
 
 def GetSlivers(data, conf = None, plc = None):
+    logger.log("omf_resctl.GetSlivers")
     if 'accounts' not in data:
         logger.log_missing_data("omf_resctl.GetSlivers",'accounts')
         return
@@ -76,7 +77,7 @@ def GetSlivers(data, conf = None, plc = None):
             .replace('_hostname_',hostname)
         yaml_full_path="/vservers/%s/%s"%(slicename,yaml_slice_path)
         yaml_full_dir=os.path.dirname(yaml_full_path)
-        if not isdir(yaml_full_dir):
+        if not os.path.isdir(yaml_full_dir):
             try: os.makedirs(yaml_full_dir)
             except OSError: pass
 
@@ -84,10 +85,13 @@ def GetSlivers(data, conf = None, plc = None):
         logger.log("yaml_contents length=%d, changes=%r"%(len(yaml_contents),changes))
         if changes:
             # instead of restarting the service we call a companion script
-            sp=subprocess.Popen([omf_rc_trigger_script],
-                                stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-            (output,retcod)=sp.communicate()
-            logger.log("omf_resctl: %s: called OMF rc control script (retcod=%r)"%(slicename,retcod))
-            logger.log("omf_resctl: got output\n%s"%output)
+            try:
+                sp=subprocess.Popen([omf_rc_trigger_script],
+                                    stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+                (output,retcod)=sp.communicate()
+                logger.log("omf_resctl: %s: called OMF rc control script (retcod=%r)"%(slicename,retcod))
+                logger.log("omf_resctl: got output\n%s"%output)
+            except:
+                logger.log("omf_resctl: WARNING: Could not call trigger script %s"%omf_rc_trigger_script)
         else:
             logger.log("omf_resctl: %s: omf_control'ed sliver has no change" % slicename)
