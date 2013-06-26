@@ -32,7 +32,7 @@ setup(
         'plugins.codemux',
         'plugins.hostmap',
         'plugins.interfaces',
-        'plugins.omf',
+        'plugins.omf_resctl',
         'plugins.rawdisk',
         'plugins.reservation',
         'plugins.sfagids',
