@@ -41,7 +41,7 @@ config_ple_template="""---
 # the path where the config is expected from within the sliver
 yaml_slice_path="/etc/omf_rc/config.yml"
 # the path for the script that we call when a change occurs
-omf_rc_trigger_script="/some/path/to/the/change/script"
+omf_rc_trigger_script="omf_rc_plc_trigger"
 
 ### this returns the kind of virtualization on the node
 # either 'vs' or 'lxc'
