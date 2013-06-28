@@ -43,6 +43,38 @@ yaml_slice_path="/etc/omf_rc/config.yml"
 # the path for the script that we call when a change occurs
 omf_rc_trigger_script="/some/path/to/the/change/script"
 
+### this returns the kind of virtualization on the node
+# either 'vs' or 'lxc'
+# also caches it in /etc/planetlab/virt for next calls
+# could be promoted to core nm if need be
+virt_stamp="/etc/planetlab/virt"
+def get_node_virt ():
+    try:
+        return file(virt_stamp).read().strip()
+    except:
+        pass
+    logger.log("Computing virt..")
+    vs_retcod=subprocess.call ([ 'vserver', '--help' ])
+    if vs_retcod == 0:
+        virt='vs'
+    else:
+        virt='lxc'
+    with file(virt_stamp,"w") as f:
+        f.write(virt)
+    return virt
+
+def command_in_slice (slicename, argv):
+    # with vserver this can be done using vserver .. exec <trigger-script>
+    # with lxc this is less clear as we are still discussing how lxcsu should behave
+    # ideally we'd need to run lxcsu .. <trigger-script>
+    virt=get_node_virt()
+    if virt=='vs':
+        return [ 'vserver', slicename, 'exec', ] + argv
+    elif virt=='lxc':
+        return [ 'lxcsu', slicename, ] + argv
+    logger.log("command_in_slice: WARNING: could not find a valid virt")
+    return argv
+
 def GetSlivers(data, conf = None, plc = None):
     logger.log("omf_resctl.GetSlivers")
     if 'accounts' not in data:
@@ -56,8 +88,7 @@ def GetSlivers(data, conf = None, plc = None):
             raise Exception
     except:
         # disabled feature - bailing out
-        # xxx might need to clean up more deeply..
-        logger.log("PLC config unsufficient (not enabled, or no server set), see the PLC_OMF category -- plugin exiting")
+        logger.log("omf_resctl: PLC_OMF config unsufficient (not enabled, or no server set), -- plugin exiting")
         return
 
     hostname = data['hostname']
@@ -81,17 +112,32 @@ def GetSlivers(data, conf = None, plc = None):
             try: os.makedirs(yaml_full_dir)
             except OSError: pass
 
-        changes=tools.replace_file_with_string(yaml_full_path,yaml_contents)
-        logger.log("yaml_contents length=%d, changes=%r"%(len(yaml_contents),changes))
-        if changes:
+        config_changes=tools.replace_file_with_string(yaml_full_path,yaml_contents)
+        logger.log("yaml_contents length=%d, config_changes=%r"%(len(yaml_contents),config_changes))
+        # would make sense to also check for changes to authorized_keys 
+        # would require saving a copy of that some place for comparison
+        # xxx todo
+        keys_changes = False
+        if config_changes or keys_changes:
             # instead of restarting the service we call a companion script
             try:
-                sp=subprocess.Popen([omf_rc_trigger_script],
-                                    stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-                (output,retcod)=sp.communicate()
-                logger.log("omf_resctl: %s: called OMF rc control script (retcod=%r)"%(slicename,retcod))
-                logger.log("omf_resctl: got output\n%s"%output)
+                # the trigger script actually needs to be run in the slice context of course
+                # xxx we might need to use
+                # slice_command=['bash','-l','-c',omf_rc_trigger_script] 
+                slice_command = [omf_rc_trigger_script]
+                to_run = command_in_slice (slicename, slice_command)
+                sp=subprocess.Popen(to_run, stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+                (out,err)=sp.communicate()
+                retcod=sp.returncode
+                # we don't wait for that, try to display a retcod for info purpose only
+                # might be None if that config script lasts or hangs whatever
+                logger.log("omf_resctl: %s: called OMF rc control script (imm. retcod=%r)"%(slicename,retcod))
+                logger.log("omf_resctl: got stdout\n%s"%out)
+                logger.log("omf_resctl: got stderr\n%s"%err)
             except:
-                logger.log("omf_resctl: WARNING: Could not call trigger script %s"%omf_rc_trigger_script)
+                import traceback
+                traceback.print_exc()
+                logger.log_exc("omf_resctl: WARNING: Could not call trigger script %s"%\
+                                   omf_rc_trigger_script, name=slicename)
         else:
             logger.log("omf_resctl: %s: omf_control'ed sliver has no change" % slicename)
