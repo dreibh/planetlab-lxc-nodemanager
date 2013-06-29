@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 3
+%define taglevel 4
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -132,6 +132,14 @@ rm -rf $RPM_BUILD_ROOT
 /bin/sshsh
 
 %changelog
+* Sat Jun 29 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-4
+- fix umounting of ssh directory when deleting omf-friendly slivers
+- support for writing cgroups in subsystems other than cpuset
+- add xid to template match
+- finer-grained split between -lib -vs and -lxc
+- first roughly complete omf_resctl for omfv6
+- minor fix for when getslivers does not have minexemptrate
+
 * Fri May 24 2013 Andy Bavier <acb@cs.princeton.edu> - nodemanager-5.2-3
 - Fix path, machine arch in slivers
 
