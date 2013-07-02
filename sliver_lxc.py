@@ -104,52 +104,6 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         command = ['chmod', '755', containerDir]
         logger.log_call(command, timeout=15*60)
 
-        # customizations for the user environment - root or slice uid
-        # we save the whole business in /etc/planetlab.profile 
-        # and source this file for both root and the slice uid's .profile
-        # prompt for slice owner, + LD_PRELOAD for transparently wrap bind
-        pl_profile=os.path.join(containerDir,"etc/planetlab.profile")
-        ld_preload_msg="""# by default, we define this setting so that calls to bind(2),
-# when invoked on 0.0.0.0, get transparently redirected to the public interface of this node
-# see https://svn.planet-lab.org/wiki/LxcPortForwarding"""
-        usrmove_path_msg="""# VM's before Features/UsrMove need /bin and /sbin in their PATH"""
-        usrmove_path_code="""
-pathmunge () {
-        if ! echo $PATH | /bin/egrep -q "(^|:)$1($|:)" ; then
-           if [ "$2" = "after" ] ; then
-              PATH=$PATH:$1
-           else
-              PATH=$1:$PATH
-           fi
-        fi
-}
-pathmunge /bin after
-pathmunge /sbin after
-unset pathmunge
-"""
-        with open(pl_profile,'w') as f:
-            f.write("export PS1='%s@\H \$ '\n"%(name))
-            f.write("%s\n"%ld_preload_msg)
-            f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
-            f.write("%s\n"%usrmove_path_msg)
-            f.write("%s\n"%usrmove_path_code)
-
-        # make sure this file is sourced from both root's and slice's .profile
-        enforced_line = "[ -f /etc/planetlab.profile ] && source /etc/planetlab.profile\n"
-        for path in [ 'root/.profile', 'home/%s/.profile'%name ]:
-            from_root=os.path.join(containerDir,path)
-            # if dir is not yet existing let's forget it for now
-            if not os.path.isdir(os.path.dirname(from_root)): continue
-            found=False
-            try: 
-                contents=file(from_root).readlines()
-                for content in contents:
-                    if content==enforced_line: found=True
-            except IOError: pass
-            if not found:
-                with open(from_root,"a") as user_profile:
-                    user_profile.write(enforced_line)
-
         # TODO: set quotas...
 
         # Set hostname. A valid hostname cannot have '_'
@@ -209,18 +163,72 @@ unset pathmunge
             command = ['chown', name, '%s/home/%s' % (containerDir, name)]
             logger.log_call(command, timeout=10)
             etcpasswd = os.path.join(containerDir, 'etc/passwd')
+            etcgroup = os.path.join(containerDir, 'etc/group')
             if os.path.exists(etcpasswd):
-                logger.log("adding user %s id %d to %s" % (name, uid, etcpasswd))
+                # create all accounts with gid=1001 - i.e. 'slices' like it is in the root context
+                slices_gid=1001
+                logger.log("adding user %(name)s id %(uid)d gid %(slices_gid)d to %(etcpasswd)s" % (locals()))
                 try:
-                    file(etcpasswd,'a').write("%s:x:%d:%d::/home/%s:/bin/bash\n" % (name, uid, uid, name))
+                    file(etcpasswd,'a').write("%(name)s:x:%(uid)d:%(slices_gid)d::/home/%(name)s:/bin/bash\n" % locals())
                 except:
-                    logger.log_exc("exception while updating etc/passwd")
+                    logger.log_exc("exception while updating %s"%etcpasswd)
+                logger.log("adding group slices with gid %(slices_gid)d to %(etcgroup)s"%locals())
+                try:
+                    file(etcgroup,'a').write("slices:x:%(slices_gid)d\n"%locals())
+                except:
+                    logger.log_exc("exception while updating %s"%etcgroup)
             sudoers = os.path.join(containerDir, 'etc/sudoers')
             if os.path.exists(sudoers):
                 try:
                     file(sudoers,'a').write("%s ALL=(ALL) NOPASSWD: ALL\n" % name)
                 except:
                     logger.log_exc("exception while updating /etc/sudoers")
+
+        # customizations for the user environment - root or slice uid
+        # we save the whole business in /etc/planetlab.profile 
+        # and source this file for both root and the slice uid's .profile
+        # prompt for slice owner, + LD_PRELOAD for transparently wrap bind
+        pl_profile=os.path.join(containerDir,"etc/planetlab.profile")
+        ld_preload_text="""# by default, we define this setting so that calls to bind(2),
+# when invoked on 0.0.0.0, get transparently redirected to the public interface of this node
+# see https://svn.planet-lab.org/wiki/LxcPortForwarding"""
+        usrmove_path_text="""# VM's before Features/UsrMove need /bin and /sbin in their PATH"""
+        usrmove_path_code="""
+pathmunge () {
+        if ! echo $PATH | /bin/egrep -q "(^|:)$1($|:)" ; then
+           if [ "$2" = "after" ] ; then
+              PATH=$PATH:$1
+           else
+              PATH=$1:$PATH
+           fi
+        fi
+}
+pathmunge /bin after
+pathmunge /sbin after
+unset pathmunge
+"""
+        with open(pl_profile,'w') as f:
+            f.write("export PS1='%s@\H \$ '\n"%(name))
+            f.write("%s\n"%ld_preload_text)
+            f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
+            f.write("%s\n"%usrmove_path_text)
+            f.write("%s\n"%usrmove_path_code)
+
+        # make sure this file is sourced from both root's and slice's .profile
+        enforced_line = "[ -f /etc/planetlab.profile ] && source /etc/planetlab.profile\n"
+        for path in [ 'root/.profile', 'home/%s/.profile'%name ]:
+            from_root=os.path.join(containerDir,path)
+            # if dir is not yet existing let's forget it for now
+            if not os.path.isdir(os.path.dirname(from_root)): continue
+            found=False
+            try: 
+                contents=file(from_root).readlines()
+                for content in contents:
+                    if content==enforced_line: found=True
+            except IOError: pass
+            if not found:
+                with open(from_root,"a") as user_profile:
+                    user_profile.write(enforced_line)
 
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
