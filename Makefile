@@ -60,8 +60,17 @@ tags:
 
 ########## sync
 # for use with the test framework; push local stuff on a test node
-# make sync NODE=vnode01.inria.fr
-# specify TESTMASTER and BUILD if the key is not available yet
+# howto use: go on testmaster in the build you want to use and just run
+# $ exp
+# cut'n paste the result in a terminal in your working dir, e.g. (although all are not required)
+# $ export BUILD=2013.07.02--lxc18
+# $ export PLCHOSTLXC=gotan.pl.sophia.inria.fr
+# $ export GUESTNAME=2013.07.02--lxc18-1-vplc01
+# $ export GUESTHOSTNAME=vplc01.pl.sophia.inria.fr
+# $ export KVMHOST=kvm64-6.pl.sophia.inria.fr
+# $ export NODE=vnode01.pl.sophia.inria.fr
+# and then just run
+# $ make sync
 
 LOCAL_RSYNC_EXCLUDES	:= --exclude '*.pyc' 
 RSYNC_EXCLUDES		:= --exclude .git  --exclude .svn --exclude '*~' --exclude TAGS $(LOCAL_RSYNC_EXCLUDES)
@@ -103,17 +112,4 @@ ifeq (,$(KEYURL))
 else
 	@echo "FETCHING key"
 	+scp $(KEYURL) $@
-endif
-
-### utility - find out the node name for a given BUILD
-
-ifdef BUILD
-NODEIPCOMMAND:=ssh root@$(TESTMASTER) cat $(BUILD)/arg-ips-node
-endif
-
-nodename:
-ifeq (,$(NODEIPCOMMAND))
-	@echo "nodename: You must define TESTMASTER and BUILD on the command line"
-else
-	$(NODEIPCOMMAND)
 endif
