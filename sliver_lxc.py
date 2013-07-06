@@ -229,6 +229,10 @@ unset pathmunge
             if not found:
                 with open(from_root,"a") as user_profile:
                     user_profile.write(enforced_line)
+                # in case we create the slice's .profile when writing
+                if from_root.find("/home")>=0:
+                    command=['chown','%s:slices'%name,from_root]
+                    logger.log_call(command,timeout=5)
 
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
