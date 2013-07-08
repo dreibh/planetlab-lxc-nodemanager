@@ -18,7 +18,7 @@ priority = 50
 def start():
     pass
 
-### the new template for v6
+### the new template for OMF v6
 # hard-wire this for now
 # once the variables are expanded, this is expected to go into
 config_ple_template="""---
@@ -41,7 +41,22 @@ config_ple_template="""---
 # the path where the config is expected from within the sliver
 yaml_slice_path="/etc/omf_rc/config.yml"
 # the path for the script that we call when a change occurs
-omf_rc_trigger_script="plc_trigger_omf_rc"
+# given that we're now responsible for fetching this one, I have to
+# decide on an actual path - not jsut a name to search for in PATH
+omf_rc_trigger_script="/usr/bin/plc_trigger_omf_rc"
+
+# hopefully temporary: when trigger script is missing, fetch it at the url here
+omf_rc_trigger_url="http://git.mytestbed.net/?p=omf.git;a=blob_plain;f=omf_rc/bin/plc_trigger_omf_rc;hb=HEAD"
+def fetch_trigger_script_if_missing (slicename):
+    full_path="/vservers/%s/%s"%(slicename,omf_rc_trigger_script)
+    if not os.path.isfile (full_path):
+        retcod=subprocess.call (['curl','--silent','-o',full_path,omf_rc_trigger_url])
+        if retcod!=0:
+            logger.log("Could not fetch %s"%omf_rc_trigger_url)
+        else:
+            subprocess.call(['chmod','+x',full_path])
+            logger.log("omf_resctl: fetched %s"%(full_path))
+            logger.log("omf_resctl: from %s"%(omf_rc_trigger_url))
 
 def GetSlivers(data, conf = None, plc = None):
     logger.log("omf_resctl.GetSlivers")
@@ -89,11 +104,11 @@ def GetSlivers(data, conf = None, plc = None):
         if config_changes or keys_changes:
             # instead of restarting the service we call a companion script
             try:
+                fetch_trigger_script_if_missing (slicename)
                 # the trigger script actually needs to be run in the slice context of course
-                # xxx we might need to use
-                # slice_command=['bash','-l','-c',omf_rc_trigger_script] 
-                slice_command = [omf_rc_trigger_script]
+                slice_command = ["sudo -i %s"%omf_rc_trigger_script]
                 to_run = tools.command_in_slice (slicename, slice_command)
+                logger.log("command_in_slice: %s"%to_run)
                 sp=subprocess.Popen(to_run, stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
                 (out,err)=sp.communicate()
                 retcod=sp.returncode
