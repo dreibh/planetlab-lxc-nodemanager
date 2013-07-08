@@ -300,10 +300,10 @@ def get_node_virt ():
     except:
         pass
     logger.log("Computing virt..")
-    vs_retcod=subprocess.call ([ 'vserver', '--help' ])
-    if vs_retcod == 0:
-        virt='vs'
-    else:
+    try: 
+        if subprocess.call ([ 'vserver', '--help' ]) ==0: virt='vs'
+        else:                                             virt='lxc'      
+    except:
         virt='lxc'
     with file(virt_stamp,"w") as f:
         f.write(virt)
