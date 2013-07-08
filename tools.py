@@ -289,3 +289,35 @@ def get_sliver_ip(slice_name):
 
     return None
 
+### this returns the kind of virtualization on the node
+# either 'vs' or 'lxc'
+# also caches it in /etc/planetlab/virt for next calls
+# could be promoted to core nm if need be
+virt_stamp="/etc/planetlab/virt"
+def get_node_virt ():
+    try:
+        return file(virt_stamp).read().strip()
+    except:
+        pass
+    logger.log("Computing virt..")
+    vs_retcod=subprocess.call ([ 'vserver', '--help' ])
+    if vs_retcod == 0:
+        virt='vs'
+    else:
+        virt='lxc'
+    with file(virt_stamp,"w") as f:
+        f.write(virt)
+    return virt
+
+def command_in_slice (slicename, argv):
+    # with vserver this can be done using vserver .. exec <trigger-script>
+    # with lxc this is less clear as we are still discussing how lxcsu should behave
+    # ideally we'd need to run lxcsu .. <trigger-script>
+    virt=get_node_virt()
+    if virt=='vs':
+        return [ 'vserver', slicename, 'exec', ] + argv
+    elif virt=='lxc':
+        return [ 'lxcsu', slicename, ] + argv
+    logger.log("command_in_slice: WARNING: could not find a valid virt")
+    return argv
+
