@@ -204,31 +204,31 @@ def get_sliver_process(slice_name, process_cmdline):
         the process. If the process is not found then (None, None) is returned.
     """
     try:
-            cmd = 'grep %s /proc/*/cgroup | grep freezer'%slice_name
-            output = os.popen(cmd).readlines()
+        cmd = 'grep %s /proc/*/cgroup | grep freezer'%slice_name
+        output = os.popen(cmd).readlines()
     except:
-            # the slice couldn't be found
-            logger.log("get_sliver_process: couldn't find slice %s" % slice_name)
-            return (None, None)
+        # the slice couldn't be found
+        logger.log("get_sliver_process: couldn't find slice %s" % slice_name)
+        return (None, None)
 
     cgroup_fn = None
     pid = None
     for e in output:
-            try:
-                    l = e.rstrip()
-                    path = l.split(':')[0]
-                    comp = l.rsplit(':')[-1]
-                    slice_name_check = comp.rsplit('/')[-1]
+        try:
+            l = e.rstrip()
+            path = l.split(':')[0]
+            comp = l.rsplit(':')[-1]
+            slice_name_check = comp.rsplit('/')[-1]
 
-                    if (slice_name_check == slice_name):
-                            slice_path = path
-                            pid = slice_path.split('/')[2]
-                            cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
-                            if (cmdline == process_cmdline):
-                                    cgroup_fn = slice_path
-                                    break
-            except:
+            if (slice_name_check == slice_name):
+                slice_path = path
+                pid = slice_path.split('/')[2]
+                cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
+                if (cmdline == process_cmdline):
+                    cgroup_fn = slice_path
                     break
+        except:
+            break
 
     if (not cgroup_fn) or (not pid):
         logger.log("get_sliver_process: process %s not running in slice %s" % (process_cmdline, slice_name))
