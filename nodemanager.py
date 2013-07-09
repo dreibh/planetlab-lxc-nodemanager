@@ -174,6 +174,9 @@ class NodeManager:
             return {}
 
     def run(self):
+        # make sure to create /etc/planetlab/virt so others can read that
+        # used e.g. in vsys-scripts's sliceip
+        tools.get_node_virt()
         try:
             if self.options.daemon: tools.daemon()
 
