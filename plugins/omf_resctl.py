@@ -26,6 +26,9 @@ config_ple_template="""---
 # _slicename_ = nicta_ruby
 # _hostname_ = planetlab1.research.nicta.com.au
 # _xmpp_server_ = xmpp.planet-lab.eu
+# we extract expires time here, even in a comment so that the
+# trigger script gets called whenever this changes
+# expires: _expires_
  
 :uid: _slicename_@_hostname_
 :uri: xmpp://_slicename_-_hostname_-<%= "#{Process.pid}" %>:_slicename_-_hostname_-<%= "#{Process.pid}" %>@_xmpp_server_
@@ -84,11 +87,13 @@ def GetSlivers(data, conf = None, plc = None):
         # skip non OMF-friendly slices
         if not is_omf_friendly (sliver): continue
         slicename=sliver['name']
+        expires=str(sliver['expires'])
         yaml_template = config_ple_template
         yaml_contents = yaml_template\
             .replace('_xmpp_server_',xmpp_server)\
             .replace('_slicename_',slicename)\
-            .replace('_hostname_',hostname)
+            .replace('_hostname_',hostname)\
+            .replace('_expires_',expires)
         yaml_full_path="/vservers/%s/%s"%(slicename,yaml_slice_path)
         yaml_full_dir=os.path.dirname(yaml_full_path)
         if not os.path.isdir(yaml_full_dir):
