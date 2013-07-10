@@ -309,15 +309,22 @@ def get_node_virt ():
         f.write(virt)
     return virt
 
+# how to run a command in a slice
+# now this is a painful matter
+# the problem is with capsh that forces a bash command to be injected in its exec'ed command
+# so because lxcsu uses capsh, you cannot exec anything else than bash
+# bottom line is, what actually needs to be called is
+# vs:  vserver exec slicename command and its arguments
+# lxc: lxcsu slicename "command and its arguments"
+# which, OK, is no big deal as long as the command is simple enough, 
+# but do not stretch it with arguments that have spaces or need quoting as that will become a nightmare
 def command_in_slice (slicename, argv):
-    # with vserver this can be done using vserver .. exec <trigger-script>
-    # with lxc this is less clear as we are still discussing how lxcsu should behave
-    # ideally we'd need to run lxcsu .. <trigger-script>
     virt=get_node_virt()
     if virt=='vs':
         return [ 'vserver', slicename, 'exec', ] + argv
     elif virt=='lxc':
-        return [ 'lxcsu', slicename, ] + argv
+        # wrap up argv in a single string for -c
+        return [ 'lxcsu', slicename, ] + [ " ".join(argv) ]
     logger.log("command_in_slice: WARNING: could not find a valid virt")
     return argv
 

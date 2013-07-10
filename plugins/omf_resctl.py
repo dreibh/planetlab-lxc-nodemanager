@@ -106,7 +106,7 @@ def GetSlivers(data, conf = None, plc = None):
             try:
                 fetch_trigger_script_if_missing (slicename)
                 # the trigger script actually needs to be run in the slice context of course
-                slice_command = ["sudo -i %s"%omf_rc_trigger_script]
+                slice_command = [ "sudo", "-i",  omf_rc_trigger_script ]
                 to_run = tools.command_in_slice (slicename, slice_command)
                 logger.log("command_in_slice: %s"%to_run)
                 sp=subprocess.Popen(to_run, stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
