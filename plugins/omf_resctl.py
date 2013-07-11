@@ -22,10 +22,9 @@ def start():
 # hard-wire this for now
 # once the variables are expanded, this is expected to go into
 config_ple_template="""---
-# Example:
-# _slicename_ = nicta_ruby
-# _hostname_ = planetlab1.research.nicta.com.au
-# _xmpp_server_ = xmpp.planet-lab.eu
+# slicename = _slicename_
+# hostname = _hostname_
+# xmpp_server = _xmpp_server_
 # we extract expires time here, even in a comment so that the
 # trigger script gets called whenever this changes
 # expires: _expires_
