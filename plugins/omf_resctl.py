@@ -13,7 +13,8 @@ import subprocess
 import tools
 import logger
 
-priority = 50
+# we need this to run after sliverauth
+priority = 150
 
 def start():
     pass
