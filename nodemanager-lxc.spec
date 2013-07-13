@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 5.2
-%define taglevel 5
+%define taglevel 6
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,13 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Sun Jul 14 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-6
+- make sure to create /etc/planetlab/virt so others can read that
+- expose get_node_virt() and command_in_slice()
+- refined omf_resctl plugin (fetches trigger, and calls it on expire change)
+- user's .profile now has right owner
+- other tweaks in lxc slivers
+
 * Wed Jul 03 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-5
 - lxc slice creation: slice user was created with unknown gid - fixed
 - lxc slice creation: .profile for root and user - fixed
