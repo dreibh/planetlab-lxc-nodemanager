@@ -23,14 +23,16 @@ def start():
 # hard-wire this for now
 # once the variables are expanded, this is expected to go into
 config_ple_template="""---
-# slicename = _slicename_
-# hostname = _hostname_
-# xmpp_server = _xmpp_server_
 # we extract expires time here, even in a comment so that the
 # trigger script gets called whenever this changes
 # expires: _expires_
- 
-:uid: _slicename_@_hostname_
+
+# these are not actual OMF parameters, they are only used by the trigger script
+:hostname: _hostname_
+:slicename: _slicename_
+
+# OMF configuration
+:uid: _slicename_%_hostname_
 :uri: xmpp://_slicename_-_hostname_-<%= "#{Process.pid}" %>:_slicename_-_hostname_-<%= "#{Process.pid}" %>@_xmpp_server_
 :environment: production
 :debug: false
