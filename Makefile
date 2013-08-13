@@ -25,24 +25,39 @@ forward_api_calls: forward_api_calls.c
 
 install-lib:
 	python setup-lib.py install \
-	    --install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-	    --install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-	    --install-scripts=$(DESTDIR)/$(bindir)
+		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
+		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
+		--install-scripts=$(DESTDIR)/$(bindir)
 	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
 
 install-vs:
 	python setup-vs.py install \
-	    --install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-	    --install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-	    --install-scripts=$(DESTDIR)/$(bindir)
+		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
+		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
+		--install-scripts=$(DESTDIR)/$(bindir)
 	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
 
 install-lxc:
 	python setup-lxc.py install \
-	    --install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-	    --install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-	    --install-scripts=$(DESTDIR)/$(bindir)
+		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
+		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
+		--install-scripts=$(DESTDIR)/$(bindir)
 	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
+
+install-scripts: 
+	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
+	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/sliver-initscripts/
+	chmod 755 $(DESTDIR)/$(datadir)/sliver-initscripts/
+
+	mkdir -p $(DESTDIR)/etc/init.d
+	chmod 755 initscripts/*
+	rsync -av initscripts/ $(DESTDIR)/etc/init.d/
+
+	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
+
+	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
+	install -D -m 755 sshsh $(DESTDIR)/bin/sshsh
+
 
 clean:
 	python setup-lib.py clean
