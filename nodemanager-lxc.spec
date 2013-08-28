@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 5.2
-%define taglevel 6
+%define taglevel 7
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Wed Aug 28 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-7
+- new install-scripts target in Makefile
+- conf_files and fuse-pl initscripts chmod'ed +x
+- omf_resctl config template tweaked to use _slicename_%_hostname_
+
 * Sun Jul 14 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-6
 - make sure to create /etc/planetlab/virt so others can read that
 - expose get_node_virt() and command_in_slice()
