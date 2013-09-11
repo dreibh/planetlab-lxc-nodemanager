@@ -182,7 +182,7 @@ If still valid, check if running and configure/start if not."""
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
         logger.verbose("account.Worker.ensure_created: %s, running=%r"%(self.name,self.is_running()))
 
-        # reservation_alive is set on reervable nodes, and its value is a boolean
+        # reservation_alive is set on reservable nodes, and its value is a boolean
         if 'reservation_alive' in rec:
             # reservable nodes
             if rec['reservation_alive']:

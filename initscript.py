@@ -12,7 +12,7 @@ class Initscript:
         self.initscript = ''
 
     def configure (self, rec):
-        logger.log("Initscript.configure")
+#        logger.log("Initscript.configure")
         new_initscript = rec['initscript']
         if new_initscript != self.initscript:
             self.initscript = new_initscript
