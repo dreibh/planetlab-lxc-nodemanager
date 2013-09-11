@@ -43,11 +43,21 @@ def log(msg,level=LOG_NODE):
         sys.stderr.flush()
 
 def log_exc(msg="",name=None):
-    """Log the traceback resulting from an exception."""
-    if name:
-        log("%s: EXCEPTION caught <%s> \n %s" %(name, msg, traceback.format_exc()))
-    else:
-        log("EXCEPTION caught <%s> \n %s" %(msg, traceback.format_exc()))
+    """Log traceback resulting from an exception."""
+    printout=""
+    if name: printout += "%s: "%name
+    printout += "EXCEPTION caught <%s> \n %s" %(msg, traceback.format_exc())
+    log(printout)
+
+def log_trace(msg="",name=None):
+    """Log current stack"""
+    printout=""
+    if name: printout += "%s: "%name
+    printout += "LOGTRACE\n"
+    for frame in traceback.format_stack():
+        printout += "..."+frame
+    log(printout)
+
 
 ########## snapshot data to a file
 # for some reason the various modules are still triggered even when the
