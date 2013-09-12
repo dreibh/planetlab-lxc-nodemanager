@@ -113,17 +113,20 @@ def GetSlivers(data, conf = None, plc = None):
             try:
                 fetch_trigger_script_if_missing (slicename)
                 # the trigger script actually needs to be run in the slice context of course
+                # in addition there is a requirement to pretend we run as a login shell
+                # hence sudo -i
                 slice_command = [ "sudo", "-i",  omf_rc_trigger_script ]
                 to_run = tools.command_in_slice (slicename, slice_command)
-                logger.log("command_in_slice: %s"%to_run)
-                sp=subprocess.Popen(to_run, stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-                (out,err)=sp.communicate()
-                retcod=sp.returncode
-                # we don't wait for that, try to display a retcod for info purpose only
-                # might be None if that config script lasts or hangs whatever
-                logger.log("omf_resctl: %s: called OMF rc control script (imm. retcod=%r)"%(slicename,retcod))
-                logger.log("omf_resctl: got stdout\n%s"%out)
-                logger.log("omf_resctl: got stderr\n%s"%err)
+                log_filename = "/vservers/%s/var/log/%s.log"%(slicename,omf_rc_trigger_script)
+                logger.log("omf_resctl: starting %s"%to_run)
+                logger.log("redirected into %s"%log_filename)
+                logger.log("*not* waiting for completion..")
+                with open(log_filename,"a") as log_file:
+                    subprocess.Popen(to_run, stdout=log_file,stderr=subprocess.STDOUT)
+                # a first version tried to 'communicate' on that subprocess instance
+                # but that tended to create deadlocks in some cases
+                # causing nodemanager to stall...
+                # we're only losing the child's retcod, no big deal
             except:
                 import traceback
                 traceback.print_exc()
