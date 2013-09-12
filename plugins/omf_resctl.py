@@ -49,6 +49,7 @@ yaml_slice_path="/etc/omf_rc/config.yml"
 # given that we're now responsible for fetching this one, I have to
 # decide on an actual path - not jsut a name to search for in PATH
 omf_rc_trigger_script="/usr/bin/plc_trigger_omf_rc"
+omf_rc_trigger_log="/var/log/plc_trigger_omf_rc.log"
 
 # hopefully temporary: when trigger script is missing, fetch it at the url here
 omf_rc_trigger_url="http://git.mytestbed.net/?p=omf.git;a=blob_plain;f=omf_rc/bin/plc_trigger_omf_rc;hb=HEAD"
@@ -117,7 +118,7 @@ def GetSlivers(data, conf = None, plc = None):
                 # hence sudo -i
                 slice_command = [ "sudo", "-i",  omf_rc_trigger_script ]
                 to_run = tools.command_in_slice (slicename, slice_command)
-                log_filename = "/vservers/%s/var/log/%s.log"%(slicename,omf_rc_trigger_script)
+                log_filename = "/vservers/%s/%s"%(slicename,omf_rc_trigger_log)
                 logger.log("omf_resctl: starting %s"%to_run)
                 logger.log("redirected into %s"%log_filename)
                 logger.log("*not* waiting for completion..")
