@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 5.2
-%define taglevel 7
+%define taglevel 8
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -58,6 +58,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Fri Sep 20 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-8
+- omf plugin does not block any longer when running trigger script
+- log goes into sliver's /var/log instead
+
 * Wed Aug 28 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-7
 - new install-scripts target in Makefile
 - conf_files and fuse-pl initscripts chmod'ed +x
