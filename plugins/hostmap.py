@@ -38,6 +38,8 @@ def GetSlivers(data, config=None, plc=None):
 
     hostname = data['hostname']
 
+    hostname_filter = ".".join(hostname.split(".")[1:])
+
     for sliver in data['slivers']:
         slicename = sliver['name']
         for tag in sliver['attributes']:
@@ -53,6 +55,9 @@ def GetSlivers(data, config=None, plc=None):
                     parts = entry.split(" ")
                     if len(parts)==2:
                        line = "%s pvt.%s private%d" % (parts[0], parts[1], index)
+
+                       if not (hostname_filter in parts[1]):
+                           continue
 
                        if (index==0):
                            line = line + " headnode"
