@@ -56,7 +56,7 @@ def GetSlivers(data, config=None, plc=None):
                     if len(parts)==2:
                        line = "%s pvt.%s private%d" % (parts[0], parts[1], index)
 
-                       if not (hostname_filter in parts[1]):
+                       if (parts[0].startswith("10.")) and (hostname_filter not in parts[1]):
                            continue
 
                        if (index==0):
