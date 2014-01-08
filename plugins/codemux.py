@@ -125,14 +125,19 @@ def parseConf(conf = CODEMUXCONF):
     try:
         f = open(conf)
         for line in f.readlines():
-            if line.startswith("#") \
-            or (len(line.split()) > 4) \
-            or (len(line.split()) < 3):
+            parts = line.split()
+            if line.startswith("#") or (len(parts) > 4) or (len(parts) < 3):
                 continue
-            (host, slice, port) = line.split()[:3]
-            logger.log("codemux:  found %s in conf" % slice, 2)
-            slicesinconf.setdefault(slice, [])
-            slicesinconf[slice].append({"host": host, "port": port})
+            if len(parts) == 4:
+                (host, slice, port, ip) = parts
+                logger.log("codemux:  found %s in conf" % slice, 2)
+                slicesinconf.setdefault(slice, [])
+                slicesinconf[slice].append({"host": host, "port": port, "ip": ip})
+            else:
+                (host, slice, port) = parts[:3]
+                logger.log("codemux:  found %s in conf" % slice, 2)
+                slicesinconf.setdefault(slice, [])
+                slicesinconf[slice].append({"host": host, "port": port})
         f.close()
     except IOError: logger.log_exc("codemux.parseConf got IOError")
     return slicesinconf
