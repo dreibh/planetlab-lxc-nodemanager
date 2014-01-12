@@ -51,10 +51,20 @@ class CgroupWatch(pyinotify.ProcessEvent):
 #notifier.start()
 
 def get_cgroup_paths(subsystem="cpuset"):
-    cpusetBase  = os.path.join(BASE_DIR, subsystem, 'libvirt', 'lxc')
-    return filter(os.path.isdir,
-                  map(lambda f: os.path.join(cpusetBase, f),
-                      os.listdir(cpusetBase)))
+    cpusetBases = [ 
+        # observed on f16-f18
+        os.path.join(BASE_DIR, subsystem, 'libvirt', 'lxc'),
+        # as observed on f20
+        os.path.join(BASE_DIR, subsystem ),
+        ]
+    # try several locations and return all the results
+    # get_cgroup_path will sort it out
+    def merge(l1,l2): return l1+l2
+    return reduce (lambda l1,l2: return l1+l2, 
+                   [ [ dir for dir in 
+                       [ os.path.join(cpusetBase, f) for f in os.listdir(cpusetBase) ]
+                       if os.path.isdir(dir) ]
+                     for cpusetBase in cpusetBases if os.path.isdir (cpusetBase) ]
 
 def get_cgroup_path(name, subsystem="cpuset"):
     """ Returns the base path for the cgroup with a specific name or None."""
