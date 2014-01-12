@@ -96,16 +96,25 @@ ifdef NODE
 NODEURL:=root@$(NODE):/
 endif
 
-sync: $(NODE).key.rsa
+# this is for lxc only, we need to exclude the vs stuff that otherwise messes up everything on node
+# keep this in sync with setup-vs.spec
+LXC_EXCLUDES= --exclude sliver_vs.py --exclude coresched_vs.py
+
+sync:synclxc
+
+synclxc: $(NODE).key.rsa
 ifeq (,$(NODEURL))
 	@echo "sync: You must define NODE on the command line"
 	@echo "  e.g. make sync NODE=vnode01.inria.fr"
 	@exit 1
 else
-	+$(RSYNC) --exclude sshsh ./ $(NODEURL)/usr/share/NodeManager/
+	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	@echo WARNING : this target might not be very reliable - use with care
+	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	+$(RSYNC) --exclude sshsh $(LXC_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
 	+$(RSYNC) ./sshsh $(NODEURL)/bin/
 	+$(RSYNC) ./initscripts/nm $(NODEURL)/etc/init.d/nm
-	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
+#	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
 endif
 
 ### fetching the key
