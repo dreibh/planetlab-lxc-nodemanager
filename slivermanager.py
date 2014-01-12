@@ -23,11 +23,15 @@ try:
     sliver_class_to_register = sliver_lxc.Sliver_LXC
     sliver_password_shell = sliver_lxc.Sliver_LXC.SHELL
 except:
-    import sliver_vs
-    implementation='vs'
-    sliver_default_type='sliver.VServer'
-    sliver_class_to_register = sliver_vs.Sliver_VS
-    sliver_password_shell = sliver_vs.Sliver_VS.SHELL
+    try:
+        import sliver_vs
+        implementation='vs'
+        sliver_default_type='sliver.VServer'
+        sliver_class_to_register = sliver_vs.Sliver_VS
+        sliver_password_shell = sliver_vs.Sliver_VS.SHELL
+    except:
+        logger.log("Could not import either sliver_lxc or sliver_vs - bailing out")
+        exit(1)
 
 # just being safe
 try : from plnode.bwlimit import bwmin, bwmax
