@@ -183,6 +183,7 @@ class NodeManager:
             # set log level
             if (self.options.verbose):
                 logger.set_level(logger.LOG_VERBOSE)
+            tools.init_signals()
 
             # Load /etc/planetlab/plc_config
             config = Config(self.options.config)
@@ -261,7 +262,10 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                 work_duration=int(work_end-work_beg)
                 logger.log('nodemanager: mainloop has worked for %s s - sleeping for %d s'%(work_duration,delay))
                 time.sleep(delay)
-        except: logger.log_exc("nodemanager: failed in run")
+        except SystemExit:
+            pass
+        except: 
+            logger.log_exc("nodemanager: failed in run")
 
 def run():
     logger.log("======================================== Entering nodemanager.py")

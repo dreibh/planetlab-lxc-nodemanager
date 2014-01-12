@@ -9,6 +9,7 @@ import threading
 import subprocess
 import shutil
 import sys
+import signal
 
 import logger
 
@@ -328,3 +329,12 @@ def command_in_slice (slicename, argv):
     logger.log("command_in_slice: WARNING: could not find a valid virt")
     return argv
 
+####################
+def init_signals ():
+    def handler (signum, frame):
+        logger.log("Received signal %d - exiting"%signum)
+        exit(1)
+    signal.signal(signal.SIGHUP,handler)
+    signal.signal(signal.SIGQUIT,handler)
+    signal.signal(signal.SIGINT,handler)
+    signal.signal(signal.SIGTERM,handler)
