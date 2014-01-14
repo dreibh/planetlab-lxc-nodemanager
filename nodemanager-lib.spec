@@ -5,7 +5,6 @@
 %define taglevel 9
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
-%global python_sitearch %( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
 
 Summary: PlanetLab Node Manager Library
 Name: %{name}
@@ -57,7 +56,6 @@ either nodemanager-vs or nodemanager-lxc
 # make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} install-lib DESTDIR="$RPM_BUILD_ROOT"
-PYTHON_SITEARCH=`python -c 'from distutils.sysconfig import get_python_lib; print get_python_lib(1)'`
 
 # install the sliver initscript (that triggers the slice initscript if any)
 mkdir -p $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
