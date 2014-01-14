@@ -113,7 +113,8 @@ else
 	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 	+$(RSYNC) --exclude sshsh $(LXC_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
 	+$(RSYNC) ./sshsh $(NODEURL)/bin/
-	+$(RSYNC) ./initscripts/nm $(NODEURL)/etc/init.d/nm
+#	+$(RSYNC) ./initscripts/nm $(NODEURL)/etc/init.d/nm
+	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
 #	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
 endif
 
