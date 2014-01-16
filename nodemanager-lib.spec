@@ -45,7 +45,7 @@ local operations on slices.
 nodemanager-lib only provides a skeleton and needs as a companion
 either nodemanager-vs or nodemanager-lxc
 
-# use initscripts or systemd unit files to start installed services
+########## use initscripts or systemd unit files to start installed services
 %if "%{distro}" == "Fedora" && %{distrorelease} >= 18
 %define make_options WITH_SYSTEMD=true
 %define initdir /usr/lib/systemd/system
@@ -54,6 +54,7 @@ either nodemanager-vs or nodemanager-lxc
 %define initdir %{_initrddir}
 %endif
 
+##############################
 %prep
 %setup -q
 
@@ -66,29 +67,11 @@ either nodemanager-vs or nodemanager-lxc
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} %{make_options} install-lib DESTDIR="$RPM_BUILD_ROOT"
 
-##########
+##############################
 %post
-# tmp - handle file renamings; old names are from 2.0-8
-renamings="
-/var/lib/misc/bwmon.dat@/var/lib/nodemanager/bwmon.pickle
-/root/sliver_mgr_db.pickle@/var/lib/nodemanager/database.pickle
-/var/log/getslivers.txt@/var/lib/nodemanager/getslivers.txt
-/var/log/nm@/var/log/nodemanager
-/var/log/nm.daemon@/var/log/nodemanager.daemon
-/var/run/nm.pid@/var/run/nodemanager.pid
-/tmp/sliver_mgr.api@/tmp/nodemanager.api
-/etc/logrotate.d/nm@/etc/logrotate.d/nodemanager
-"
-for renaming in $renamings; do
-  old=$(echo $renaming | cut -d@ -f1)
-  new=$(echo $renaming | cut -d@ -f2)
-  newdir=$(dirname $new)
-  if [ -e "$old" -a ! -e "$new" ] ; then
-      mkdir -p $newdir
-      mv -f $old $new
-  fi
-done
-#
+########## traditional init
+%if "%{initdir}" == "%{_initrddir}"
+##########
 chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
@@ -96,13 +79,29 @@ chkconfig nm on
 chkconfig --add fuse-pl
 chkconfig fuse-pl on
 if [ "$PL_BOOTCD" != "1" ] ; then
-	service nm restart
-	service fuse-pl restart
+    service nm restart
+    service fuse-pl restart
 fi
-
 ##########
+%else
+########## systemd
+systemctl enable nm.service
+systemctl enable conf_files.service
+# empty
+#systemctl enable fuse-pl.service
+if [ "$PL_BOOTCD" != "1" ] ; then
+    systemctl restart nm.service
+#    systemctl restart fuse-pl.service
+fi
+##########
+%endif
+
+##############################
 %preun
 # 0 = erase, 1 = upgrade
+########## traditional init
+%if "%{initdir}" == "%{_initrddir}"
+##########
 if [ $1 -eq 0 ] ; then
     chkconfig fuse-pl off
     chkconfig --del fuse-pl
@@ -111,7 +110,18 @@ if [ $1 -eq 0 ] ; then
     chkconfig conf_files off
     chkconfig --del conf_files
 fi
+##########
+%else
+########## systemd
+if [ $1 -eq 0 ] ; then
+#    systemctl disable fuse-pl.service
+    systemctl disable conf_files.service
+    systemctl disable nm.service
+fi
+##########
+%endif
 
+##############################
 %clean
 rm -rf $RPM_BUILD_ROOT
 
