@@ -47,8 +47,8 @@ install-lib: install-miscell install-startup
 
 # might be better in setup.py ?
 install-miscell:
-	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
 	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
+	install -D -m 444 README $(DESTDIR)/$(datadir)/NodeManager/README
 	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
 	install -D -m 755 sshsh $(DESTDIR)/bin/sshsh
 	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts

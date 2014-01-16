@@ -47,9 +47,9 @@ either nodemanager-vs or nodemanager-lxc
 
 # use initscripts or systemd unit files to start installed services
 %if "%{distro}" == "Fedora" && %{distrorelease} >= 18
-%define make_options=WITH_SYSTEMD=true
+%define make_options WITH_SYSTEMD=true
 %else
-%define make_options=WITH_INIT=true
+%define make_options WITH_INIT=true
 %endif
 
 %prep
