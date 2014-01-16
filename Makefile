@@ -52,8 +52,8 @@ install-miscell:
 	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
 	install -D -m 755 sshsh $(DESTDIR)/bin/sshsh
 	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
-	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/sliver-initscripts/
-	chmod 755 $(DESTDIR)/$(datadir)/sliver-initscripts/
+	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
+	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
 
 ifneq "$use_systemd" ""
 install-startup: install-systemd

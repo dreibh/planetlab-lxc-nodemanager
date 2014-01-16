@@ -48,8 +48,10 @@ either nodemanager-vs or nodemanager-lxc
 # use initscripts or systemd unit files to start installed services
 %if "%{distro}" == "Fedora" && %{distrorelease} >= 18
 %define make_options WITH_SYSTEMD=true
+%define initdir /usr/lib/systemd/system
 %else
 %define make_options WITH_INIT=true
+%define initdir %{_initrddir}
 %endif
 
 %prep
@@ -63,20 +65,6 @@ either nodemanager-vs or nodemanager-lxc
 # make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
 %{__make} %{?_smp_mflags} %{make_options} install-lib DESTDIR="$RPM_BUILD_ROOT"
-
-# install the sliver initscript (that triggers the slice initscript if any)
-mkdir -p $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
-rsync -av sliver-initscripts/ $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
-chmod 755 $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
-
-mkdir -p $RPM_BUILD_ROOT/%{_initrddir}/
-rsync -av initscripts/ $RPM_BUILD_ROOT/%{_initrddir}/
-chmod 755 $RPM_BUILD_ROOT/%{_initrddir}/*
-
-install -d -m 755 $RPM_BUILD_ROOT/var/lib/nodemanager
-
-install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nodemanager
-install -D -m 755 sshsh $RPM_BUILD_ROOT/bin/sshsh
 
 ##########
 %post
@@ -131,9 +119,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_datadir}/NodeManager/
 %{_bindir}/forward_api_calls
-%{_initrddir}/
+%{initdir}/
 %{_sysconfdir}/logrotate.d/nodemanager
-/var/lib/
+/var/lib/nodemanager/
 /bin/sshsh
 
 %changelog
