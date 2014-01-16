@@ -83,7 +83,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 
         vref = rec['vref']
         if vref is None:
-            vref = "lxc-f14-x86_64"
+            vref = "lxc-f18-x86_64"
             logger.log("sliver_libvirt: %s: WARNING - no vref attached, using hard-wired default %s" % (name,vref))
 
         refImgDir    = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR, vref)
