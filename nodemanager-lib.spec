@@ -45,17 +45,24 @@ local operations on slices.
 nodemanager-lib only provides a skeleton and needs as a companion
 either nodemanager-vs or nodemanager-lxc
 
+# use initscripts or systemd unit files to start installed services
+%if "%{distro}" == "Fedora" && %{distrorelease} >= 18
+%define make_options=WITH_SYSTEMD=true
+%else
+%define make_options=WITH_INIT=true
+%endif
+
 %prep
 %setup -q
 
 %build
 # make manages the C and Python stuff
-%{__make} %{?_smp_mflags} lib
+%{__make} %{?_smp_mflags} %{make_options} lib 
 
 %install
 # make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
-%{__make} %{?_smp_mflags} install-lib DESTDIR="$RPM_BUILD_ROOT"
+%{__make} %{?_smp_mflags} %{make_options} install-lib DESTDIR="$RPM_BUILD_ROOT"
 
 # install the sliver initscript (that triggers the slice initscript if any)
 mkdir -p $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
