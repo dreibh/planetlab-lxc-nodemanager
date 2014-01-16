@@ -24,7 +24,7 @@ URL: %{SCMURL}
 #BuildArch: noarch
 
 # Uses function decorators
-Requires: python >= 2.4
+Requires: python >= 2.7
 # connecting PLC
 Requires: python-pycurl
 # Signed tickets
