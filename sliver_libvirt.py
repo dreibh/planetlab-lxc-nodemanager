@@ -4,6 +4,7 @@ import sys
 import os, os.path
 import subprocess
 import pprint
+import random
 
 import libvirt
 
@@ -171,14 +172,19 @@ class Sliver_Libvirt(Account):
         # Call the upper configure method (ssh keys...)
         Account.configure(self, rec)
 
+    @staticmethod
+    def get_unique_vif():
+        return 'veth%s' % random.getrandbits(32)
+
     # A placeholder until we get true VirtualInterface objects
     @staticmethod
     def get_interfaces_xml(rec):
         xml = """
     <interface type='network'>
       <source network='default'/>
+      <target dev='%s'/>
     </interface>
-"""
+""" % (Sliver_Libvirt.get_unique_vif())
         try:
             tags = rec['rspec']['tags']
             if 'interface' in tags:
@@ -198,14 +204,17 @@ class Sliver_Libvirt(Account):
           <source bridge='%s'/>
           %s
           <virtualport type='openvswitch'/>
+          <target dev='%s'/>
         </interface>
-    """ % (interface['bridge'], vlanxml)
+    """ % (interface['bridge'], vlanxml, Sliver_Libvirt.get_unique_vif())
                     else:
                         tag_xml = tag_xml + """
         <interface type='network'>
           <source network='default'/>
+          <target dev='%s'/>
         </interface>
-    """
+    """ % (Sliver_Libvirt.get_unique_vif())
+
                 xml = tag_xml
                 logger.log('sliver_libvirty.py: interface XML is: %s' % xml)
 
