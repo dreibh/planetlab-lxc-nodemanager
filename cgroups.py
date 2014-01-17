@@ -56,6 +56,8 @@ def get_cgroup_paths(subsystem="cpuset"):
         os.path.join(BASE_DIR, subsystem, 'libvirt', 'lxc'),
         # as observed on f20
         os.path.join(BASE_DIR, subsystem ),
+        # as observed on f16 libvirt 1.2.1
+        os.path.join(BASE_DIR, subsystem, 'machine'),
         ]
     # try several locations and return all the results
     # get_cgroup_path will sort it out
@@ -68,8 +70,15 @@ def get_cgroup_paths(subsystem="cpuset"):
 
 def get_cgroup_path(name, subsystem="cpuset"):
     """ Returns the base path for the cgroup with a specific name or None."""
-    return reduce(lambda a, b: b if os.path.basename(b) == name else a,
+    result = reduce(lambda a, b: b if os.path.basename(b) == name else a,
                   get_cgroup_paths(subsystem), None)
+
+    if result is None:
+        name = name + ".libvirt-lxc"
+        result = reduce(lambda a, b: b if os.path.basename(b) == name else a,
+                      get_cgroup_paths(subsystem), None)
+
+    return result
 
 def get_base_path():
     return BASE_DIR
