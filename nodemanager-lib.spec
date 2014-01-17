@@ -6,6 +6,15 @@
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
+########## use initscripts or systemd unit files to start installed services
+%if "%{distro}" == "Fedora" && %{distrorelease} >= 18
+%define make_options WITH_SYSTEMD=true
+%define initdir /usr/lib/systemd/system
+%else
+%define make_options WITH_INIT=true
+%define initdir %{_initrddir}
+%endif
+
 Summary: PlanetLab Node Manager Library
 Name: %{name}
 Version: %{version}
@@ -22,6 +31,11 @@ URL: %{SCMURL}
 
 # not possible because of forward_api_calls
 #BuildArch: noarch
+
+# make sure we can invoke systemctl in post install script
+%if "%{initdir}" != "%{_initrddir}"
+Requires: systemd
+%endif
 
 # Uses function decorators
 Requires: python >= 2.7
@@ -44,15 +58,6 @@ for configuration updates. It provides an XML-RPC API for performing
 local operations on slices.
 nodemanager-lib only provides a skeleton and needs as a companion
 either nodemanager-vs or nodemanager-lxc
-
-########## use initscripts or systemd unit files to start installed services
-%if "%{distro}" == "Fedora" && %{distrorelease} >= 18
-%define make_options WITH_SYSTEMD=true
-%define initdir /usr/lib/systemd/system
-%else
-%define make_options WITH_INIT=true
-%define initdir %{_initrddir}
-%endif
 
 ##############################
 %prep
