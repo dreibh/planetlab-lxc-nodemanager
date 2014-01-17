@@ -25,13 +25,15 @@ URL: %{SCMURL}
 
 # old name, when all came as a single package with vserver wired in
 Obsoletes: NodeManager
+# for nodeupdate 
+Provides: nodemanager
 
 # our interface to the vserver patch
 Requires: util-vserver >= 0.30.208-17
 # and the planetlab utilities
 Requires: util-vserver-python > 0.3-16
 # the common package for nodemanager
-Requires: nodemanager-lib
+Requires: nodemanager-lib = %{version}
 # the vserver-specific tools for using slice images
 Requires: vserver-sliceimage
 
