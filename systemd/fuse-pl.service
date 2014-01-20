@@ -1,0 +1,2 @@
+# This is placeholder for fuse-pl in a lxc/systemd setup
+# needs to be rewritten as the initscript version seems to rely on vservers

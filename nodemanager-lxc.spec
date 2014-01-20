@@ -23,13 +23,16 @@ Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
 URL: %{SCMURL}
 
+# for nodeupdate 
+Provides: nodemanager
+
 # we use libvirt
 Requires: libvirt
 Requires: libvirt-python
 # cgroups.py needs this
 Requires: python-inotify
 # the common package for nodemanager
-Requires: nodemanager-lib
+Requires: nodemanager-lib = %{version}
 # the lxc-specific tools for using slice images
 Requires: lxc-sliceimage
 Requires: openvswitch
