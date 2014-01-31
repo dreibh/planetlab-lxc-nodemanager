@@ -35,6 +35,9 @@ install-lib: install-miscell install-startup
 		--install-scripts=$(DESTDIR)/$(bindir)
 
 # might be better in setup.py ?
+# NOTE: the sliver-initscripts/ and sliver-systemd stuff, being, well, for slivers,
+# need to ship on all nodes regardless of WITH_INIT and WITH_SYSTEMD that 
+# impacts how nodemanager itself gets started
 install-miscell:
 	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
 	install -D -m 444 README $(DESTDIR)/$(datadir)/NodeManager/README
@@ -43,7 +46,11 @@ install-miscell:
 	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
 	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
 	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
+	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd
+	rsync -av sliver-systemd/ $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd/
+	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd/
 
+# this now is for the startup of nodemanager itself
 ifneq "$(WITH_SYSTEMD)" ""
 install-startup: install-systemd
 endif
