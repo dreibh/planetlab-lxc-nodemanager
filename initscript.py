@@ -24,6 +24,10 @@ class Initscript:
     # mimicking chkconfig for enabling the generic vinit script
     # this is hardwired for runlevel 3
     def install_and_enable_vinit (self):
+        self.install_and_enable_vinit_for_init ()
+
+    def install_and_enable_vinit_for_init ():
+        "suitable for init-based VMs"
         vinit_source="/usr/share/NodeManager/sliver-initscripts/vinit"
         vinit_script="/vservers/%s/etc/rc.d/init.d/vinit"%self.name
         rc3_link="/vservers/%s/etc/rc.d/rc3.d/S99vinit"%self.name
