@@ -1,0 +1,10 @@
+[Unit]
+Description=User-defined initscript manager
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/bin/bash -c '/etc/rc.d/init.d/vinit.slice start $(cat /etc/slicename) >> /var/log/vinit 2>&1 &'
+
+[Install]
+WantedBy=multi-user.target
