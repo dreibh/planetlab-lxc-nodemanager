@@ -55,7 +55,7 @@ install-miscell:
 	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
 	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
 
-ifneq "$use_systemd" ""
+ifneq "$(use_systemd)" ""
 install-startup: install-systemd
 else
 install-startup: install-init
