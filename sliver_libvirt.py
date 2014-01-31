@@ -110,7 +110,7 @@ class Sliver_Libvirt(Account):
                 logger.verbose('sliver_libvirt: %s is RUNNING'%self.name)
                 return True
             else:
-                info = debuginfo(self.dom)
+                info = Sliver_Libvirt.debuginfo(self.dom)
                 logger.verbose('sliver_libvirt: %s is ' \
                                'NOT RUNNING...\n%s'%(self.name, info))
                 return False
