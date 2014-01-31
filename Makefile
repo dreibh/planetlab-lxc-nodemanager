@@ -9,20 +9,9 @@
 # autoconf compatible variables
 datadir := /usr/share
 bindir := /usr/bin
-initdir=/etc/init.d
-systemddir := /usr/lib/systemd/system
-
-####################
 # call with either WITH_SYSTEMD=true or WITH_INIT=true
-ifneq "$(WITH_SYSTEMD)" ""
-use_sytemd=true
-else
-ifneq "$(WITH_INIT)" ""
-use_systemd=""
-else # if not set then try to guess
-use_systemd=$(bash -c 'type -p systemctl')
-endif
-endif
+initdir=/etc/rc.d/init.d
+systemddir := /usr/lib/systemd/system
 
 ####################
 lib: forward_api_calls
@@ -55,9 +44,10 @@ install-miscell:
 	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
 	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
 
-ifneq "$(use_systemd)" ""
+ifneq "$(WITH_SYSTEMD)" ""
 install-startup: install-systemd
-else
+endif
+ifneq "$(WITH_INIT)" ""
 install-startup: install-init
 endif
 
