@@ -24,13 +24,10 @@ class Initscript:
         # says we should do either one or the other and not both
         # but actually if that was true we could just do it for init and be fine
         # which is not what we've seen starting with f18
-        # so for now let's try to do it for both systems unconditionnally
-        #
-        # this being said all the paths do not necessarily exist on all flavours of rootfs
-        try:    self.install_and_enable_vinit_for_init ()
-        except: pass
+        # so we try for a systemd system, and if it fails it means 
+        # one of the dir does not exist and so we are dealing with an init-based rootfs
         try:    self.install_and_enable_vinit_for_systemd ()
-        except: pass
+        except: self.install_and_enable_vinit_for_init ()
 
     # unconditionnally install and enable the generic vinit script
     # mimicking chkconfig for enabling the generic vinit script
