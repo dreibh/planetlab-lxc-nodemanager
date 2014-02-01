@@ -19,13 +19,18 @@ class Initscript:
             self.refresh_slice_vinit()
 
     def install_and_enable_vinit (self):
+        "prepare sliver rootfs init and systemd so the vinit service kicks in"
         # the fact that systemd attempts to run old-style services 
-        # says we should do either or or the other and not both
+        # says we should do either one or the other and not both
         # but actually if that was true we could just do it for init and be fine
         # which is not what we've seen starting with f18
-        # so for now let's do it for both systems unconditionnally
-        self.install_and_enable_vinit_for_init ()
-        self.install_and_enable_vinit_for_systemd ()
+        # so for now let's try to do it for both systems unconditionnally
+        #
+        # this being said all the paths do not necessarily exist on all flavours of rootfs
+        try:    self.install_and_enable_vinit_for_init ()
+        except: pass
+        try:    self.install_and_enable_vinit_for_systemd ()
+        except: pass
 
     # unconditionnally install and enable the generic vinit script
     # mimicking chkconfig for enabling the generic vinit script
