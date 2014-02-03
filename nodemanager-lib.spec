@@ -6,6 +6,15 @@
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
+########## use initscripts or systemd unit files to start installed services
+%if "%{distro}" == "Fedora" && %{distrorelease} >= 18
+%define make_options WITH_SYSTEMD=true
+%define initdir /usr/lib/systemd/system
+%else
+%define make_options WITH_INIT=true
+%define initdir %{_initrddir}
+%endif
+
 Summary: PlanetLab Node Manager Library
 Name: %{name}
 Version: %{version}
@@ -23,8 +32,13 @@ URL: %{SCMURL}
 # not possible because of forward_api_calls
 #BuildArch: noarch
 
+# make sure we can invoke systemctl in post install script
+%if "%{initdir}" != "%{_initrddir}"
+Requires: systemd
+%endif
+
 # Uses function decorators
-Requires: python >= 2.4
+Requires: python >= 2.7
 # connecting PLC
 Requires: python-pycurl
 # Signed tickets
@@ -45,55 +59,24 @@ local operations on slices.
 nodemanager-lib only provides a skeleton and needs as a companion
 either nodemanager-vs or nodemanager-lxc
 
+##############################
 %prep
 %setup -q
 
 %build
 # make manages the C and Python stuff
-%{__make} %{?_smp_mflags} lib
+%{__make} %{?_smp_mflags} %{make_options} lib 
 
 %install
 # make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
-%{__make} %{?_smp_mflags} install-lib DESTDIR="$RPM_BUILD_ROOT"
+%{__make} %{?_smp_mflags} %{make_options} install-lib DESTDIR="$RPM_BUILD_ROOT"
 
-# install the sliver initscript (that triggers the slice initscript if any)
-mkdir -p $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
-rsync -av sliver-initscripts/ $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
-chmod 755 $RPM_BUILD_ROOT/usr/share/NodeManager/sliver-initscripts/
-
-mkdir -p $RPM_BUILD_ROOT/%{_initrddir}/
-rsync -av initscripts/ $RPM_BUILD_ROOT/%{_initrddir}/
-chmod 755 $RPM_BUILD_ROOT/%{_initrddir}/*
-
-install -d -m 755 $RPM_BUILD_ROOT/var/lib/nodemanager
-
-install -D -m 644 logrotate/nodemanager $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/nodemanager
-install -D -m 755 sshsh $RPM_BUILD_ROOT/bin/sshsh
-
-##########
+##############################
 %post
-# tmp - handle file renamings; old names are from 2.0-8
-renamings="
-/var/lib/misc/bwmon.dat@/var/lib/nodemanager/bwmon.pickle
-/root/sliver_mgr_db.pickle@/var/lib/nodemanager/database.pickle
-/var/log/getslivers.txt@/var/lib/nodemanager/getslivers.txt
-/var/log/nm@/var/log/nodemanager
-/var/log/nm.daemon@/var/log/nodemanager.daemon
-/var/run/nm.pid@/var/run/nodemanager.pid
-/tmp/sliver_mgr.api@/tmp/nodemanager.api
-/etc/logrotate.d/nm@/etc/logrotate.d/nodemanager
-"
-for renaming in $renamings; do
-  old=$(echo $renaming | cut -d@ -f1)
-  new=$(echo $renaming | cut -d@ -f2)
-  newdir=$(dirname $new)
-  if [ -e "$old" -a ! -e "$new" ] ; then
-      mkdir -p $newdir
-      mv -f $old $new
-  fi
-done
-#
+########## traditional init
+%if "%{initdir}" == "%{_initrddir}"
+##########
 chkconfig --add conf_files
 chkconfig conf_files on
 chkconfig --add nm
@@ -101,13 +84,29 @@ chkconfig nm on
 chkconfig --add fuse-pl
 chkconfig fuse-pl on
 if [ "$PL_BOOTCD" != "1" ] ; then
-	service nm restart
-	service fuse-pl restart
+    service nm restart
+    service fuse-pl restart
 fi
-
 ##########
+%else
+########## systemd
+systemctl enable nm.service
+systemctl enable conf_files.service
+# empty
+#systemctl enable fuse-pl.service
+if [ "$PL_BOOTCD" != "1" ] ; then
+    systemctl restart nm.service
+#    systemctl restart fuse-pl.service
+fi
+##########
+%endif
+
+##############################
 %preun
 # 0 = erase, 1 = upgrade
+########## traditional init
+%if "%{initdir}" == "%{_initrddir}"
+##########
 if [ $1 -eq 0 ] ; then
     chkconfig fuse-pl off
     chkconfig --del fuse-pl
@@ -116,7 +115,18 @@ if [ $1 -eq 0 ] ; then
     chkconfig conf_files off
     chkconfig --del conf_files
 fi
+##########
+%else
+########## systemd
+if [ $1 -eq 0 ] ; then
+#    systemctl disable fuse-pl.service
+    systemctl disable conf_files.service
+    systemctl disable nm.service
+fi
+##########
+%endif
 
+##############################
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -124,9 +134,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_datadir}/NodeManager/
 %{_bindir}/forward_api_calls
-%{_initrddir}/
+%{initdir}/
 %{_sysconfdir}/logrotate.d/nodemanager
-/var/lib/
+/var/lib/nodemanager/
 /bin/sshsh
 
 %changelog

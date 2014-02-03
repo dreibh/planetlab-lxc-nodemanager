@@ -1,0 +1,10 @@
+[Unit]
+Description=Fetch configuration files as defined by controlling MyPLC
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env python /usr/share/NodeManager/conf_files.py
+Before=lxc-sliceimage
+
+[Install]
+WantedBy=multi-user.target

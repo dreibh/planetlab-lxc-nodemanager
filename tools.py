@@ -333,7 +333,7 @@ def command_in_slice (slicename, argv):
 def init_signals ():
     def handler (signum, frame):
         logger.log("Received signal %d - exiting"%signum)
-        exit(1)
+        os._exit(1)
     signal.signal(signal.SIGHUP,handler)
     signal.signal(signal.SIGQUIT,handler)
     signal.signal(signal.SIGINT,handler)

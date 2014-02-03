@@ -9,7 +9,11 @@
 # autoconf compatible variables
 datadir := /usr/share
 bindir := /usr/bin
+# call with either WITH_SYSTEMD=true or WITH_INIT=true
+initdir=/etc/rc.d/init.d
+systemddir := /usr/lib/systemd/system
 
+####################
 lib: forward_api_calls
 	python setup-lib.py build
 
@@ -23,12 +27,45 @@ forward_api_calls: forward_api_calls.c
 	$(CC) -Wall -Os -o $@ $?
 	strip $@
 
-install-lib:
+#################### install
+install-lib: install-miscell install-startup
 	python setup-lib.py install \
 		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-scripts=$(DESTDIR)/$(bindir)
-	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
+
+# might be better in setup.py ?
+# NOTE: the sliver-initscripts/ and sliver-systemd stuff, being, well, for slivers,
+# need to ship on all nodes regardless of WITH_INIT and WITH_SYSTEMD that 
+# impacts how nodemanager itself gets started
+install-miscell:
+	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
+	install -D -m 444 README $(DESTDIR)/$(datadir)/NodeManager/README
+	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
+	install -D -m 755 sshsh $(DESTDIR)/bin/sshsh
+	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
+	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
+	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
+	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd
+	rsync -av sliver-systemd/ $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd/
+	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd/
+
+# this now is for the startup of nodemanager itself
+ifneq "$(WITH_SYSTEMD)" ""
+install-startup: install-systemd
+endif
+ifneq "$(WITH_INIT)" ""
+install-startup: install-init
+endif
+
+install-init:
+	mkdir -p $(DESTDIR)$(initdir)
+	chmod 755 initscripts/*
+	rsync -av initscripts/ $(DESTDIR)$(initdir)/
+
+install-systemd:
+	mkdir -p $(DESTDIR)/$(systemddir)
+	rsync -av systemd/ $(DESTDIR)/$(systemddir)
 
 install-vs:
 	python setup-vs.py install \
@@ -44,21 +81,7 @@ install-lxc:
 		--install-scripts=$(DESTDIR)/$(bindir)
 	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
 
-install-scripts: 
-	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
-	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/sliver-initscripts/
-	chmod 755 $(DESTDIR)/$(datadir)/sliver-initscripts/
-
-	mkdir -p $(DESTDIR)/etc/init.d
-	chmod 755 initscripts/*
-	rsync -av initscripts/ $(DESTDIR)/etc/init.d/
-
-	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
-
-	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
-	install -D -m 755 sshsh $(DESTDIR)/bin/sshsh
-
-
+#################### clean
 clean:
 	python setup-lib.py clean
 	python setup-vs.py clean
@@ -113,7 +136,7 @@ else
 	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 	+$(RSYNC) --exclude sshsh $(LXC_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
 	+$(RSYNC) ./sshsh $(NODEURL)/bin/
-#	+$(RSYNC) ./initscripts/nm $(NODEURL)/etc/init.d/nm
+#	+$(RSYNC) ./initscripts/ $(NODEURL)/etc/init.d/
 	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
 #	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
 endif
