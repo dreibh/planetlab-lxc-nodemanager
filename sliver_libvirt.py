@@ -96,16 +96,18 @@ class Sliver_Libvirt(Account):
         try:
             self.dom.destroy()
         except:
-            logger.verbose('sliver_libvirt: Domain %s not running ' \
-                           'UNEXPECTED: %s'%(self.name, sys.exc_info()[1]))
-            print 'sliver_libvirt: Domain %s not running ' \
-                  'UNEXPECTED: %s'%(self.name, sys.exc_info()[1])
+            logger.log_exc("in sliver_libvirt.stop",name=self.name)
 
-    def is_running(self):
+    def is_running (self):
+        result=self._is_running()
+        logger.log("sliver_libvirt.is_running on %s returned %s"%(self.name,result))
+        return result
+
+    def _is_running(self):
         ''' Return True if the domain is running '''
-        logger.verbose('sliver_libvirt: %s is_running'%self.name)
+        logger.verbose('sliver_libvirt: entering is_running on [%s:%s]'%(self.name,self.dom.ID()))
         try:
-            [state, _, _, _, _] = self.dom.info()
+            state, _, _, _, _ = self.dom.info()
             if state == libvirt.VIR_DOMAIN_RUNNING:
                 logger.verbose('sliver_libvirt: %s is RUNNING'%self.name)
                 return True
@@ -115,11 +117,14 @@ class Sliver_Libvirt(Account):
                                'NOT RUNNING...\n%s'%(self.name, info))
                 return False
         except:
-            logger.verbose('sliver_libvirt: UNEXPECTED ERROR in ' \
-                           '%s: %s'%(self.name, sys.exc_info()[1]))
-            print 'sliver_libvirt: UNEXPECTED ERROR in ' \
-                  '%s: %s'%(self.name, sys.exc_info()[1])
-            return False
+            logger.log("Re-fetching dom from name=%s"%self.name)
+            try:
+                self.dom=self.conn.lookupByName(self.name)
+                state, _, _, _, _ = self.dom.info()
+                return state==libvirt.VIR_DOMAIN_RUNNING
+            except:
+                logger.log_exc("in sliver_libvirt.is_running",name=self.name)
+                return False
 
     def configure(self, rec):
 

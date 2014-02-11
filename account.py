@@ -159,7 +159,7 @@ class Account:
                     subprocess.call("umount %s"%(root_ssh),shell=True)
                     logger.log("_manage_ssh_dir: umounted %s"%(root_ssh))
         except:
-            logger.log_exc("_manage_ssh_dir with slice %s failed"%slicename)
+            logger.log_exc("_manage_ssh_dir failed",name=slicename)
 
 class Worker:
 

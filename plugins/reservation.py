@@ -243,7 +243,7 @@ class reservation:
             # when the underlying worker is not entirely initialized yet
             pass
         except:
-            logger.log_exc("reservation.suspend_slice: Could not stop slice %s through its worker"%slicename)
+            logger.log_exc("reservation.suspend_slice: Could not stop slice through its worker",name=slicename)
         # we hope the status line won't return anything
         self.debug_box('after suspending',slicename)
 
@@ -276,6 +276,6 @@ class reservation:
             logger.log("reservation: Located record at the db %r"%record)
             worker.start(record)
         except:
-            logger.log_exc("reservation.restart_slice: Could not start slice %s through its worker"%slicename)
+            logger.log_exc("reservation.restart_slice: Could not start slice through its worker",name=slicename)
         # we hope the status line won't return anything
         self.debug_box('after restarting',slicename)

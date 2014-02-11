@@ -48,7 +48,7 @@ class Initscript:
                 logger.log("Initscript: %s: creating runlevel3 symlink %s"%(self.name,enable_link))
                 os.symlink(enable_target,enable_link)
             except:
-                logger.log_exc("Initscript: %s: failed to create runlevel3 symlink %s"%enable_link)
+                logger.log_exc("Initscript failed to create runlevel3 symlink %s"%enable_link,name=self.name)
 
     # very similar but with systemd unit files - we target 'multi-user' in this context
     def install_and_enable_vinit_for_systemd(self):
@@ -67,7 +67,7 @@ class Initscript:
                 logger.log("Initscript: %s: creating enabling symlink %s"%(self.name,enable_link))
                 os.symlink(enable_target,enable_link)
             except:
-                logger.log_exc("Initscript: %s: failed to create enabling symlink %s"%enable_link)
+                logger.log_exc("Initscript failed to create enabling symlink %s"%enable_link,name=name)
 
 
 #ln -s '/usr/lib/systemd/system/vinit.service' '/etc/systemd/system/multi-user.target.wants/vinit.service'

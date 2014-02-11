@@ -42,11 +42,14 @@ def log(msg,level=LOG_NODE):
         sys.stderr.write(msg)
         sys.stderr.flush()
 
+date_width=24
 def log_exc(msg="",name=None):
     """Log traceback resulting from an exception."""
     printout=""
     if name: printout += "%s: "%name
-    printout += "EXCEPTION caught <%s> \n %s" %(msg, traceback.format_exc())
+    printout += "EXCEPTION caught <%s> \n" %msg
+    for frame in traceback.format_exc().split("\n"):
+        printout+=(date_width+2)*" "+"%s\n"%frame
     log(printout)
 
 def log_trace(msg="",name=None):
