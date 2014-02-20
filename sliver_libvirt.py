@@ -70,6 +70,23 @@ class Sliver_Libvirt(Account):
             dom = self.conn.lookupByName(self.name)
         self.dom = dom
 
+    @staticmethod
+    def dom_details (dom):
+        output=""
+        output += " id=%s - OSType=%s"%(dom.ID(),dom.OSType())
+        # calling state() seems to be working fine
+        (state,reason)=dom.state()
+        output += " state=%s, reason=%s"%(STATES.get(state,state),REASONS.get(reason,reason))
+        try:
+            # try to use info() - this however does not work for some reason on f20
+            # info cannot get info operation failed: Cannot read cputime for domain
+            [state, maxmem, mem, ncpu, cputime] = dom.info()
+            output += " [info: maxmem = %s, mem = %s, ncpu = %s, cputime = %s]" % (STATES.get(state, state), maxmem, mem, ncpu, cputime)
+        except:
+            # too bad but libvirt.py prints out stuff on stdout when this fails, don't know how to get rid of that..
+            output += " [info: not available]"
+        return output
+
     def __repr__(self):
         ''' Helper method to get a "nice" output of the domain struct for debug purposes'''
         output="Domain %s"%self.name
@@ -77,18 +94,7 @@ class Sliver_Libvirt(Account):
         if dom is None: 
             output += " [no attached dom ?!?]"
         else:
-            output += " id=%s - OSType=%s"%(dom.ID(),dom.OSType())
-            # calling state() seems to be working fine
-            (state,reason)=dom.state()
-            output += " state=%s, reason=%s"%(STATES.get(state,state),REASONS.get(reason,reason))
-            try:
-                # try to use info() - this however does not work for some reason on f20
-                # info cannot get info operation failed: Cannot read cputime for domain
-                [state, maxmem, mem, ncpu, cputime] = dom.info()
-                output += " [info: maxmem = %s, mem = %s, ncpu = %s, cputime = %s]" % (STATES.get(state, state), maxmem, mem, ncpu, cputime)
-            except:
-                # too bad but libvirt.py prints out stuff on stdout when this fails, don't know how to get rid of that..
-                output += " [info: not available]"
+            output += Sliver_Libvirt.dom_details (dom)
         return output
             
 

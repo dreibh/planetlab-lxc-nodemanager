@@ -263,7 +263,7 @@ unset pathmunge
             dom = conn.lookupByName(name)
         except:
             dom = conn.defineXML(xml)
-        logger.verbose('lxc_create: %s -> %s'%(name, Sliver_Libvirt.debuginfo(dom)))
+        logger.verbose('lxc_create: %s -> %s'%(name, Sliver_Libvirt.dom_details(dom)))
 
 
     @staticmethod
