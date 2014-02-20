@@ -23,6 +23,13 @@ STATES = {
     libvirt.VIR_DOMAIN_CRASHED:  'crashed',
 }
 
+REASONS = {
+    libvirt.VIR_CONNECT_CLOSE_REASON_ERROR: 'Misc I/O error',
+    libvirt.VIR_CONNECT_CLOSE_REASON_EOF: 'End-of-file from server',
+    libvirt.VIR_CONNECT_CLOSE_REASON_KEEPALIVE: 'Keepalive timer triggered',
+    libvirt.VIR_CONNECT_CLOSE_REASON_CLIENT: 'Client requested it',
+}
+
 connections = dict()
 
 # Common Libvirt code
@@ -38,12 +45,6 @@ class Sliver_Libvirt(Account):
         vtype = sliver_type.split('.')[1].lower()
         uri = vtype + '://'
         return connections.setdefault(uri, libvirt.open(uri))
-
-    @staticmethod
-    def debuginfo(dom):
-        ''' Helper method to get a "nice" output of the info struct for debug'''
-        [state, maxmem, mem, ncpu, cputime] = dom.info()
-        return '%s is %s, maxmem = %s, mem = %s, ncpu = %s, cputime = %s' % (dom.name(), STATES.get(state, state), maxmem, mem, ncpu, cputime)
 
     def __init__(self, rec):
         self.name = rec['name']
@@ -68,6 +69,28 @@ class Sliver_Libvirt(Account):
             self.__class__.create(rec['name'], rec)
             dom = self.conn.lookupByName(self.name)
         self.dom = dom
+
+    def __repr__(self):
+        ''' Helper method to get a "nice" output of the domain struct for debug purposes'''
+        output="Domain %s"%self.name
+        dom=self.dom
+        if dom is None: 
+            output += " [no attached dom ?!?]"
+        else:
+            output += " id=%s - OSType=%s"%(dom.ID(),dom.OSType())
+            # calling state() seems to be working fine
+            (state,reason)=dom.state()
+            output += " state=%s, reason=%s"%(STATES.get(state,state),REASONS.get(reason,reason))
+            try:
+                # try to use info() - this however does not work for some reason on f20
+                # info cannot get info operation failed: Cannot read cputime for domain
+                [state, maxmem, mem, ncpu, cputime] = dom.info()
+                output += " [info: maxmem = %s, mem = %s, ncpu = %s, cputime = %s]" % (STATES.get(state, state), maxmem, mem, ncpu, cputime)
+            except:
+                # too bad but libvirt.py prints out stuff on stdout when this fails, don't know how to get rid of that..
+                output += " [info: not available]"
+        return output
+            
 
     def start(self, delay=0):
         ''' Just start the sliver '''
@@ -98,33 +121,12 @@ class Sliver_Libvirt(Account):
         except:
             logger.log_exc("in sliver_libvirt.stop",name=self.name)
 
-    def is_running (self):
-        result=self._is_running()
-        logger.log("sliver_libvirt.is_running on %s returned %s"%(self.name,result))
-        return result
-
-    def _is_running(self):
+    def is_running(self):
         ''' Return True if the domain is running '''
-        logger.verbose('sliver_libvirt: entering is_running on [%s:%s]'%(self.name,self.dom.ID()))
-        try:
-            state, _, _, _, _ = self.dom.info()
-            if state == libvirt.VIR_DOMAIN_RUNNING:
-                logger.verbose('sliver_libvirt: %s is RUNNING'%self.name)
-                return True
-            else:
-                info = Sliver_Libvirt.debuginfo(self.dom)
-                logger.verbose('sliver_libvirt: %s is ' \
-                               'NOT RUNNING...\n%s'%(self.name, info))
-                return False
-        except:
-            logger.log("Re-fetching dom from name=%s"%self.name)
-            try:
-                self.dom=self.conn.lookupByName(self.name)
-                state, _, _, _, _ = self.dom.info()
-                return state==libvirt.VIR_DOMAIN_RUNNING
-            except:
-                logger.log_exc("in sliver_libvirt.is_running",name=self.name)
-                return False
+        (state,_) = self.dom.state()
+        result = (state == libvirt.VIR_DOMAIN_RUNNING)
+        logger.verbose('sliver_libvirt.is_running: %s => %s'%(self,result))
+        return result
 
     def configure(self, rec):
 
