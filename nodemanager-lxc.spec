@@ -5,7 +5,7 @@
 
 %define name nodemanager-lxc
 %define version 5.2
-%define taglevel 9
+%define taglevel 10
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -61,6 +61,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Fri Mar 21 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-10
+- comes with systemd native unit files on >= f18
+- user-provided initscript gets started through systemd in slivers >= f18
+- smarter to locate cgroups for various versions of libvirt
+- nicer log format - and log program termination
+- tweaks in codemux plugin
+- bug fixes in libvirt driver, esp. for finding out if domain is running
+
 * Wed Dec 11 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-9
 - fixes in hostmap, and in interfaces
 - new vsys_sysctl
