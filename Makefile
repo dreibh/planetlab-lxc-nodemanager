@@ -40,6 +40,7 @@ install-lib: install-miscell install-startup
 # impacts how nodemanager itself gets started
 install-miscell:
 	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
+	install -D -m 644 /dev/null $(DESTDIR)/etc/sysconfig/nodemanager 
 	install -D -m 444 README $(DESTDIR)/$(datadir)/NodeManager/README
 	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
 	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
