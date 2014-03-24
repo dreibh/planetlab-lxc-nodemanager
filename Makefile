@@ -42,7 +42,6 @@ install-miscell:
 	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
 	install -D -m 444 README $(DESTDIR)/$(datadir)/NodeManager/README
 	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
-	install -D -m 755 sshsh $(DESTDIR)/bin/sshsh
 	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
 	rsync -av sliver-initscripts/ $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/
 	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts/

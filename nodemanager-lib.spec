@@ -137,7 +137,6 @@ rm -rf $RPM_BUILD_ROOT
 %{initdir}/
 %{_sysconfdir}/logrotate.d/nodemanager
 /var/lib/nodemanager/
-/bin/sshsh
 
 %changelog
 * Wed Dec 11 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-9
