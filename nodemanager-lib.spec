@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 10
+%define taglevel 11
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -140,6 +140,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/sysconfig/nodemanager
 
 %changelog
+* Tue Mar 25 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-11
+- ship /etc/sysconfig/nodemanager
+- trash sshsh
+
 * Fri Mar 21 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-10
 - comes with systemd native unit files on >= f18
 - user-provided initscript gets started through systemd in slivers >= f18
