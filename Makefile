@@ -134,8 +134,7 @@ else
 	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 	@echo WARNING : this target might not be very reliable - use with care
 	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-	+$(RSYNC) --exclude sshsh $(LXC_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
-	+$(RSYNC) ./sshsh $(NODEURL)/bin/
+	+$(RSYNC) $(LXC_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
 #	+$(RSYNC) ./initscripts/ $(NODEURL)/etc/init.d/
 	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
 #	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
