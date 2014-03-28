@@ -2,6 +2,7 @@
 
 import logger
 import os
+import tools
 
 VSYSCONF="/etc/vsys.conf"
 VSYSBKEND="/vsys"
@@ -40,9 +41,16 @@ def GetSlivers(data, config=None, plc=None):
     _restart = writeConf(slices, parseConf()) or _restart
     # Write out the ACLs
     if writeAcls(scripts, parseAcls()) or _restart:
-        logger.log("vsys: restarting vsys service")
-        logger.log_call(["/etc/init.d/vsys", "restart", ])
+        restartService()
 
+# check for systemctl, use it if present
+def restartService ():
+    if tools.has_systemctl():
+        logger.log("vsys: restarting vsys service through systemctl")
+        logger.log_call(["systemctl", "restart", "vsys"])
+    else:
+        logger.log("vsys: restarting vsys service through /etc/init.d/vsys")
+        logger.log_call(["/etc/init.d/vsys", "restart", ])
 
 def createVsysDir(sliver):
     '''Create /vsys directory in slice.  Update vsys conf file.'''
@@ -146,3 +154,25 @@ def parseConf():
         f.close()
     except: logger.log_exc("vsys: failed parseConf")
     return slicesinconf
+
+
+# before shutting down slivers, it is safe to first remove them from vsys's scope
+# so that we are sure that no dangling open file remains
+# this will also restart vsys if needed
+def removeSliverFromVsys (sliver):
+    current_slivers=parseConf()
+    new_slivers= [ s for s in current_slivers if s != sliver ]
+    if writeConf (current_slivers, new_slivers):
+        trashSliverVsys (sliver)
+        restartService()
+    else:
+        logger.log("vsys.removeSliverFromConf: no need to remove %s"%sliver)
+
+
+def trashSliverVsys (sliver):
+    slice_vsys_area = "/vservers/%s/vsys"%sliver
+    if not os.path.exists(slice_vsys_area):
+        logger.log("vsys.trashSliverVsys: no action needed, %s not found"%slice_vsys_area)
+        return
+    ret=subprocess.call([ 'rm', '-rf' , slice_vsys_area])
+    logger.log ("vsys.trashSliverVsys: Removed %s (retcod=%s)"%(slice_vsys_area,retcod))

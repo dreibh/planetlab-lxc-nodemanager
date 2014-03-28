@@ -310,6 +310,14 @@ def get_node_virt ():
         f.write(virt)
     return virt
 
+### this return True or False to indicate that systemctl is present on that box
+# cache result in memory as _has_systemctl
+_has_systemctl=None
+def has_systemctl ():
+    if _has_systemctl is None:
+        _has_systemctl = (subprocess.call([ 'systemctl', '--help' ]) == 0)
+    return _has_systemctl
+
 # how to run a command in a slice
 # now this is a painful matter
 # the problem is with capsh that forces a bash command to be injected in its exec'ed command

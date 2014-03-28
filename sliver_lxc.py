@@ -9,6 +9,7 @@ import os, os.path
 import grp
 from pwd import getpwnam
 from string import Template
+from plugins.vsys import removeSliverFromVsys
 
 import libvirt
 
@@ -295,13 +296,10 @@ unset pathmunge
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command, timeout=15*60)
 
-        if os.path.exists(os.path.join(containerDir,"vsys")):
-            # Slivers with vsys running will fail the subvolume delete.
-            # A more permanent solution may be to ensure that the vsys module
-            # is called before the sliver is destroyed.
-            logger.log("destroying vsys directory and restarting vsys")
-            logger.log_call(["rm", "-fR", os.path.join(containerDir, "vsys")])
-            logger.log_call(["/etc/init.d/vsys", "restart", ])
+        # Slivers with vsys running will fail the subvolume delete.
+        # A more permanent solution may be to ensure that the vsys module
+        # is called before the sliver is destroyed.
+        removeSliverFromVsys (name)
 
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
