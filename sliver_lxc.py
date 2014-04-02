@@ -9,6 +9,12 @@ import os, os.path
 import grp
 from pwd import getpwnam
 from string import Template
+
+# vsys probably should not be a plugin
+# the thing is, the right way to handle stuff would be that
+# if slivers get created by doing a,b,c
+# then they sohuld be delted by doing c,b,a
+# the current ordering model for vsys plugins completely fails to capture that
 from plugins.vsys import removeSliverFromVsys
 
 import libvirt

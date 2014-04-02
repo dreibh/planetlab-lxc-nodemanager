@@ -163,16 +163,16 @@ def removeSliverFromVsys (sliver):
     current_slivers=parseConf()
     new_slivers= [ s for s in current_slivers if s != sliver ]
     if writeConf (current_slivers, new_slivers):
-        trashSliverVsys (sliver)
         restartService()
+        trashVsysHandleInSliver (sliver)
     else:
         logger.log("vsys.removeSliverFromConf: no need to remove %s"%sliver)
 
 
-def trashSliverVsys (sliver):
+def trashVsysHandleInSliver (sliver):
     slice_vsys_area = "/vservers/%s/vsys"%sliver
     if not os.path.exists(slice_vsys_area):
-        logger.log("vsys.trashSliverVsys: no action needed, %s not found"%slice_vsys_area)
+        logger.log("vsys.trashVsysHandleInSliver: no action needed, %s not found"%slice_vsys_area)
         return
     ret=subprocess.call([ 'rm', '-rf' , slice_vsys_area])
-    logger.log ("vsys.trashSliverVsys: Removed %s (retcod=%s)"%(slice_vsys_area,retcod))
+    logger.log ("vsys.trashVsysHandleInSliver: Removed %s (retcod=%s)"%(slice_vsys_area,retcod))
