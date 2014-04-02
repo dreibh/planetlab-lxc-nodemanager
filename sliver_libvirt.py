@@ -2,6 +2,7 @@
 
 import sys
 import os, os.path
+import re
 import subprocess
 import pprint
 import random
@@ -96,7 +97,19 @@ class Sliver_Libvirt(Account):
         else:
             output += Sliver_Libvirt.dom_details (dom)
         return output
-            
+
+    def repair_veth(self):
+        # See workaround email, 2-14-2014, "libvirt 1.2.1 rollout"
+        xml = open("/etc/libvirt/lxc/%s.xml" % self.name).read()
+        veths = re.findall("<target dev='veth[0-9]*'/>", xml)
+        veths = [x[13:-3] for x in veths]
+        for veth in veths:
+            command = ["ip", "link", "delete", veth]
+            logger.log_call(command)
+
+        logger.log("trying to redefine the VM")
+        command = ["virsh", "define", "/etc/libvirt/lxc/%s.xml" % self.name]
+        logger.log_call(command)
 
     def start(self, delay=0):
         ''' Just start the sliver '''
@@ -105,7 +118,18 @@ class Sliver_Libvirt(Account):
         # Check if it's running to avoid throwing an exception if the
         # domain was already running, create actually means start
         if not self.is_running():
-            self.dom.create()
+            try:
+                self.dom.create()
+            except Exception, e:
+                # XXX smbaker: attempt to resolve slivers that are stuck in
+                #   "failed to allocate free veth".
+                if "ailed to allocate free veth" in str(e):
+                     logger.log("failed to allocate free veth on %s" % self.name)
+                     self.repair_veth()
+                     logger.log("trying dom.create again")
+                     self.dom.create()
+                else:
+                    raise
         else:
             logger.verbose('sliver_libvirt: sliver %s already started'%(self.name))
 
