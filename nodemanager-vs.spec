@@ -5,7 +5,7 @@
 
 %define name nodemanager-vs
 %define version 5.2
-%define taglevel 11
+%define taglevel 12
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -60,6 +60,13 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/
 
 %changelog
+* Fri Apr 04 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-12
+- this tag for the first time passes the full range of tests on fedora20
+- robustified slice teardown wrt vsys
+- Scott's fix for repairing veth devs
+- removed sshsh
+- tools.has_systemctl
+
 * Tue Mar 25 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-11
 - ship /etc/sysconfig/nodemanager
 - trash sshsh
