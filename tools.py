@@ -314,6 +314,7 @@ def get_node_virt ():
 # cache result in memory as _has_systemctl
 _has_systemctl=None
 def has_systemctl ():
+    global _has_systemctl
     if _has_systemctl is None:
         _has_systemctl = (subprocess.call([ 'systemctl', '--help' ]) == 0)
     return _has_systemctl
