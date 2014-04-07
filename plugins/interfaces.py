@@ -81,7 +81,7 @@ def GetSlivers(data, config=None, plc=None):
                         logger.log('interfaces (%s): error writing file %s' % (slicename, dest))
                         continue
 
-                    result = logger.log_call(['/usr/sbin/lxcsu', slicename, '/sbin/service network restart'])
+                    result = logger.log_call(['/usr/sbin/lxcsu', slicename, '/sbin/service', 'network', 'restart'])
                     if not result:
                         logger.log('interfaces (%s): error restarting network service' % slicename)
 #                    try:
