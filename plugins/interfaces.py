@@ -31,6 +31,14 @@ def GetSlivers(data, config=None, plc=None):
 
     for sliver in data['slivers']:
         slicename = sliver['name']
+
+        if not os.path.exists("/vservers/%s" % slicename):
+            # Avoid creating slice directory if slice does not exist, as it
+            # breaks slice creation when sliver_lxc eventually gets around
+            # to creating the sliver.
+            logger.log("vserver %s does not exist yet. Skipping interfaces." % slicename)
+            continue
+
         for tag in sliver['attributes']:
             if tag['tagname'] == 'interface':
                 interfaces = eval(tag['value'])
