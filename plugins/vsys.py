@@ -176,5 +176,5 @@ def trashVsysHandleInSliver (sliver):
     if not os.path.exists(slice_vsys_area):
         logger.log("vsys.trashVsysHandleInSliver: no action needed, %s not found"%slice_vsys_area)
         return
-    ret=subprocess.call([ 'rm', '-rf' , slice_vsys_area])
+    retcod=subprocess.call([ 'rm', '-rf' , slice_vsys_area])
     logger.log ("vsys.trashVsysHandleInSliver: Removed %s (retcod=%s)"%(slice_vsys_area,retcod))
