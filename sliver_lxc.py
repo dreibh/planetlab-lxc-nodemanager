@@ -282,38 +282,51 @@ unset pathmunge
 
         containerDir = Sliver_LXC.CON_BASE_DIR + '/%s'%(name)
 
+        # Slivers with vsys running will fail the subvolume delete
+        # A more permanent solution may be to ensure that the vsys module
+        # is called before the sliver is destroyed.
+        removeSliverFromVsys (name)
+
         try:
             # Destroy libvirt domain
             dom = conn.lookupByName(name)
         except:
-            logger.verbose('sliver_lxc: Domain %s does not exist!' % name)
+            logger.verbose('sliver_lxc.destroy: Domain %s does not exist!' % name)
+            return
 
         try:
+            logger.log("sliver_lxc.destroy: destroying domain %s"%name)
             dom.destroy()
         except:
-            logger.verbose('sliver_lxc: Domain %s not running... continuing.' % name)
+            logger.verbose('sliver_lxc.destroy: Domain %s not running... continuing.' % name)
 
         try:
+            logger.log("sliver_lxc.destroy: undefining domain %s"%name)
             dom.undefine()
         except:
-            logger.verbose('sliver_lxc: Domain %s is not defined... continuing.' % name)
+            logger.verbose('sliver_lxc.destroy: Domain %s is not defined... continuing.' % name)
 
         # Remove user after destroy domain to force logout
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command, timeout=15*60)
 
-        # Slivers with vsys running will fail the subvolume delete.
-        # A more permanent solution may be to ensure that the vsys module
-        # is called before the sliver is destroyed.
-        removeSliverFromVsys (name)
-
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=60)
 
-        if os.path.exists(containerDir):
-           # oh no, it's still here...
-           logger.log("WARNING: failed to destroy container %s" % containerDir)
+        if not os.path.exists(containerDir):
+            logger.log('sliver_lxc.destroy: %s cleanly destroyed.'%name)
+        else:
+            # oh no, it's still here...
+            logger.log("sliver_lxc.destroy: 1st warning: could not delete %s" % containerDir)
+            # this is for debugging but does not seem to be of much use
+            logger.log_call (['lsof'])
+            # what I can see on running nodes is that a second subvolume delete seems to do the trick here
+            # so let's check if that could be a workaround
+            logger.log("sliver_lxc.destroy: 2nd attempt at btrfs subvolume delete %s" % containerDir)
+            command = ['btrfs', 'subvolume', 'delete', containerDir]
+            logger.log_call(command, timeout=60)
+            if not os.path.exists(containerDir):
+                logger.log("sliver_lxc.destroy: WARNING: failed to delete %s after 2 attempts"%containerDir)
 
-        logger.verbose('sliver_libvirt: %s destroyed.'%name)
 
