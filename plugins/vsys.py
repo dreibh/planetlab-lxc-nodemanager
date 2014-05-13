@@ -1,7 +1,8 @@
 """vsys configurator.  Maintains ACLs and script pipes inside vservers based on slice attributes."""
 
-import logger
 import os
+
+import logger
 import tools
 
 VSYSCONF="/etc/vsys.conf"
