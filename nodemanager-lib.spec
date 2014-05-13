@@ -7,7 +7,7 @@
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 ########## use initscripts or systemd unit files to start installed services
-%if "%{distro}" == "Fedora" && %{distrorelease} >= 18
+%if "%{distro}" == "Fedora" && "%{distrorelease}" >= "18"
 %define make_options WITH_SYSTEMD=true
 %define initdir /usr/lib/systemd/system
 %else
