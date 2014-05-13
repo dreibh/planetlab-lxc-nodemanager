@@ -1,6 +1,7 @@
 """vsys configurator.  Maintains ACLs and script pipes inside vservers based on slice attributes."""
 
 import os
+import subprocess
 
 import logger
 import tools
