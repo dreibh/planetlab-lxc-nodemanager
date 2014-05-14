@@ -6,15 +6,25 @@
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
-########## use initscripts or systemd unit files to start installed services
+##############################
+# for now we just extract all the files but package them only for either vs or lxc
+# so bottom line is we have missing files at the end
+# plan is to separate these target-dependant files in subdirs at some point
+%define _unpackaged_files_terminate_build      0
+
+##############################
+# use initscripts or systemd unit files to start installed services
 %if "%{distro}" == "Fedora" && "%{distrorelease}" >= "18"
 %define make_options WITH_SYSTEMD=true
 %define initdir /usr/lib/systemd/system
+%define build_lxc 1
 %else
 %define make_options WITH_INIT=true
 %define initdir %{_initrddir}
+%define build_vs 1
 %endif
 
+##############################
 Summary: PlanetLab Node Manager Library
 Name: %{name}
 Version: %{version}
@@ -65,12 +75,12 @@ either nodemanager-vs or nodemanager-lxc
 
 %build
 # make manages the C and Python stuff
-%{__make} %{?_smp_mflags} %{make_options} lib 
+%{__make} %{?_smp_mflags} %{make_options}
 
 %install
 # make manages the C and Python stuff
 rm -rf $RPM_BUILD_ROOT
-%{__make} %{?_smp_mflags} %{make_options} install-lib DESTDIR="$RPM_BUILD_ROOT"
+%{__make} %{?_smp_mflags} %{make_options} install DESTDIR="$RPM_BUILD_ROOT"
 
 ##############################
 %post
@@ -130,15 +140,110 @@ fi
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+##############################
 %files
 %defattr(-,root,root,-)
-%{_datadir}/NodeManager/
+%{_datadir}/NodeManager/account.*
+%{_datadir}/NodeManager/api.*
+%{_datadir}/NodeManager/api_calls.*
+%{_datadir}/NodeManager/bwmon.*
+%{_datadir}/NodeManager/conf_files.*
+%{_datadir}/NodeManager/config.*
+%{_datadir}/NodeManager/controller.*
+%{_datadir}/NodeManager/curlwrapper.*
+%{_datadir}/NodeManager/database.*
+%{_datadir}/NodeManager/initscript.*
+%{_datadir}/NodeManager/iptables.*
+%{_datadir}/NodeManager/logger.*
+%{_datadir}/NodeManager/net.*
+%{_datadir}/NodeManager/nodemanager.*
+%{_datadir}/NodeManager/plcapi.*
+%{_datadir}/NodeManager/safexmlrpc.*
+%{_datadir}/NodeManager/slivermanager.*
+%{_datadir}/NodeManager/ticket.*
+%{_datadir}/NodeManager/tools.*
+%{_datadir}/NodeManager/plugins/codemux.*
+%{_datadir}/NodeManager/plugins/hostmap.*
+%{_datadir}/NodeManager/plugins/interfaces.*
+%{_datadir}/NodeManager/plugins/omf_resctl.*
+%{_datadir}/NodeManager/plugins/privatebridge.*
+%{_datadir}/NodeManager/plugins/rawdisk.*
+%{_datadir}/NodeManager/plugins/reservation.*
+%{_datadir}/NodeManager/plugins/sfagids.*
+%{_datadir}/NodeManager/plugins/sliverauth.*
+%{_datadir}/NodeManager/plugins/specialaccounts.*
+%{_datadir}/NodeManager/plugins/syndicate.*
+%{_datadir}/NodeManager/plugins/vsys.*
+%{_datadir}/NodeManager/plugins/vsys_privs.*
 %{_bindir}/forward_api_calls
 %{initdir}/
 %{_sysconfdir}/logrotate.d/nodemanager
 /var/lib/nodemanager/
 %config(noreplace) /etc/sysconfig/nodemanager
 
+##############################
+%if "%{build_lxc}" == "1"
+
+%package -n nodemanager-lxc
+Summary: PlanetLab Node Manager Plugin for lxc nodes
+Group: System Environment/Daemons
+# we use libvirt
+Requires: libvirt
+Requires: libvirt-python
+# cgroups.py needs this
+Requires: python-inotify
+# the common package for nodemanager
+Requires: nodemanager-lib = %{version}
+# the lxc-specific tools for using slice images
+Requires: lxc-sliceimage
+Requires: openvswitch
+
+%description -n nodemanager-lxc
+nodemanager-lxc provides the lxc code for the PlanetLab Node Manager.
+
+%files -n nodemanager-lxc
+%{_datadir}/NodeManager/sliver_libvirt.*
+%{_datadir}/NodeManager/sliver_lxc.*
+%{_datadir}/NodeManager/cgroups.*
+%{_datadir}/NodeManager/coresched_lxc.*
+
+%endif
+##############################
+
+##############################
+%if "%{build_vs}" == "1"
+
+%package -n nodemanager-vs
+Summary: PlanetLab Node Manager Plugin for vserver nodes
+Group: System Environment/Daemons
+
+# old name, when all came as a single package with vserver wired in
+Obsoletes: NodeManager
+# for nodeupdate 
+Provides: nodemanager
+
+# our interface to the vserver patch
+Requires: util-vserver >= 0.30.208-17
+# and the planetlab utilities
+Requires: util-vserver-python > 0.3-16
+# the common package for nodemanager
+Requires: nodemanager-lib = %{version}
+# the vserver-specific tools for using slice images
+Requires: vserver-sliceimage
+
+%description -n nodemanager-vs
+nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
+
+%files -n nodemanager-vs
+%{_datadir}/NodeManager/sliver_vs.*
+%{_datadir}/NodeManager/coresched_vs.*
+# this plugin uses vserver for now
+%{_datadir}/NodeManager/plugins.drl.*
+
+%endif
+##############################
+
+##############################
 %changelog
 * Fri Apr 04 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-12
 - this tag for the first time passes the full range of tests on fedora20

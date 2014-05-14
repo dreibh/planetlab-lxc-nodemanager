@@ -14,22 +14,16 @@ initdir=/etc/rc.d/init.d
 systemddir := /usr/lib/systemd/system
 
 ####################
-lib: forward_api_calls
-	python setup-lib.py build
-
-vs: 
-	python setup-vs.py build
-
-lxc: 
-	python setup-lxc.py build
+all: forward_api_calls
+	python setup.py build
 
 forward_api_calls: forward_api_calls.c
 	$(CC) -Wall -Os -o $@ $?
 	strip $@
 
 #################### install
-install-lib: install-miscell install-startup
-	python setup-lib.py install \
+install: install-miscell install-startup
+	python setup.py install \
 		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-scripts=$(DESTDIR)/$(bindir)
@@ -67,25 +61,9 @@ install-systemd:
 	mkdir -p $(DESTDIR)/$(systemddir)
 	rsync -av systemd/ $(DESTDIR)/$(systemddir)
 
-install-vs:
-	python setup-vs.py install \
-		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-scripts=$(DESTDIR)/$(bindir)
-	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
-
-install-lxc:
-	python setup-lxc.py install \
-		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-scripts=$(DESTDIR)/$(bindir)
-	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
-
 #################### clean
 clean:
-	python setup-lib.py clean
-	python setup-vs.py clean
-	python setup-lxc.py clean
+	python setup.py clean
 	rm -f forward_api_calls *.pyc build
 
 .PHONY: all install clean
