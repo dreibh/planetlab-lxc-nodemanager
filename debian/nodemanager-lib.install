@@ -1,0 +1,6 @@
+usr/share/NodeManager/
+usr/bin/forward_api_calls
+etc/init.d/
+etc/logrotate.d/nodemanager
+var/lib/nodemanager/
+etc/sysconfig/nodemanager
