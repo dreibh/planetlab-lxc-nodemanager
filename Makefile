@@ -9,27 +9,29 @@
 # autoconf compatible variables
 datadir := /usr/share
 bindir := /usr/bin
-# call with either WITH_SYSTEMD=true or WITH_INIT=true
 initdir=/etc/rc.d/init.d
 systemddir := /usr/lib/systemd/system
 
+# call with either WITH_SYSTEMD=true or WITH_INIT=true
+# otherwise we try to guess some reasonable default
+ifeq "$(WITH_INIT)$(WITH_SYSTEMD)" ""
+ifeq "$(wildcard $systemddir/*)" ""
+WITH_INIT=true
+else
+WITH_SYSTEMD=true
+endif
+endif
 ####################
-lib: forward_api_calls
-	python setup-lib.py build
-
-vs: 
-	python setup-vs.py build
-
-lxc: 
-	python setup-lxc.py build
+all: forward_api_calls
+	python setup.py build
 
 forward_api_calls: forward_api_calls.c
 	$(CC) -Wall -Os -o $@ $?
 	strip $@
 
 #################### install
-install-lib: install-miscell install-startup
-	python setup-lib.py install \
+install: install-miscell install-startup
+	python setup.py install \
 		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-scripts=$(DESTDIR)/$(bindir)
@@ -67,30 +69,42 @@ install-systemd:
 	mkdir -p $(DESTDIR)/$(systemddir)
 	rsync -av systemd/ $(DESTDIR)/$(systemddir)
 
-install-vs:
-	python setup-vs.py install \
-		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-scripts=$(DESTDIR)/$(bindir)
-	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
-
-install-lxc:
-	python setup-lxc.py install \
-		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-scripts=$(DESTDIR)/$(bindir)
-	install -m 444 README $(DESTDIR)/$(datadir)/NodeManager
-
 #################### clean
 clean:
-	python setup-lib.py clean
-	python setup-vs.py clean
-	python setup-lxc.py clean
+	python setup.py clean
 	rm -f forward_api_calls *.pyc build
 
 .PHONY: all install clean
 
-##########
+#################### debian-related
+# This is called from the build with the following variables set 
+# (see build/Makefile and target_debian)
+# (.) RPMTARBALL
+# (.) RPMVERSION
+# (.) RPMRELEASE
+# (.) RPMNAME
+DEBVERSION=$(RPMVERSION).$(RPMRELEASE)
+DEBTARBALL=../$(RPMNAME)_$(DEBVERSION).orig.tar.bz2
+DATE=$(shell date -u +"%a, %d %b %Y %T")
+force:
+
+debian: forward_api_calls install debian/changelog debian.source debian.package
+
+debian/changelog: debian/changelog.in
+	sed -e "s|@VERSION@|$(DEBVERSION)|" -e "s|@DATE@|$(DATE)|" debian/changelog.in > debian/changelog
+
+debian.source: force 
+	rsync -a $(RPMTARBALL) $(DEBTARBALL)
+
+debian.package:
+	debuild --set-envvar PREFIX=/usr -uc -us -b
+
+debian.clean:
+	$(MAKE) -f debian/rules clean
+	rm -rf build/ MANIFEST ../*.tar.gz ../*.dsc ../*.build
+	find . -name '*.pyc' -delete
+
+################################################## devel-oriented
 tags:
 	(find . '(' -name '*.py' -o -name '*.c' -o -name '*.spec' ')' ; ls initscripts/*) | xargs etags 
 

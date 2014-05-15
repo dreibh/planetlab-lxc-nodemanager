@@ -42,6 +42,16 @@ setup(
         'plugins.syndicate',
         'plugins.vsys',
         'plugins.vsys_privs',
+# lxc
+        'sliver_libvirt',
+        'sliver_lxc',
+        'cgroups',
+        'coresched_lxc',
+# vs
+        'sliver_vs',
+        'coresched_vs',
+        # this plugin uses vserver for now
+        'plugins.drl',
         ],
     scripts = [
         'forward_api_calls',

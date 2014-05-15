@@ -1,2 +1,15 @@
 # This is placeholder for fuse-pl in a lxc/systemd setup
-# needs to be rewritten as the initscript version seems to rely on vservers
+#
+# this topic could clearly use some thorough cleanup...
+#
+# needs to be rewritten as the initscript version currently depends on vservers
+# although apparently this is only for computing the '/vservers' path
+# that could reasonably be hard-wired
+#
+# more importantly, it looks like initscripts/fuse-pl exposes /dev/fuse to
+# running slices, but these are evaluated at boot-time only ?!?
+# so it feels like a correct approach would be to have 
+# * an initscript for real initialization (modprobe and other mounts)
+# * a nm plugin for managing /dev/fuse inside all slivers
+#   about that, there's a vsys script named fd_fusemount that most likely
+#   is related as well, probably makes this plugin irrelevant..
