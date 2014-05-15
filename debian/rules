@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-DEB_PYTHON_SETUP_CMD = setup-lib.py
-
 %:
 	dh $@ --with python2 --buildsystem=python_distutils
+

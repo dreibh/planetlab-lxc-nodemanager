@@ -9,10 +9,18 @@
 # autoconf compatible variables
 datadir := /usr/share
 bindir := /usr/bin
-# call with either WITH_SYSTEMD=true or WITH_INIT=true
 initdir=/etc/rc.d/init.d
 systemddir := /usr/lib/systemd/system
 
+# call with either WITH_SYSTEMD=true or WITH_INIT=true
+# otherwise we try to guess some reasonable default
+ifeq "$(WITH_INIT)$(WITH_SYSTEMD)" ""
+ifeq "$(wildcard $systemddir/*)" ""
+WITH_INIT=true
+else
+WITH_SYSTEMD=true
+endif
+endif
 ####################
 all: forward_api_calls
 	python setup.py build
@@ -80,7 +88,7 @@ DEBTARBALL=../$(RPMNAME)_$(DEBVERSION).orig.tar.bz2
 DATE=$(shell date -u +"%a, %d %b %Y %T")
 force:
 
-debian: debian/changelog debian.source debian.package
+debian: forward_api_calls install debian/changelog debian.source debian.package
 
 debian/changelog: debian/changelog.in
 	sed -e "s|@VERSION@|$(DEBVERSION)|" -e "s|@DATE@|$(DATE)|" debian/changelog.in > debian/changelog
