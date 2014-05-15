@@ -6,7 +6,7 @@
 # Copyright (C) 2006 The Trustees of Princeton University
 #
 
-from distutils.core import setup, Extension
+from distutils.core import setup
 
 setup(
     py_modules=[
