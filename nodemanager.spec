@@ -176,8 +176,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/plugins/syndicate.*
 %{_datadir}/NodeManager/plugins/vsys.*
 %{_datadir}/NodeManager/plugins/vsys_privs.*
-%{datadir}/NodeManager/sliver-initscripts/
-%{datadir}/NodeManager/sliver-systemd/
+%{_datadir}/NodeManager/sliver-initscripts/
+%{_datadir}/NodeManager/sliver-systemd/
 %{_bindir}/forward_api_calls
 %{initdir}/
 %{_sysconfdir}/logrotate.d/nodemanager
