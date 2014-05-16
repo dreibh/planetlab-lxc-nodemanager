@@ -162,6 +162,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/slivermanager.*
 %{_datadir}/NodeManager/ticket.*
 %{_datadir}/NodeManager/tools.*
+%{_datadir}/NodeManager/plugins/__init__.*
 %{_datadir}/NodeManager/plugins/codemux.*
 %{_datadir}/NodeManager/plugins/hostmap.*
 %{_datadir}/NodeManager/plugins/interfaces.*
@@ -175,6 +176,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/plugins/syndicate.*
 %{_datadir}/NodeManager/plugins/vsys.*
 %{_datadir}/NodeManager/plugins/vsys_privs.*
+%{datadir}/NodeManager/sliver-initscripts/
+%{datadir}/NodeManager/sliver-systemd/
 %{_bindir}/forward_api_calls
 %{initdir}/
 %{_sysconfdir}/logrotate.d/nodemanager
