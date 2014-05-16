@@ -238,7 +238,7 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 %{_datadir}/NodeManager/sliver_vs.*
 %{_datadir}/NodeManager/coresched_vs.*
 # this plugin uses vserver for now
-%{_datadir}/NodeManager/plugins.drl.*
+%{_datadir}/NodeManager/plugins/drl.*
 
 %endif
 ##############################
