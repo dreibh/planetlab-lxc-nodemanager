@@ -137,6 +137,9 @@ endif
 # keep this in sync with setup-vs.spec
 LXC_EXCLUDES= --exclude sliver_vs.py --exclude coresched_vs.py
 
+# run with make SYNC_RESTART=false if you want to skip restarting nm
+SYNC_RESTART=true
+
 sync:synclxc
 
 synclxc: $(NODE).key.rsa
@@ -151,7 +154,7 @@ else
 	+$(RSYNC) $(LXC_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
 #	+$(RSYNC) ./initscripts/ $(NODEURL)/etc/init.d/
 	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
-#	ssh -i $(NODE).key.rsa root@$(NODE) service nm restart
+	-$(SYNC_RESTART) && { ssh -i $(NODE).key.rsa root@$(NODE) service nm restart ; } ||:
 endif
 
 ### fetching the key
