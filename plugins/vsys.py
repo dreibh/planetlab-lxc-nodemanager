@@ -46,13 +46,17 @@ def GetSlivers(data, config=None, plc=None):
         restartService()
 
 # check for systemctl, use it if present
-def restartService ():
+# keyword being 'start', 'stop' or 'restart'
+def handleService (keyword):
     if tools.has_systemctl():
-        logger.log("vsys: restarting vsys service through systemctl")
-        logger.log_call(["systemctl", "restart", "vsys"])
+        logger.log("vsys: %s'ing vsys service through systemctl"%keyword)
+        return logger.log_call(["systemctl", "restart", "vsys"])
     else:
-        logger.log("vsys: restarting vsys service through /etc/init.d/vsys")
-        logger.log_call(["/etc/init.d/vsys", "restart", ])
+        logger.log("vsys: %s'ing vsys service through /etc/init.d/vsys"%keyword)
+        return logger.log_call(["/etc/init.d/vsys", keyword])
+def startService(): return handleService ('start')
+def stopService(): return handleService ('stop')
+def restartService(): return handleService ('restart')
 
 def createVsysDir(sliver):
     '''Create /vsys directory in slice.  Update vsys conf file.'''
@@ -160,16 +164,17 @@ def parseConf():
 
 # before shutting down slivers, it is safe to first remove them from vsys's scope
 # so that we are sure that no dangling open file remains
-# this will also restart vsys if needed
+# this will also stop vsys if needed (in which case it return True to tell caller to restart vsys once done)
 def removeSliverFromVsys (sliver):
     current_slivers=parseConf()
     new_slivers= [ s for s in current_slivers if s != sliver ]
     if writeConf (current_slivers, new_slivers):
-        restartService()
+        stopService()
         trashVsysHandleInSliver (sliver)
+        return True
     else:
         logger.log("vsys.removeSliverFromConf: no need to remove %s"%sliver)
-
+        return False
 
 def trashVsysHandleInSliver (sliver):
     slice_vsys_area = "/vservers/%s/vsys"%sliver
