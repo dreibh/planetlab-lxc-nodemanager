@@ -88,6 +88,7 @@ DEBTARBALL=../$(RPMNAME)_$(DEBVERSION).orig.tar.bz2
 DATE=$(shell date -u +"%a, %d %b %Y %T")
 force:
 
+debian: DESTDIR=debian/tmp
 debian: forward_api_calls install debian/changelog debian.source debian.package
 
 debian/changelog: debian/changelog.in
