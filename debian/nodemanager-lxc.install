@@ -1,1 +1,5 @@
-usr/share/NodeManager
+# see also nodemanager-lib.install
+usr/lib*/python*/dist-packages/sliver_libvirt.*
+usr/lib*/python*/dist-packages/sliver_lxc.*
+usr/lib*/python*/dist-packages/cgroups.*
+usr/lib*/python*/dist-packages/coresched_lxc.*
