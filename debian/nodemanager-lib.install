@@ -1,3 +1,12 @@
+# OK so this does not work and won't work properly until the whole module/packaging
+# business is reviewed from scratch even on rpm
+# we would ideally need to 
+# . have the python code installed at the standard location
+# and imported using import nodemanager.<> or import nodemanager.plugins.<>
+# . review the plugin loading mechanism to probe the contents of plugins at run-time from this location
+# . remove as much as we can from Makefile and put it in setup.py
+# so this is way more than we are ready to invest in this module ...
+###
 # this for now needs to be kept in sync with the toplevel specfile
 # also the rpm packaging goes in /usr/share/NodeManager but 
 # under debian it seems like setup.py does not honor --install-purelib and all this, so...
