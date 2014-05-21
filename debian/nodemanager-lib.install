@@ -34,9 +34,10 @@ usr/lib*/python*/dist-packages/plugins/specialaccounts.*
 usr/lib*/python*/dist-packages/plugins/syndicate.*
 usr/lib*/python*/dist-packages/plugins/vsys.*
 usr/lib*/python*/dist-packages/plugins/vsys_privs.*
-usr/lib*/python*/dist-packages/sliver-initscripts/
-usr/lib*/python*/dist-packages/sliver-systemd/
+usr/share/NodeManager/sliver-initscripts/
+usr/share/NodeManager/sliver-systemd/
 usr/bin/forward_api_calls
+# not quite sure if debian or ubuntu has / plans to have / systemd at some point ?
 etc/init.d/
 etc/logrotate.d/nodemanager
 var/lib/nodemanager/
