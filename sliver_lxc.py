@@ -25,6 +25,8 @@ from initscript import Initscript
 from account import Account
 from sliver_libvirt import Sliver_Libvirt
 
+BTRFS_TIMEOUT=15*60
+
 class Sliver_LXC(Sliver_Libvirt, Initscript):
     """This class wraps LXC commands"""
 
@@ -108,31 +110,24 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # if /vservers/foo does not exist, it creates /vservers/foo
         # but if it does exist, then       it creates /vservers/foo/image !!
         # so we need to check the expected container rootfs does not exist yet
-        if not os.path.exists (containerDir):
-            pass
-        else:
-            # if it's empty then let's clean it up
-            if not os.listdir(containerDir):
-                # clean up rootfs as userdel will only take care of /home/<slicename>
-                logger.log("sliver_lxc: %s: WARNING cleaning up empty %s"%(name,containerDir))
-                command = ['btrfs', 'subvolume', 'delete', containerDir]
-                logger.log_call(command, timeout=60)
-                # re-check
-                if os.path.exists (containerDir):
-                    logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
-                    return
-            else:
-                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up pre-existing %s'%(name,containerDir))
+        # this hopefully could be removed in a future release 
+        if os.path.exists (containerDir):
+            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name,containerDir))
+            command = ['btrfs', 'subvolume', 'delete', containerDir]
+            logger.log_call(command, BTRFS_TIMEOUT)
+            # re-check
+            if os.path.exists (containerDir):
+                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
                 return
 
         # Snapshot the reference image fs (assume the reference image is in its own
         # subvolume)
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
-        if not logger.log_call(command, timeout=15*60):
+        if not logger.log_call(command, timeout=BTRFS_TIMEOUT):
             logger.log('sliver_lxc: ERROR Could not create BTRFS snapshot at', containerDir)
             return
         command = ['chmod', '755', containerDir]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command)
 
         # TODO: set quotas...
 
@@ -145,28 +140,28 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             group = grp.getgrnam('slices')
         except:
             command = ['/usr/sbin/groupadd', 'slices']
-            logger.log_call(command, timeout=15*60)
+            logger.log_call(command)
 
         # Add unix account (TYPE is specified in the subclass)
         command = ['/usr/sbin/useradd', '-g', 'slices', '-s', Sliver_LXC.SHELL, name, '-p', '*']
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command)
         command = ['mkdir', '/home/%s/.ssh'%name]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command)
 
         # Create PK pair keys to connect from the host to the guest without
         # password... maybe remove the need for authentication inside the
         # guest?
         command = ['su', '-s', '/bin/bash', '-c', 'ssh-keygen -t rsa -N "" -f /home/%s/.ssh/id_rsa'%(name)]
-        logger.log_call(command, timeout=60)
+        logger.log_call(command)
 
         command = ['chown', '-R', '%s.slices'%name, '/home/%s/.ssh'%name]
-        logger.log_call(command, timeout=30)
+        logger.log_call(command)
 
         command = ['mkdir', '%s/root/.ssh'%containerDir]
-        logger.log_call(command, timeout=10)
+        logger.log_call(command)
 
         command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
-        logger.log_call(command, timeout=30)
+        logger.log_call(command)
 
         logger.log("creating /etc/slicename file in %s" % os.path.join(containerDir,'etc/slicename'))
         try:
@@ -189,9 +184,9 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         if uid is not None:
             logger.log("uid is %d" % uid)
             command = ['mkdir', '%s/home/%s' % (containerDir, name)]
-            logger.log_call(command, timeout=10)
+            logger.log_call(command)
             command = ['chown', name, '%s/home/%s' % (containerDir, name)]
-            logger.log_call(command, timeout=10)
+            logger.log_call(command)
             etcpasswd = os.path.join(containerDir, 'etc/passwd')
             etcgroup = os.path.join(containerDir, 'etc/group')
             if os.path.exists(etcpasswd):
@@ -262,7 +257,7 @@ unset pathmunge
                 # in case we create the slice's .profile when writing
                 if from_root.find("/home")>=0:
                     command=['chown','%s:slices'%name,from_root]
-                    logger.log_call(command,timeout=5)
+                    logger.log_call(command)
 
         # Lookup for xid and create template after the user is created so we
         # can get the correct xid based on the name of the slice
@@ -330,11 +325,11 @@ unset pathmunge
 
         # Remove user after destroy domain to force logout
         command = ['/usr/sbin/userdel', '-f', '-r', name]
-        logger.log_call(command, timeout=15*60)
+        logger.log_call(command)
 
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
-        logger.log_call(command, timeout=10)
+        logger.log_call(command, timeout=BTRFS_TIMEOUT)
         
         # For some reason I am seeing this :
         #log_call: running command btrfs subvolume delete /vservers/inri_sl1
