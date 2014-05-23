@@ -150,14 +150,16 @@ class Account:
                     if not os.path.isdir (path):
                         raise Exception
                 if not is_mounted(root_ssh):
-                    # xxx perform mount
-                    subprocess.call("mount --bind -o ro %s %s"%(root_ssh,sliver_ssh),shell=True)
-                    logger.log("_manage_ssh_dir: mounted %s into slice %s"%(root_ssh,slicename))
+                    command=['mount','--bind','-o','ro',root_ssh,sliver_ssh]
+                    mounted=logger.log_call (command)
+                    msg="OK" if mounted else "WARNING: FAILED"
+                    logger.log("_manage_ssh_dir: mounted %s into slice %s - %s"%(root_ssh,slicename,msg))
             else:
                 if is_mounted (root_ssh):
-                    # xxx perform umount
-                    subprocess.call("umount %s"%(root_ssh),shell=True)
-                    logger.log("_manage_ssh_dir: umounted %s"%(root_ssh))
+                    command=['umount',root_ssh]
+                    umounted=logger.log_call(command)
+                    msg="OK" if unmounted else "WARNING: FAILED"
+                    logger.log("_manage_ssh_dir: umounted %s - %s"%(root_ssh,msg))
         except:
             logger.log_exc("_manage_ssh_dir failed",name=slicename)
 
