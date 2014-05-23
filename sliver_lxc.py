@@ -102,6 +102,29 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name,refImgDir))
             return
 
+        # in fedora20 we have some difficulty in properly cleaning up /vservers/<slicename>
+        # also note that running e.g. btrfs subvolume create /vservers/.lvref/image /vservers/foo
+        # behaves differently, whether /vservers/foo exists or not:
+        # if /vservers/foo does not exist, it creates /vservers/foo
+        # but if it does exist, then       it creates /vservers/foo/image !!
+        # so we need to check the expected container rootfs does not exist yet
+        if not os.path.exists (containerDir):
+            pass
+        else:
+            # if it's empty then let's clean it up
+            if not os.listdir(containerDir):
+                # clean up rootfs as userdel will only take care of /home/<slicename>
+                logger.log("sliver_lxc: %s: WARNING cleaning up empty %s"%(name,containerDir))
+                command = ['btrfs', 'subvolume', 'delete', containerDir]
+                logger.log_call(command, timeout=60)
+                # re-check
+                if os.path.exists (containerDir):
+                    logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
+                    return
+            else:
+                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up pre-existing %s'%(name,containerDir))
+                return
+
         # Snapshot the reference image fs (assume the reference image is in its own
         # subvolume)
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
@@ -309,35 +332,33 @@ unset pathmunge
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command, timeout=15*60)
 
-        # clean up rootfs as userdel will only take care of /home/<slicename>
-        command = ['rm','-rf', containerDir]
-        logger.log_call(command, timeout=60)
-        # at this point we sometimes see one subvolume left in /vservers/<slicename>/vrefname
-        command = ['btrfs', 'subvolume', 'delete', "%s/*"%containerDir ]
-        logger.log_call(command, timeout=10)
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=10)
+        
+        # For some reason I am seeing this :
+        #log_call: running command btrfs subvolume delete /vservers/inri_sl1
+        #log_call: ERROR: cannot delete '/vservers/inri_sl1' - Device or resource busy
+        #log_call: Delete subvolume '/vservers/inri_sl1'
+        #log_call:end command (btrfs subvolume delete /vservers/inri_sl1) returned with code 1
+        #
+        # something must have an open handle to a file in there, but I can't find out what it is
+        # the following code aims at gathering data on what is going on in the system at this point in time
+        # note that some time later (typically when the sliver gets re-created) the same
+        # attempt at deleting the subvolume does work
+        # also lsof never shows anything relevant; this is painful..
 
         if not os.path.exists(containerDir):
             logger.log('sliver_lxc.destroy: %s cleanly destroyed.'%name)
         else:
-            # oh no, it's still here...
-            # this is more of a way to try and understand what is going on here
-            # than a real solution to anything
-            pass_no=1
-            max_passes=2
-            while pass_no <= max_passes:
-                command = ['rm', '-rf', containerDir]
-                logger.log("sliver_lxc.destroy: cleanup pass %d - command %s"%(pass_no,command))
-                logger.log_call(command, timeout=5)
-                command = ['btrfs', 'subvolume', 'delete', containerDir]
-                logger.log("sliver_lxc.destroy: cleanup pass %d - command %s"%(pass_no,command))
-                logger.log_call(command, timeout=5)
-                import time
-                time.sleep(1)
-                pass_no += 1
+            logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
+            logger.log("-TMP-lsof %s"%name)
+            command=['lsof']
+            logger.log_call(command)
+            logger.log("-TMP-ls-l %s"%name)
+            command = ['ls', '-l', containerDir]
+            logger.log_call(command)
             if os.path.exists(containerDir):
-                logger.log('sliver_lxc.destroy: could not cleanly destroy %s - giving up'%name)
+                logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
 
         if vsys_stopped: vsysStartService()
