@@ -346,10 +346,12 @@ unset pathmunge
         if not os.path.exists(containerDir):
             logger.log('sliver_lxc.destroy: %s cleanly destroyed.'%name)
         else:
-            logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
-            logger.log("-TMP-lsof %s"%name)
-            command=['lsof']
-            logger.log_call(command)
+            # we're in /
+            #logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
+            # also lsof never shows anything relevant; this is painful..
+            #logger.log("-TMP-lsof %s"%name)
+            #command=['lsof']
+            #logger.log_call(command)
             logger.log("-TMP-ls-l %s"%name)
             command = ['ls', '-l', containerDir]
             logger.log_call(command)
