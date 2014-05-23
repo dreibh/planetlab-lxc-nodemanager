@@ -155,11 +155,11 @@ class Account:
                     msg="OK" if mounted else "WARNING: FAILED"
                     logger.log("_manage_ssh_dir: mounted %s into slice %s - %s"%(root_ssh,slicename,msg))
             else:
-                if is_mounted (root_ssh):
-                    command=['umount',root_ssh]
+                if is_mounted (sliver_ssh):
+                    command=['umount',sliver_ssh]
                     umounted=logger.log_call(command)
-                    msg="OK" if unmounted else "WARNING: FAILED"
-                    logger.log("_manage_ssh_dir: umounted %s - %s"%(root_ssh,msg))
+                    msg="OK" if umounted else "WARNING: FAILED"
+                    logger.log("_manage_ssh_dir: umounted %s - %s"%(sliver_ssh,msg))
         except:
             logger.log_exc("_manage_ssh_dir failed",name=slicename)
 
