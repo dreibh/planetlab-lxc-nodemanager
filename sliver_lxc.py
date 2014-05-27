@@ -104,21 +104,22 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name,refImgDir))
             return
 
-        # in fedora20 we have some difficulty in properly cleaning up /vservers/<slicename>
-        # also note that running e.g. btrfs subvolume create /vservers/.lvref/image /vservers/foo
-        # behaves differently, whether /vservers/foo exists or not:
-        # if /vservers/foo does not exist, it creates /vservers/foo
-        # but if it does exist, then       it creates /vservers/foo/image !!
-        # so we need to check the expected container rootfs does not exist yet
-        # this hopefully could be removed in a future release 
-        if os.path.exists (containerDir):
-            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name,containerDir))
-            command = ['btrfs', 'subvolume', 'delete', containerDir]
-            logger.log_call(command, BTRFS_TIMEOUT)
-            # re-check
-            if os.path.exists (containerDir):
-                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
-                return
+# this hopefully sohuld be fixed now
+#        # in fedora20 we have some difficulty in properly cleaning up /vservers/<slicename>
+#        # also note that running e.g. btrfs subvolume create /vservers/.lvref/image /vservers/foo
+#        # behaves differently, whether /vservers/foo exists or not:
+#        # if /vservers/foo does not exist, it creates /vservers/foo
+#        # but if it does exist, then       it creates /vservers/foo/image !!
+#        # so we need to check the expected container rootfs does not exist yet
+#        # this hopefully could be removed in a future release 
+#        if os.path.exists (containerDir):
+#            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name,containerDir))
+#            command = ['btrfs', 'subvolume', 'delete', containerDir]
+#            logger.log_call(command, BTRFS_TIMEOUT)
+#            # re-check
+#            if os.path.exists (containerDir):
+#                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
+#                return
 
         # Snapshot the reference image fs (assume the reference image is in its own
         # subvolume)
