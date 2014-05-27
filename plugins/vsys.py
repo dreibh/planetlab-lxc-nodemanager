@@ -50,7 +50,7 @@ def GetSlivers(data, config=None, plc=None):
 def handleService (keyword):
     if tools.has_systemctl():
         logger.log("vsys: %s'ing vsys service through systemctl"%keyword)
-        return logger.log_call(["systemctl", "restart", "vsys"])
+        return logger.log_call(["systemctl", keyword, "vsys"])
     else:
         logger.log("vsys: %s'ing vsys service through /etc/init.d/vsys"%keyword)
         return logger.log_call(["/etc/init.d/vsys", keyword])
