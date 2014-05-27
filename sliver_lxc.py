@@ -104,7 +104,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name,refImgDir))
             return
 
-# this hopefully sohuld be fixed now
+# this hopefully should be fixed now
 #        # in fedora20 we have some difficulty in properly cleaning up /vservers/<slicename>
 #        # also note that running e.g. btrfs subvolume create /vservers/.lvref/image /vservers/foo
 #        # behaves differently, whether /vservers/foo exists or not:
