@@ -1,7 +1,8 @@
 [Unit]
 Description=PlanetLab NodeManager
 After=libvirtd.target
-After=lxc-sliceimage.target
+Wants=lxc-sliceimage.service
+After=lxc-sliceimage.service
 
 [Service]
 EnvironmentFile=/etc/sysconfig/nodemanager
