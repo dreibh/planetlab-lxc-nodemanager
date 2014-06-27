@@ -328,6 +328,22 @@ unset pathmunge
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command)
 
+
+        # ???????????????????????
+        logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
+        # also lsof never shows anything relevant; this is painful..
+        logger.log("-TMP-lsof %s"%name)
+        command=['lsof']
+        logger.log_call(command)
+        logger.log("-TMP-RM-RF %s"%name)
+        command = ['/usr/bin/rm', '-rf', name]
+        logger.log_call(command)
+        logger.log("-TMP-ls-l %s"%name)
+        command = ['ls', '-l', containerDir]
+        logger.log_call(command)
+        # ???????????????????????
+
+
         # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=BTRFS_TIMEOUT)
