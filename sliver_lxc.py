@@ -330,11 +330,11 @@ unset pathmunge
 
 
         # ???????????????????????
-        logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
+        #logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
         # also lsof never shows anything relevant; this is painful..
-        logger.log("-TMP-lsof %s"%name)
-        command=['lsof']
-        logger.log_call(command)
+        #logger.log("-TMP-lsof %s"%name)
+        #command=['lsof']
+        #logger.log_call(command)
         logger.log("-TMP-RM-RF %s"%name)
         command = ['/usr/bin/rm', '-rf', name]
         logger.log_call(command)
