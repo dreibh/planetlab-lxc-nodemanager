@@ -84,11 +84,10 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         logger.verbose('sliver_vs: %s: create'%name)
         vref = rec['vref']
         if vref is None:
-            logger.log("sliver_vs: %s: ERROR - no vref attached, this is unexpected"%(name))
             # added by caglar
             # band-aid for short period as old API doesn't have GetSliceFamily function
-            #return
             vref = "planetlab-f8-i386"
+            logger.log("sliver_vs: %s: ERROR - no vref attached, using hard-wired default %s"%(name,vref))
 
         # used to look in /etc/planetlab/family,
         # now relies on the 'GetSliceFamily' extra attribute in GetSlivers()
@@ -99,7 +98,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
             logger.log ("sliver_vs: %s: ERROR Could not create sliver - vreference image %s not found"%(name,vref))
             return
 
-        # guess arch
+        # compute guest personality
         try:
             (x,y,arch)=vref.split('-')
         # mh, this of course applies when 'vref' is e.g. 'netflow'
@@ -107,11 +106,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         except:
             arch='i386'
 
-        def personality (arch):
-            personality="linux32"
-            if arch.find("64")>=0:
-                personality="linux64"
-            return personality
+        def personality (arch): return "linux64" if arch.find("64") >=0 else "linux32"
 
         command=[]
         # be verbose
