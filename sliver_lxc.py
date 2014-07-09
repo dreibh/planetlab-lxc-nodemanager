@@ -78,6 +78,19 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         logger.verbose ('sliver_lxc: %s create'%(name))
         conn = Sliver_Libvirt.getConnection(Sliver_LXC.TYPE)
 
+        vref = rec['vref']
+        if vref is None:
+            vref = "lxc-f18-x86_64"
+            logger.log("sliver_libvirt: %s: WARNING - no vref attached, using hard-wired default %s" % (name,vref))
+
+        # compute guest arch from vref
+        # essentially we want x86_64 (default) or i686 here for libvirt
+        try:
+            (x,y,arch)=vref.split('-')
+            arch = "x86_64" if arch.find("64")>=0 else "i686"
+        except:
+            arch='x86_64'
+
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
         # fcdistro = squeeze
@@ -90,10 +103,8 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             if arch == 'i386':
                 arch = 'i686'
 
-        vref = rec['vref']
-        if vref is None:
-            vref = "lxc-f18-x86_64"
-            logger.log("sliver_libvirt: %s: WARNING - no vref attached, using hard-wired default %s" % (name,vref))
+
+
 
         refImgDir    = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR, vref)
         containerDir = os.path.join(Sliver_LXC.CON_BASE_DIR, name)
