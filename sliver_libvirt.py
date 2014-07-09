@@ -98,6 +98,8 @@ class Sliver_Libvirt(Account):
             output += Sliver_Libvirt.dom_details (dom)
         return output
 
+    # Thierry : I am not quite sure if /etc/libvirt/lxc/<>.xml holds a reliably up-to-date
+    # copy of the sliver XML config; I feel like issuing a virsh dumpxml first might be safer
     def repair_veth(self):
         # See workaround email, 2-14-2014, "libvirt 1.2.1 rollout"
         xml = open("/etc/libvirt/lxc/%s.xml" % self.name).read()
