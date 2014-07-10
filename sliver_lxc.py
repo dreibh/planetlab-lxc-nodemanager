@@ -403,7 +403,7 @@ unset pathmunge
 
             if os.path.exists(containerDir):
                 logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
-            else
+            else:
                logger.log('sliver_lxc.destroy: Used ugly WORKAROUND for removal of %s - giving up'%name)
 
         if vsys_stopped: vsysStartService()
