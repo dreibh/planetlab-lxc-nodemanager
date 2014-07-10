@@ -7,6 +7,7 @@ import sys
 import time
 import os, os.path
 import grp
+import tempfile
 from pwd import getpwnam
 from string import Template
 
@@ -380,10 +381,27 @@ unset pathmunge
             #logger.log("-TMP-lsof %s"%name)
             #command=['lsof']
             #logger.log_call(command)
+
             logger.log("-TMP-ls-l %s"%name)
             command = ['ls', '-l', containerDir]
             logger.log_call(command)
+
+            logger.log("-TMP-RM-RF %s"%containerDir)
+            command = ['/usr/bin/rm', '-rf', name]
+            logger.log_call(command)
+
+            logger.log("-TMP-MKDIR %s"%containerDir)
+            command = ['/usr/bin/mkdir', '-p', '/vservers/.trash']
+            logger.log_call(command)
+
+            trashDir = tempfile.mkdtemp(dir='/vservers/.trash')
+            logger.log("-TMP-TRASH %s"%trashDir)
+            command = ['/usr/bin/mv', containerDir, trashDir]
+            logger.log_call(command)
+
             if os.path.exists(containerDir):
                 logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
+            else
+               logger.log('sliver_lxc.destroy: Used ugly WORKAROUND for removal of %s - giving up'%name)
 
         if vsys_stopped: vsysStartService()
