@@ -248,7 +248,7 @@ unset pathmunge
         with open(pl_profile,'w') as f:
             f.write("export PS1='%s@\H \$ '\n"%(name))
             f.write("%s\n"%ld_preload_text)
-            f.write("if [ ! -e /usr/bin/System-Info ] ; then   # No bind_public for NorNet slices by default!\n")
+            f.write("if [ -e /etc/planetlab/lib/bind_public.so ] ; then   # Only preload bind_public if it exists.\n")
             f.write("   export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
             f.write("fi\n")
             f.write("%s\n"%usrmove_path_text)
