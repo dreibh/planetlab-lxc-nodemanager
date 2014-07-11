@@ -119,7 +119,10 @@ class Sliver_Libvirt(Account):
         # domain was already running, create actually means start
         if not self.is_running():
             try:
-                self.dom.create()
+                #self.dom.create()
+                #!!!
+                command = ["virsh", "start", self.name]
+                logger.log_call(command)
             except Exception, e:
                 # XXX smbaker: attempt to resolve slivers that are stuck in
                 #   "failed to allocate free veth".
@@ -127,7 +130,10 @@ class Sliver_Libvirt(Account):
                      logger.log("failed to allocate free veth on %s" % self.name)
                      self.repair_veth()
                      logger.log("trying dom.create again")
-                     self.dom.create()
+                     #self.dom.create()
+                     # !!!!
+                     command = ["virsh", "start", self.name]
+                     logger.log_call(command)
                 else:
                     raise
         else:
@@ -147,7 +153,10 @@ class Sliver_Libvirt(Account):
             (self.xid, self.xid))
 
         try:
-            self.dom.destroy()
+            #!!!
+            #self.dom.destroy()
+            command = ["virsh", "destroy", self.name]
+            logger.log_call(command)
         except:
             logger.log_exc("in sliver_libvirt.stop",name=self.name)
 
