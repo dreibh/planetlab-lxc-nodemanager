@@ -121,10 +121,7 @@ class Sliver_Libvirt(Account):
         # domain was already running, create actually means start
         if not self.is_running():
             try:
-                #self.dom.create()
-                #!!!
-                command = ["virsh", "start", self.name]
-                logger.log_call(command)
+                self.dom.create()
             except Exception, e:
                 # XXX smbaker: attempt to resolve slivers that are stuck in
                 #   "failed to allocate free veth".
@@ -132,10 +129,7 @@ class Sliver_Libvirt(Account):
                      logger.log("failed to allocate free veth on %s" % self.name)
                      self.repair_veth()
                      logger.log("trying dom.create again")
-                     #self.dom.create()
-                     # !!!!
-                     command = ["virsh", "start", self.name]
-                     logger.log_call(command)
+                     self.dom.create()
                 else:
                     raise
         else:
@@ -155,10 +149,7 @@ class Sliver_Libvirt(Account):
             (self.xid, self.xid))
 
         try:
-            #!!!
-            #self.dom.destroy()
-            command = ["virsh", "destroy", self.name]
-            logger.log_call(command)
+            self.dom.destroy()
         except:
             logger.log_exc("in sliver_libvirt.stop",name=self.name)
 
@@ -247,6 +238,20 @@ class Sliver_Libvirt(Account):
                     else:
                         vlanxml = ""
                     if 'bridge' in interface:
+                        # TD: Added OpenFlow rules to avoid OpenVSwitch-based slivers'
+                        # auto-configuration issues when IPv6 auto-config and/or DHCP are
+                        # available in the node's network. Sliver configuration is static.
+                        if os.path.exists('/usr/bin/ovs-ofctl'):
+                            logger.log('Adding OpenFlow rules to prevent IPv6 auto-config and DHCP in OpenVSwitch slivers')
+                            # IPv6 ICMP Router Solicitation and Advertisement
+                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=100,icmp6,icmp_type=133,idle_timeout=0,hard_timeout=0,actions=drop' ])
+                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=100,icmp6,icmp_type=134,idle_timeout=0,hard_timeout=0,actions=drop' ])
+                            # IPv4 DHCP
+                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=101,udp,nw_src=0.0.0.0,nw_dst=255.255.255.255,tp_src=68,tp_dst=67,idle_timeout=0,hard_timeout=0,actions=drop' ])
+                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=101,udp,tp_src=67,tp_dst=68,idle_timeout=0,hard_timeout=0,actions=drop' ])
+                        else:
+                            logger.log('NOTE: /usr/bin/ovs-ofctl not found!')
+
                         tag_xml = tag_xml + """
         <interface type='bridge'>
           <source bridge='%s'/>
