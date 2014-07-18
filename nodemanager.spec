@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 13
+%define taglevel 14
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -248,6 +248,11 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Wed Jul 16 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-14
+- review packaging : one single spec file
+- review packaging : some cleanup towards debians although not complete yet
+- minor tweaks in exposing user's .ssh dir readonly
+
 * Mon Apr 28 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-13
 - improve network management in slices
 - _has_systemctl was not declared as global - vsys was failing to restart
