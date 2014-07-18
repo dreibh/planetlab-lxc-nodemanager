@@ -117,6 +117,20 @@ class Sliver_Libvirt(Account):
         ''' Just start the sliver '''
         logger.verbose('sliver_libvirt: %s start'%(self.name))
 
+        # TD: Added OpenFlow rules to avoid OpenVSwitch-based slivers'
+        # auto-configuration issues when IPv6 auto-config and/or DHCP are
+        # available in the node's network. Sliver configuration is static.
+        if os.path.exists('/usr/bin/ovs-ofctl'):
+            logger.log('Adding OpenFlow rules to prevent IPv6 auto-config and DHCP in OpenVSwitch slivers')
+            # IPv6 ICMP Router Solicitation and Advertisement
+            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', 'public0', 'priority=100,icmp6,icmp_type=133,idle_timeout=0,hard_timeout=0,actions=drop' ])
+            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', 'public0', 'priority=100,icmp6,icmp_type=134,idle_timeout=0,hard_timeout=0,actions=drop' ])
+            # IPv4 DHCP
+            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', 'public0', 'priority=101,udp,nw_src=0.0.0.0,nw_dst=255.255.255.255,tp_src=68,tp_dst=67,idle_timeout=0,hard_timeout=0,actions=drop' ])
+            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', 'public0', 'priority=101,udp,tp_src=67,tp_dst=68,idle_timeout=0,hard_timeout=0,actions=drop' ])
+        else:
+            logger.log('NOTE: /usr/bin/ovs-ofctl not found!')
+
         # Check if it's running to avoid throwing an exception if the
         # domain was already running, create actually means start
         if not self.is_running():
@@ -238,20 +252,6 @@ class Sliver_Libvirt(Account):
                     else:
                         vlanxml = ""
                     if 'bridge' in interface:
-                        # TD: Added OpenFlow rules to avoid OpenVSwitch-based slivers'
-                        # auto-configuration issues when IPv6 auto-config and/or DHCP are
-                        # available in the node's network. Sliver configuration is static.
-                        if os.path.exists('/usr/bin/ovs-ofctl'):
-                            logger.log('Adding OpenFlow rules to prevent IPv6 auto-config and DHCP in OpenVSwitch slivers')
-                            # IPv6 ICMP Router Solicitation and Advertisement
-                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=100,icmp6,icmp_type=133,idle_timeout=0,hard_timeout=0,actions=drop' ])
-                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=100,icmp6,icmp_type=134,idle_timeout=0,hard_timeout=0,actions=drop' ])
-                            # IPv4 DHCP
-                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=101,udp,nw_src=0.0.0.0,nw_dst=255.255.255.255,tp_src=68,tp_dst=67,idle_timeout=0,hard_timeout=0,actions=drop' ])
-                            logger.log_call([ '/usr/bin/ovs-ofctl', 'add-flow', interface['bridge'], 'priority=101,udp,tp_src=67,tp_dst=68,idle_timeout=0,hard_timeout=0,actions=drop' ])
-                        else:
-                            logger.log('NOTE: /usr/bin/ovs-ofctl not found!')
-
                         tag_xml = tag_xml + """
         <interface type='bridge'>
           <source bridge='%s'/>
