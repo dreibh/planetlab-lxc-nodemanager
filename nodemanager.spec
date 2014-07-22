@@ -248,6 +248,9 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Tue Jul 22 2014 Thomas Dreibholz <dreibh@simula.no> - nodeimage-5.2-15
+- nm.service fix: the node manager needs network.target, since it needs to contact the PLC.
+
 * Wed Jul 16 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-14
 - review packaging : one single spec file
 - review packaging : some cleanup towards debians although not complete yet
