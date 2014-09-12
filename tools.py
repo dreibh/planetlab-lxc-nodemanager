@@ -11,6 +11,24 @@ import shutil
 import sys
 import signal
 
+###################################################
+# Added by Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+
+import re
+import socket
+import fileinput
+
+# TODO: is there anything better to do if the "libvirt", "sliver_libvirt",
+# and "sliver_lxc" are not in place?
+try:
+	import libvirt
+	from sliver_libvirt import Sliver_Libvirt
+    import sliver_lxc
+except:
+    logger.log("Could not import sliver_lxc or libvirt or sliver_libvirt -- which is required here.")
+###################################################
+
 import logger
 
 PID_FILE = '/var/run/nodemanager.pid'
@@ -237,6 +255,65 @@ def get_sliver_process(slice_name, process_cmdline):
 
     return (cgroup_fn, pid)
 
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Basically this method is just a copy from "get_process()", just
+# adding one more split() to correctly parse the processes for LXC.
+# Only for LXC!
+# TODO: maybe merge both methods, and put the type as an argument, if
+# it is LXC or vserver
+###################################################
+def get_sliver_process_lxc(slice_name, process_cmdline):
+    """ Utility function to find a process inside of an LXC sliver. Returns
+        (cgroup_fn, pid). cgroup_fn is the filename of the cgroup file for
+        the process, for example /proc/2592/cgroup. Pid is the process id of
+        the process. If the process is not found then (None, None) is returned.
+    """
+    try:
+        cmd = 'grep %s /proc/*/cgroup | grep freezer'%slice_name
+        output = os.popen(cmd).readlines()
+    except:
+        # the slice couldn't be found
+        logger.log("get_sliver_process: couldn't find slice %s" % slice_name)
+        return (None, None)
+
+    cgroup_fn = None
+    pid = None
+    for e in output:
+        try:
+            l = e.rstrip()
+	    	#logger.log("tools: l=%s" % (l) )
+            path = l.split(':')[0]
+	   		#logger.log("tools: path=%s" % (path) )
+            comp = l.rsplit(':')[-1]
+            #logger.log("tools: comp=%s" % (comp) )
+            slice_name_check1 = comp.rsplit('/')[-1]
+            #logger.log("tools: slice_name_check1=%s" % (slice_name_check1) )
+	    	slice_name_check2 = slice_name_check1.rsplit('.')[0]
+	    	#logger.log("tools: slice_name_check2=%s" % (slice_name_check2) )
+
+            if (slice_name_check2 == slice_name):
+            	slice_path = path
+	        	pid = slice_path.split('/')[2]
+				#logger.log("tools: pid=%s" % (pid) )
+	        	cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
+				#logger.log("tools: cmdline=%s" % (cmdline) )
+				#logger.log("tools: process_cmdline=%s" % (process_cmdline) )
+				if (cmdline == process_cmdline):
+	            		cgroup_fn = slice_path
+	            		break
+        except:
+	    #logger.log("tools: break!")
+            break
+
+    if (not cgroup_fn) or (not pid):
+        logger.log("get_sliver_process: process %s not running in slice %s" % (process_cmdline, slice_name))
+        return (None, None)
+
+    return (cgroup_fn, pid)
+
+
 def get_sliver_ifconfig(slice_name, device="eth0"):
     """ return the output of "ifconfig" run from inside the sliver.
 
@@ -276,6 +353,55 @@ def get_sliver_ifconfig(slice_name, device="eth0"):
 
     return result
 
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Basically this method is just a copy from "get_sliver_ifconfig()", but,
+# instead, calls the "get_sliver_process_lxc()" method.
+# Only for LXC!
+# TODO: maybe merge both methods, and put the type as an argument, if
+# it is LXC or vserver
+###################################################
+def get_sliver_ifconfig_lxc(slice_name, device="eth0"):
+    """ return the output of "ifconfig" run from inside the sliver.
+
+        side effects: adds "/usr/sbin" to sys.path
+    """
+
+    # See if setns is installed. If it's not then we're probably not running
+    # LXC.
+    if not os.path.exists("/usr/sbin/setns.so"):
+        return None
+
+    # setns is part of lxcsu and is installed to /usr/sbin
+    if not "/usr/sbin" in sys.path:
+        sys.path.append("/usr/sbin")
+    import setns
+
+    (cgroup_fn, pid) = get_sliver_process_lxc(slice_name, "/sbin/init")
+    if (not cgroup_fn) or (not pid):
+        return None
+
+    path = '/proc/%s/ns/net'%pid
+
+    result = None
+    try:
+        setns.chcontext(path)
+
+        args = ["/sbin/ifconfig", device]
+        sub = subprocess.Popen(args, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+        sub.wait()
+
+        if (sub.returncode != 0):
+            logger.log("get_slice_ifconfig: error in ifconfig: %s" % sub.stderr.read())
+
+        result = sub.stdout.read()
+    finally:
+        setns.chcontext("/proc/1/ns/net")
+
+    return result
+
+
 def get_sliver_ip(slice_name):
     ifconfig = get_sliver_ifconfig(slice_name)
     if not ifconfig:
@@ -289,6 +415,39 @@ def get_sliver_ip(slice_name):
                 return parts[1].split(":")[1]
 
     return None
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Get the slice ipv6 address
+# Only for LXC!
+###################################################
+def get_sliver_ipv6(slice_name):
+    ifconfig = get_sliver_ifconfig_lxc(slice_name)
+    if not ifconfig:
+        return None,None
+    
+    # example: 'inet6 2001:67c:16dc:1302:5054:ff:fea7:7882  prefixlen 64  scopeid 0x0<global>'
+    prog = re.compile(r'inet6\s+(.*)\s+prefixlen\s+(\d+)\s+scopeid\s+(.+)<global>')
+    for line in ifconfig.split("\n"):
+	search = prog.search(line)
+	if search:
+		ipv6addr = search.group(1)
+		prefixlen = search.group(2)
+		return (ipv6addr,prefixlen)
+    return None,None
+
+################################################### 
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Check if the address is a AF_INET6 family address
+###################################################
+def isValidIPv6(ipv6addr):
+        try:
+                socket.inet_pton(socket.AF_INET6, ipv6addr)
+        except socket.error:
+                return False
+	return True
 
 ### this returns the kind of virtualization on the node
 # either 'vs' or 'lxc'
@@ -318,6 +477,102 @@ def has_systemctl ():
     if _has_systemctl is None:
         _has_systemctl = (subprocess.call([ 'systemctl', '--help' ]) == 0)
     return _has_systemctl
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# This method was developed to support the ipv6 plugin
+# Only for LXC!
+###################################################
+def reboot_sliver(name):
+	type = 'sliver.LXC'
+	# connecting to the libvirtd
+	connLibvirt = Sliver_Libvirt.getConnection(type)
+	domains = connLibvirt.listAllDomains()
+	for domain in domains:
+		#ret = dir(domain)
+	        #for method in ret:
+        	#       logger.log("ipv6: " + repr(method))
+		#logger.log("tools: " + str(domain.name()) )
+		try:
+			domain.destroy()
+			logger.log("tools: %s destroyed" % (domain.name()) )
+			domain.create()
+			logger.log("tools: %s created" % (domain.name()) )
+		except:
+			logger.log("tools: %s could not be rebooted" % (domain.name()) )
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Get the /etc/hosts file path
+###################################################
+def get_hosts_file_path(slicename):
+    containerDir = os.path.join(sliver_lxc.Sliver_LXC.CON_BASE_DIR, slicename)
+    logger.log("tools: %s" % (containerDir) )
+    return os.path.join(containerDir, 'etc', 'hosts')
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Search if there is a specific ipv6 address in the /etc/hosts file of a given slice
+###################################################
+def search_ipv6addr_hosts(slicename, ipv6addr):
+    hostsFilePath = get_hosts_file_path(slicename)
+    found=False
+    try:
+    	for line in fileinput.input(r'%s' % (hostsFilePath)):
+		if re.search(r'%s' % (ipv6addr), line):
+			found=True
+	fileinput.close()
+	return found
+    except:
+        logger.log("tools: error when finding ipv6 address %s in the /etc/hosts file of slice=%s" % (ipv6addr, slicename) )
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Removes all ipv6 addresses from the /etc/hosts file of a given slice
+###################################################
+def remove_all_ipv6addr_hosts(slicename, node):
+    hostsFilePath = get_hosts_file_path(slicename)
+    try:
+    	for line in fileinput.input(r'%s' % (hostsFilePath), inplace=True):
+		logger.log("tools: line=%s" % (line) )
+		search = re.search(r'^(.*)\s+(%s|%s)$' % (node,'localhost'), line)
+		if search:
+			ipv6candidate = search.group(1)
+			ipv6candidatestrip = ipv6candidate.strip()
+			logger.log("tools: group1=%s" % (ipv6candidatestrip) )
+			valid = isValidIPv6(ipv6candidatestrip)
+			if not valid:
+				logger.log("tools: address=%s not valid" % (ipv6candidatestrip) )
+				print line,
+	fileinput.close()
+    except:
+    	logger.log("tools: could not delete the ipv6 address from the hosts file of slice=%s" % (slicename) )
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Adds an ipv6 address to the /etc/hosts file within a slice
+###################################################
+def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
+    hostsFilePath = get_hosts_file_path(slicename)
+    logger.log("tools: %s" % (hostsFilePath) )
+    # debugging purposes:
+    #string = "127.0.0.1\tlocalhost\n192.168.100.179\tmyplc-node1-vm.mgmt.local\n"
+    #string = "127.0.0.1\tlocalhost\n"
+    try:
+		with open(hostsFilePath, "a") as file:
+			# debugging purposes only:
+			#file.write(string)
+			file.write(ipv6addr + " " + node + "\n")
+			file.close()
+    except:
+		logger.log("tools: could not add the IPv6 address to the hosts file of slice=%s" % (slicename) )
+
+
 
 # how to run a command in a slice
 # now this is a painful matter
