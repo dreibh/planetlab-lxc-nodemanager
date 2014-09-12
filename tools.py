@@ -24,7 +24,7 @@ import fileinput
 try:
 	import libvirt
 	from sliver_libvirt import Sliver_Libvirt
-    import sliver_lxc
+	import sliver_lxc
 except:
     logger.log("Could not import sliver_lxc or libvirt or sliver_libvirt -- which is required here.")
 ###################################################
@@ -282,25 +282,25 @@ def get_sliver_process_lxc(slice_name, process_cmdline):
     pid = None
     for e in output:
         try:
-            l = e.rstrip()
-	    	#logger.log("tools: l=%s" % (l) )
-            path = l.split(':')[0]
-	   		#logger.log("tools: path=%s" % (path) )
-            comp = l.rsplit(':')[-1]
-            #logger.log("tools: comp=%s" % (comp) )
-            slice_name_check1 = comp.rsplit('/')[-1]
-            #logger.log("tools: slice_name_check1=%s" % (slice_name_check1) )
-	    	slice_name_check2 = slice_name_check1.rsplit('.')[0]
-	    	#logger.log("tools: slice_name_check2=%s" % (slice_name_check2) )
+	    l = e.rstrip()
+	    #logger.log("tools: l=%s" % (l) )
+	    path = l.split(':')[0]
+	    #logger.log("tools: path=%s" % (path) )
+	    comp = l.rsplit(':')[-1]
+	    #logger.log("tools: comp=%s" % (comp) )
+	    slice_name_check1 = comp.rsplit('/')[-1]
+	    #logger.log("tools: slice_name_check1=%s" % (slice_name_check1) )
+	    slice_name_check2 = slice_name_check1.rsplit('.')[0]
+	    #logger.log("tools: slice_name_check2=%s" % (slice_name_check2) )
 
             if (slice_name_check2 == slice_name):
             	slice_path = path
 	        	pid = slice_path.split('/')[2]
-				#logger.log("tools: pid=%s" % (pid) )
+			#logger.log("tools: pid=%s" % (pid) )
 	        	cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
-				#logger.log("tools: cmdline=%s" % (cmdline) )
-				#logger.log("tools: process_cmdline=%s" % (process_cmdline) )
-				if (cmdline == process_cmdline):
+			#logger.log("tools: cmdline=%s" % (cmdline) )
+			#logger.log("tools: process_cmdline=%s" % (process_cmdline) )
+			if (cmdline == process_cmdline):
 	            		cgroup_fn = slice_path
 	            		break
         except:
