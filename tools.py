@@ -294,15 +294,15 @@ def get_sliver_process_lxc(slice_name, process_cmdline):
 	    #logger.log("tools: slice_name_check2=%s" % (slice_name_check2) )
 
             if (slice_name_check2 == slice_name):
-            	slice_path = path
-	        	pid = slice_path.split('/')[2]
-			#logger.log("tools: pid=%s" % (pid) )
-	        	cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
-			#logger.log("tools: cmdline=%s" % (cmdline) )
-			#logger.log("tools: process_cmdline=%s" % (process_cmdline) )
-			if (cmdline == process_cmdline):
-	            		cgroup_fn = slice_path
-	            		break
+		slice_path = path
+	        pid = slice_path.split('/')[2]
+		#logger.log("tools: pid=%s" % (pid) )
+	        cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
+		#logger.log("tools: cmdline=%s" % (cmdline) )
+		#logger.log("tools: process_cmdline=%s" % (process_cmdline) )
+		if (cmdline == process_cmdline):
+	        	cgroup_fn = slice_path
+	        	break
         except:
 	    #logger.log("tools: break!")
             break
