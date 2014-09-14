@@ -1,5 +1,8 @@
 """
-IPv6 test! version: 0.3
+Description: Update the IPv6 Address sliver tag accordingly to the IPv6 address set
+update_ipv6addr_slivertag nodemanager plugin
+Version: 0.5
+Author: Guilherme Sperb Machado <gsm@machados.org>
 """
 
 import logger
@@ -36,16 +39,16 @@ def SetSliverTag(plc, data, tagname):
 	# here, I'm just taking the ipv6addr (value)
 	value,prefixlen = tools.get_sliver_ipv6(slice['name'])
 
-    	node_id = tools.node_id()
-	slivertags = plc.GetSliceTags({"name":slice['name'],"node_id":node_id,"tagname":tagname})
+    node_id = tools.node_id()
+    slivertags = plc.GetSliceTags({"name":slice['name'],"node_id":node_id,"tagname":tagname})
 	#logger.log(repr(str(slivertags)))
 	#for tag in slivertags:
 	#	logger.log(repr(str(tag)))
 
-	ipv6addr = plc.GetSliceIPv6Address(slice['name'])
-	logger.log("update_ipv6addr_slivertag: slice=%s getSliceIPv6Address=%s" % (slice['name'],ipv6addr) )
+    ipv6addr = plc.GetSliceIPv6Address(slice['name'])
+    logger.log("update_ipv6addr_slivertag: slice=%s getSliceIPv6Address=%s" % (slice['name'],ipv6addr) )
 	# if the value to set is null...
-	if value is None:
+    if value is None:
 		if ipv6addr is not None:
 			# then, let's remove the slice tag
 			slivertag_id = getSliverTagId(slivertags)
@@ -57,7 +60,7 @@ def SetSliverTag(plc, data, tagname):
 					logger.log("update_ipv6addr_slivertag: slice tag not deleted for slice=%s" % (slice['name']) )
 		# if there's no ipv6 address anymore, then remove everything from the /etc/hosts
 		tools.remove_all_ipv6addr_hosts(slice['name'], data['hostname'])
-	else:
+    else:
 		# if the ipv6 addr set on the slice does not exist yet, so, let's add it
 		if (ipv6addr is None) and len(value)>0:
 			try:
@@ -75,7 +78,7 @@ def SetSliverTag(plc, data, tagname):
         	if not result:
 			tools.remove_all_ipv6addr_hosts(slice['name'], data['hostname'])
 			tools.add_ipv6addr_hosts_line(slice['name'], data['hostname'], value)
-	logger.log("update_ipv6addr_slivertag: finishing the update process for slice=%s" % (slice['name']) )
+    logger.log("update_ipv6addr_slivertag: finishing the update process for slice=%s" % (slice['name']) )
 
 def GetSlivers(data, config, plc):
 
