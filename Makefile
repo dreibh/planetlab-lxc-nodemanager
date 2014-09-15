@@ -135,8 +135,8 @@ NODEURL:=root@$(NODE):/
 endif
 
 # this is for lxc only, we need to exclude the vs stuff that otherwise messes up everything on node
-# keep this in sync with setup-vs.spec
-LXC_EXCLUDES= --exclude sliver_vs.py --exclude coresched_vs.py
+# keep this in sync with setup.spec
+LXC_EXCLUDES= --exclude sliver_vs.py --exclude coresched_vs.py --exclude drl.py
 
 # run with make SYNC_RESTART=false if you want to skip restarting nm
 SYNC_RESTART=true
