@@ -47,6 +47,8 @@ setup(
         'sliver_lxc',
         'cgroups',
         'coresched_lxc',
+        'plugins.ipv6',
+        'plugins.update_ipv6addr_slivertag', 
 # vs
         'sliver_vs',
         'coresched_vs',

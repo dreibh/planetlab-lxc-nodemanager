@@ -209,6 +209,8 @@ nodemanager-lxc provides the lxc code for the PlanetLab Node Manager.
 %{_datadir}/NodeManager/sliver_lxc.*
 %{_datadir}/NodeManager/cgroups.*
 %{_datadir}/NodeManager/coresched_lxc.*
+%{_datadir}/NodeManager/plugins/ipv6.*
+%{_datadir}/NodeManager/plugins/update_ipv6addr_slivertag.*
 
 %endif
 ##############################
