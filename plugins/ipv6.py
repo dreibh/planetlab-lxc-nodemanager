@@ -3,8 +3,19 @@
 """
 Description: IPv6 Support and Management to Slices
 ipv6 nodemanager plugin
-Version: 0.5
+Version: 0.7
 Author: Guilherme Sperb Machado <gsm@machados.org>
+
+Requirements:
+* The 'sliversipv6prefix' tag must have this format:
+  ipv6_address/prefix -- e.g., 2002:1000::1/64
+* The prefix specified on 'sliversipv6prefix' tag must be at least 64
+  It should vary between 1 and 64, since it is the minimum amount of bits to
+  have native IPv6 auto-configuration.
+* The ipv6_address on 'sliversipv6prefix' tag can be any valid IPv6 address.
+  E.g., 2002:1000:: or 2002:1000::1
+* It is the node manager/admin responsibility to properly set the IPv6 routing,
+  since slivers should receive/send any kind of traffic.
 """
 
 import logger
@@ -136,7 +147,7 @@ def check_if_ipv6_is_different(dom, ipv6addr, prefix):
             if ip.getAttribute('family')=='ipv6' and \
                    not ( re.match(r'fe80(.*)', ip.getAttribute("address"), re.I) ) and \
                    (ip.getAttribute('address')!=ipv6addr or ip.getAttribute('prefix')!=prefix) :
-                logger.log("ipv6: the IPv6 address or prefix are different. Change detected!")
+                logger.log("ipv6: IPv6 address or prefix are different. Change detected!")
                 return True
     return False
 
@@ -153,7 +164,7 @@ def set_up(networkLibvirt, connLibvirt, networkElem, ipv6addr, prefix):
     #logger.log(networkElem.toxml())
     #ret = dir(conn)
     #for method in ret:
-    #	logger.log(repr(method))
+    #    logger.log(repr(method))
     networkLibvirt.undefine()
     networkLibvirt.destroy()
     connLibvirt.networkCreateXML(newXml)
@@ -180,7 +191,7 @@ interface virbr0
         f.write(configRadvd)
     kill_radvd()
     start_radvd()
-    logger.log("ipv6: set up process finalized. Enabled IPv6 address to the slivers!")
+    logger.log("ipv6: set up process finalized -- enabled IPv6 address to the slivers!")
 
 def clean_up(networkLibvirt, connLibvirt, networkElem):
     dom = remove_ipv6(networkElem)
@@ -220,9 +231,11 @@ def GetSlivers(data, config, plc):
                     ipv6addrprefix = setting['value'].split('/', 1)
                     ipv6addr = ipv6addrprefix[0]
                     valid_prefix = False
+                    logger.log("ipv6: len(ipv6addrprefix)=%s" % (len(ipv6addrprefix)) )
                     if len(ipv6addrprefix)>1:
                         prefix = ipv6addrprefix[1]
-                        if prefix>0 and prefix<=64:
+                        logger.log("ipv6: prefix=%s" % (prefix) )
+                        if int(prefix)>0 and int(prefix)<=64:
                             valid_prefix = True
                         else:
                             valid_prefix = False
@@ -233,8 +246,8 @@ def GetSlivers(data, config, plc):
                     if not(valid_ipv6):
                         logger.log("ipv6: the 'sliversipv6prefix' tag presented a non-valid IPv6 address!")
                     elif not(valid_prefix):
-                            logger.log("ipv6: the '%s' tag does not present a valid prefix " +
-                                   "(e.g., '/64', '/58')!" % (sliversipv6prefixtag) )
+                            logger.log("ipv6: the '%s' tag does not present a valid prefix (e.g., '/64', '/58')!" % \
+                                       (sliversipv6prefixtag))
                     else:
                         # connecting to the libvirtd
                         connLibvirt = Sliver_Libvirt.getConnection(type)

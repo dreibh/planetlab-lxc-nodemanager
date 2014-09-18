@@ -1,5 +1,3 @@
-# -*- python-indent: 4 -*-
-
 """
 Description: Update the IPv6 Address sliver tag accordingly to the IPv6 address set
 update_ipv6addr_slivertag nodemanager plugin
@@ -37,15 +35,15 @@ def SetSliverTag(plc, data, tagname):
     for slice in data['slivers']:
         logger.log("update_ipv6addr_slivertag: starting with slice=%s" % (slice['name']) )
 
-	    # TODO: what about the prefixlen? should we add on it as well?
-	    # here, I'm just taking the ipv6addr (value)
+        # TODO: what about the prefixlen? should we add on it as well?
+        # here, I'm just taking the ipv6addr (value)
         value,prefixlen = tools.get_sliver_ipv6(slice['name'])
 
         node_id = tools.node_id()
         slivertags = plc.GetSliceTags({"name":slice['name'],"node_id":node_id,"tagname":tagname})
-	    #logger.log(repr(str(slivertags)))
-	    #for tag in slivertags:
-	    #	logger.log(repr(str(tag)))
+        #logger.log(repr(str(slivertags)))
+        #for tag in slivertags:
+            #    logger.log(repr(str(tag)))
 
         ipv6addr = plc.GetSliceIPv6Address(slice['name'])
         logger.log("update_ipv6addr_slivertag: slice=%s getSliceIPv6Address=%s" % \
