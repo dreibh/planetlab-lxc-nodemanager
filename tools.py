@@ -72,10 +72,10 @@ def daemon():
 
 def fork_as(su, function, *args):
     """
-fork(), cd / to avoid keeping unused directories open, 
-close all nonstandard file descriptors (to avoid capturing open sockets), 
-fork() again (to avoid zombies) and call <function> 
-with arguments <args> in the grandchild process.  
+fork(), cd / to avoid keeping unused directories open,
+close all nonstandard file descriptors (to avoid capturing open sockets),
+fork() again (to avoid zombies) and call <function>
+with arguments <args> in the grandchild process.
 If <su> is not None, set our group and user ids
  appropriately in the child process.
     """
@@ -139,7 +139,7 @@ def write_temp_file(do_write, mode=None, uidgid=None):
 def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=False):
     """
 Replace a target file with a new contents
-checks for changes: does not do anything if previous state was already right 
+checks for changes: does not do anything if previous state was already right
 can handle chmod if requested
 can also remove resulting file if contents are void, if requested
 performs atomically:
@@ -442,7 +442,7 @@ def get_sliver_ipv6(slice_name):
     ifconfig = get_sliver_ifconfig_lxc(slice_name)
     if not ifconfig:
         return None,None
-    
+
     # example: 'inet6 2001:67c:16dc:1302:5054:ff:fea7:7882  prefixlen 64  scopeid 0x0<global>'
     prog = re.compile(r'inet6\s+(.*)\s+prefixlen\s+(\d+)\s+scopeid\s+(.+)<global>')
     for line in ifconfig.split("\n"):
@@ -453,12 +453,12 @@ def get_sliver_ipv6(slice_name):
             return (ipv6addr,prefixlen)
     return None,None
 
-################################################### 
+###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
 ###################################################
 # Check if the address is a AF_INET6 family address
 ###################################################
-def isValidIPv6(ipv6addr):
+def is_valid_ipv6(ipv6addr):
     try:
         socket.inet_pton(socket.AF_INET6, ipv6addr)
     except socket.error:
@@ -476,9 +476,9 @@ def get_node_virt ():
     except:
         pass
     logger.log("Computing virt..")
-    try: 
+    try:
         if subprocess.call ([ 'vserver', '--help' ]) ==0: virt='vs'
-        else:                                             virt='lxc'      
+        else:                                             virt='lxc'
     except:
         virt='lxc'
     with file(virt_stamp,"w") as f:
@@ -500,16 +500,12 @@ def has_systemctl ():
 # This method was developed to support the ipv6 plugin
 # Only for LXC!
 ###################################################
-def reboot_sliver(name):
+def reboot_slivers():
     type = 'sliver.LXC'
     # connecting to the libvirtd
     connLibvirt = Sliver_Libvirt.getConnection(type)
     domains = connLibvirt.listAllDomains()
     for domain in domains:
-        #ret = dir(domain)
-        #for method in ret:
-        #       logger.log("ipv6: " + repr(method))
-        #logger.log("tools: " + str(domain.name()) )
         try:
             domain.destroy()
             logger.log("tools: %s destroyed" % (domain.name()) )
@@ -560,7 +556,7 @@ def remove_all_ipv6addr_hosts(slicename, node):
                 ipv6candidate = search.group(1)
                 ipv6candidatestrip = ipv6candidate.strip()
                 logger.log("tools: group1=%s" % (ipv6candidatestrip) )
-                valid = isValidIPv6(ipv6candidatestrip)
+                valid = is_valid_ipv6(ipv6candidatestrip)
                 if not valid:
                     logger.log("tools: address=%s not valid" % (ipv6candidatestrip) )
                     print line,
@@ -597,7 +593,7 @@ def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
 # bottom line is, what actually needs to be called is
 # vs:  vserver exec slicename command and its arguments
 # lxc: lxcsu slicename "command and its arguments"
-# which, OK, is no big deal as long as the command is simple enough, 
+# which, OK, is no big deal as long as the command is simple enough,
 # but do not stretch it with arguments that have spaces or need quoting as that will become a nightmare
 def command_in_slice (slicename, argv):
     virt=get_node_virt()

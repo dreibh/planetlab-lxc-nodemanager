@@ -20,12 +20,13 @@ from xml.dom.minidom import parseString
 
 priority=4
 
-radvdConfFile = '/etc/radvd.conf'
+radvd_conf_file = '/etc/radvd.conf'
+sliversipv6prefixtag = 'sliversipv6prefix'
 
 def start():
     logger.log("ipv6: plugin starting up...")
 
-def buildLibvirtDefaultNetConfig(dom):
+def build_libvirt_default_net_config(dom):
 
     # create the <network> element
     networkElem = dom.createElement("network")
@@ -75,7 +76,7 @@ def buildLibvirtDefaultNetConfig(dom):
     networkElem.appendChild(ipElem0)
     return networkElem
 
-def checkForIPv6(defaultNetworkConfig):
+def check_for_ipv6(defaultNetworkConfig):
     netnodes = defaultNetworkConfig.getElementsByTagName('network')
     hasIPv6 = False
     for netnode in netnodes:
@@ -88,7 +89,7 @@ def checkForIPv6(defaultNetworkConfig):
     return hasIPv6
 
 
-def addIPv6(defaultNetworkConfig, ipv6addr, prefix):
+def add_ipv6(defaultNetworkConfig, ipv6addr, prefix):
 
     netnodes = defaultNetworkConfig.getElementsByTagName('network')
     for netnode in netnodes:
@@ -108,7 +109,7 @@ def addIPv6(defaultNetworkConfig, ipv6addr, prefix):
         netnode.appendChild(ipElem2)
     return defaultNetworkConfig
 
-def changeIPv6(dom, ipv6addr, prefix):
+def change_ipv6(dom, ipv6addr, prefix):
     ips = dom.getElementsByTagName('ip')
     for ip in ips:
         if ip.getAttribute("family")=='ipv6' and not(re.match(r'fe80(.*)', ip.getAttribute("address"), re.I)):
@@ -117,7 +118,7 @@ def changeIPv6(dom, ipv6addr, prefix):
     return dom
 
 
-def removeIPv6(dom):
+def remove_ipv6(dom):
     networks = dom.getElementsByTagName('network')
     for network in networks:
         ips = network.getElementsByTagName('ip')
@@ -127,7 +128,7 @@ def removeIPv6(dom):
     return dom
 
 
-def checkIfIPv6IsDifferent(dom, ipv6addr, prefix):
+def check_if_ipv6_is_different(dom, ipv6addr, prefix):
     netnodes = dom.getElementsByTagName('network')
     for netnode in netnodes:
         ips = netnode.getElementsByTagName('ip')
@@ -140,14 +141,14 @@ def checkIfIPv6IsDifferent(dom, ipv6addr, prefix):
     return False
 
 
-def setAutostart(network):
+def set_autostart(network):
     try:
         network.setAutostart(1)
     except:
         logger.log("ipv6: network could not set to autostart")
 
 
-def setUp(networkLibvirt, connLibvirt, networkElem, ipv6addr, prefix):
+def set_up(networkLibvirt, connLibvirt, networkElem, ipv6addr, prefix):
     newXml = networkElem.toxml()
     #logger.log(networkElem.toxml())
     #ret = dir(conn)
@@ -157,7 +158,7 @@ def setUp(networkLibvirt, connLibvirt, networkElem, ipv6addr, prefix):
     networkLibvirt.destroy()
     connLibvirt.networkCreateXML(newXml)
     networkDefault = connLibvirt.networkDefineXML(newXml)
-    setAutostart(networkDefault)
+    set_autostart(networkDefault)
     commandForwarding = ['sysctl', '-w', 'net.ipv6.conf.all.forwarding=1']
     logger.log_call(commandForwarding, timeout=15*60)
     configRadvd = """
@@ -175,29 +176,29 @@ interface virbr0
 
 };
 """ % locals()
-    with open(radvdConfFile,'w') as f:
+    with open(radvd_conf_file,'w') as f:
         f.write(configRadvd)
-    killRadvd()
-    startRadvd()
+    kill_radvd()
+    start_radvd()
     logger.log("ipv6: set up process finalized. Enabled IPv6 address to the slivers!")
 
-def cleanUp(networkLibvirt, connLibvirt, networkElem):
-    dom = removeIPv6(networkElem)
+def clean_up(networkLibvirt, connLibvirt, networkElem):
+    dom = remove_ipv6(networkElem)
     newXml = dom.toxml()
     networkLibvirt.undefine()
     networkLibvirt.destroy()
     # TODO: set autostart for the network
     connLibvirt.networkCreateXML(newXml)
     networkDefault = connLibvirt.networkDefineXML(newXml)
-    setAutostart(networkDefault)
-    killRadvd()
+    set_autostart(networkDefault)
+    kill_radvd()
     logger.log("ipv6: cleanup process finalized. The IPv6 support on the slivers was removed.")
 
-def killRadvd():
-    commandKillRadvd = ['killall', 'radvd']
-    logger.log_call(commandKillRadvd, timeout=15*60)
+def kill_radvd():
+    command_kill_radvd = ['killall', 'radvd']
+    logger.log_call(command_kill_radvd, timeout=15*60)
 
-def startRadvd():
+def start_radvd():
     commandRadvd = ['radvd']
     logger.log_call(commandRadvd, timeout=15*60)
 
@@ -208,59 +209,68 @@ def GetSlivers(data, config, plc):
     interfaces = data['interfaces']
     logger.log(repr(interfaces))
     for interface in interfaces:
-	logger.log('ipv6: get interface 1: %r'%(interface))
-	if 'interface_tag_ids' in interface:
+        logger.log('ipv6: get interface: %r'%(interface))
+        if 'interface_tag_ids' in interface:
             interface_tag_ids = "interface_tag_ids"
-        interface_tag_id = "interface_tag_id"
-        settings = plc.GetInterfaceTags({interface_tag_id:interface[interface_tag_ids]})
-        isSliversIPv6PrefixSet = False
-        for setting in settings:
-            #logger.log(repr(setting))
-            # TODO: create a static variable to describe the "sliversipv6prefix" tag
-            if setting['tagname']=='sliversipv6prefix':
-                ipv6addrprefix = setting['value'].split('/', 1)
-                ipv6addr = ipv6addrprefix[0]
-                prefix = ipv6addrprefix[1]
-                logger.log("ipv6: %s" % (ipv6addr) )
-                validIPv6 = tools.isValidIPv6(ipv6addr)
-                if not(validIPv6):
-                    logger.log("ipv6: the 'sliversipv6prefix' tag presented a non-valid IPv6 address!")
-                else:
-                    # connecting to the libvirtd
-                    connLibvirt = Sliver_Libvirt.getConnection(type)
-                    list = connLibvirt.listAllNetworks()
-                    for networkLibvirt in list:
-                        xmldesc = networkLibvirt.XMLDesc()
-                        dom = parseString(xmldesc)
-                        hasIPv6 = checkForIPv6(dom)
-                        if hasIPv6:
-                            # let's first check if the IPv6 is different or is it the same...
-                            isDifferent = checkIfIPv6IsDifferent(dom, ipv6addr, prefix)
-                            if isDifferent:
-                                logger.log("ipv6: tag 'sliversipv6prefix' was modified! " + 
-                                           "Updating configuration with the new one...")
-                                networkElem = changeIPv6(dom, ipv6addr, prefix)
-                                setUp(networkLibvirt, connLibvirt, networkElem, ipv6addr, prefix)
-                                logger.log("ipv6: trying to reboot the slivers...")
-                                tools.reboot_sliver('blah')
+            interface_tag_id = "interface_tag_id"
+            settings = plc.GetInterfaceTags({interface_tag_id:interface[interface_tag_ids]})
+            is_slivers_ipv6_prefix_set = False
+            for setting in settings:
+                if setting['tagname']==sliversipv6prefixtag:
+                    ipv6addrprefix = setting['value'].split('/', 1)
+                    ipv6addr = ipv6addrprefix[0]
+                    valid_prefix = False
+                    if len(ipv6addrprefix)>1:
+                        prefix = ipv6addrprefix[1]
+                        if prefix>0 and prefix<=64:
+                            valid_prefix = True
                         else:
-                            logger.log("ipv6: starting to redefine the virtual network...")
-                            #networkElem = buildLibvirtDefaultNetConfig(dom,ipv6addr,prefix)
-                            networkElem = addIPv6(dom, ipv6addr, prefix)
-                            setUp(networkLibvirt, connLibvirt, networkElem, ipv6addr, prefix)
-                            logger.log("ipv6: trying to reboot the slivers...")
-                            tools.reboot_sliver('blah')
-            isSliversIPv6PrefixSet = True
-        if not(isSliversIPv6PrefixSet):
-            # connecting to the libvirtd
-            connLibvirt = Sliver_Libvirt.getConnection(type)
-            list = connLibvirt.listAllNetworks()
-            for networkLibvirt in list:
-                xmldesc = networkLibvirt.XMLDesc()
-                dom = parseString(xmldesc)
-                if checkForIPv6(dom):
-                    cleanUp(networkLibvirt, connLibvirt, dom)
-                    logger.log("ipv6: trying to reboot the slivers...")
-                    tools.reboot_sliver('blah')
+                            valid_prefix = False
+                    else:
+                        valid_prefix = False
+                    logger.log("ipv6: '%s'=%s" % (sliversipv6prefixtag,ipv6addr) )
+                    valid_ipv6 = tools.is_valid_ipv6(ipv6addr)
+                    if not(valid_ipv6):
+                        logger.log("ipv6: the 'sliversipv6prefix' tag presented a non-valid IPv6 address!")
+                    elif not(valid_prefix):
+                            logger.log("ipv6: the '%s' tag does not present a valid prefix " +
+                                   "(e.g., '/64', '/58')!" % (sliversipv6prefixtag) )
+                    else:
+                        # connecting to the libvirtd
+                        connLibvirt = Sliver_Libvirt.getConnection(type)
+                        list = connLibvirt.listAllNetworks()
+                        for networkLibvirt in list:
+                            xmldesc = networkLibvirt.XMLDesc()
+                            dom = parseString(xmldesc)
+                            has_ipv6 = check_for_ipv6(dom)
+                            if has_ipv6:
+                                # let's first check if the IPv6 is different or is it the same...
+                                is_different = check_if_ipv6_is_different(dom, ipv6addr, prefix)
+                                if is_different:
+                                    logger.log("ipv6: tag 'sliversipv6prefix' was modified! " +
+                                           "Updating configuration with the new one...")
+                                    network_elem = change_ipv6(dom, ipv6addr, prefix)
+                                    set_up(networkLibvirt, connLibvirt, network_elem, ipv6addr, prefix)
+                                    logger.log("ipv6: trying to reboot the slivers...")
+                                    tools.reboot_slivers()
+                            else:
+                                logger.log("ipv6: starting to redefine the virtual network...")
+                                #network_elem = buildLibvirtDefaultNetConfig(dom,ipv6addr,prefix)
+                                network_elem = add_ipv6(dom, ipv6addr, prefix)
+                                set_up(networkLibvirt, connLibvirt, network_elem, ipv6addr, prefix)
+                                logger.log("ipv6: trying to reboot the slivers...")
+                                tools.reboot_slivers()
+                        is_slivers_ipv6_prefix_set = True
+            if not(is_slivers_ipv6_prefix_set):
+                # connecting to the libvirtd
+                connLibvirt = Sliver_Libvirt.getConnection(type)
+                list = connLibvirt.listAllNetworks()
+                for networkLibvirt in list:
+                    xmldesc = networkLibvirt.XMLDesc()
+                    dom = parseString(xmldesc)
+                    if check_for_ipv6(dom):
+                        clean_up(networkLibvirt, connLibvirt, dom)
+                        logger.log("ipv6: trying to reboot the slivers...")
+                        tools.reboot_slivers()
 
     logger.log("ipv6: all done!")
