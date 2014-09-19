@@ -24,11 +24,10 @@ def start():
     logger.log("update_ipv6addr_slivertag: plugin starting up...")
 
 
-def getSliverTagId(slivertags):
+def get_sliver_tag_id_value(slivertags):
     for slivertag in slivertags:
         if slivertag['tagname']==ipv6addrtag:
-            return slivertag['slice_tag_id']
-    return None
+            return slivertag['slice_tag_id'], slivertag['value']
 
 def SetSliverTag(plc, data, tagname):
 
@@ -45,14 +44,16 @@ def SetSliverTag(plc, data, tagname):
         #for tag in slivertags:
             #    logger.log(repr(str(tag)))
 
-        ipv6addr = plc.GetSliceIPv6Address(slice['name'])
+        try:
+            slivertag_id,ipv6addr = get_sliver_tag_id_value(slivertags)
+        except:
+            slivertag_id,ipv6addr = None,None
         logger.log("update_ipv6addr_slivertag: slice=%s getSliceIPv6Address=%s" % \
                (slice['name'],ipv6addr) )
         # if the value to set is null...
         if value is None:
             if ipv6addr is not None:
                 # then, let's remove the slice tag
-                slivertag_id = getSliverTagId(slivertags)
                 if slivertag_id:
                     try:
                         plc.DeleteSliceTag(slivertag_id)
@@ -76,7 +77,6 @@ def SetSliverTag(plc, data, tagname):
                            "slice=%s tag=%s node_id=%d" % (slice['name'],tagname,node_id) )
             # if the ipv6 addr set on the slice is different on the value provided, let's update it
             if (ipv6addr is not None) and (len(value)>0) and (ipv6addr!=value):
-                slivertag_id = getSliverTagId(slivertags)
                 plc.UpdateSliceTag(slivertag_id,value)
             # ipv6 entry on /etc/hosts of each slice
             result = tools.search_ipv6addr_hosts(slice['name'], value)
@@ -87,7 +87,5 @@ def SetSliverTag(plc, data, tagname):
                "slice=%s" % (slice['name']) )
 
 def GetSlivers(data, config, plc):
-
     SetSliverTag(plc, data, ipv6addrtag)
-
     logger.log("update_ipv6addr_slivertag: all done!")
