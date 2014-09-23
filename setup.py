@@ -33,7 +33,6 @@ setup(
         'plugins.hostmap',
         'plugins.interfaces',
         'plugins.omf_resctl',
-        'plugins.privatebridge',
         'plugins.rawdisk',
         'plugins.reservation',
         'plugins.sfagids',
@@ -47,6 +46,7 @@ setup(
         'sliver_lxc',
         'cgroups',
         'coresched_lxc',
+        'plugins.privatebridge',
 # vs
         'sliver_vs',
         'coresched_vs',
