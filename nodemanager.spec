@@ -175,6 +175,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/plugins/syndicate.*
 %{_datadir}/NodeManager/plugins/vsys.*
 %{_datadir}/NodeManager/plugins/vsys_privs.*
+%{_datadir}/NodeManager/plugins/ipv6.*
+%{_datadir}/NodeManager/plugins/update_ipv6addr_slivertag.*
 %{_datadir}/NodeManager/sliver-initscripts/
 %{_datadir}/NodeManager/sliver-systemd/
 %{_bindir}/forward_api_calls
@@ -209,8 +211,6 @@ nodemanager-lxc provides the lxc code for the PlanetLab Node Manager.
 %{_datadir}/NodeManager/cgroups.*
 %{_datadir}/NodeManager/coresched_lxc.*
 %{_datadir}/NodeManager/plugins/privatebridge.*
-%{_datadir}/NodeManager/plugins/ipv6.*
-%{_datadir}/NodeManager/plugins/update_ipv6addr_slivertag.*
 
 %endif
 ##############################

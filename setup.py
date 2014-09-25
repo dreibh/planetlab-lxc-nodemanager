@@ -41,14 +41,14 @@ setup(
         'plugins.syndicate',
         'plugins.vsys',
         'plugins.vsys_privs',
+        'plugins.ipv6',
+        'plugins.update_ipv6addr_slivertag', 
 # lxc
         'sliver_libvirt',
         'sliver_lxc',
         'cgroups',
         'coresched_lxc',
         'plugins.privatebridge',
-        'plugins.ipv6',
-        'plugins.update_ipv6addr_slivertag', 
 # vs
         'sliver_vs',
         'coresched_vs',
