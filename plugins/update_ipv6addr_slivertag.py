@@ -62,8 +62,10 @@ def SetSliverTag(plc, data, tagname):
                     except:
                         logger.log("update_ipv6addr_slivertag: slice tag not deleted for slice=%s" % \
                                (slice['name']) )
-            # if there's no ipv6 address anymore, then remove everything from the /etc/hosts
-            tools.remove_all_ipv6addr_hosts(slice['name'], data['hostname'])
+            result = tools.search_ipv6addr_hosts(slice['name'], value)
+            if result:
+                # if there's any ipv6 address, then remove everything from the /etc/hosts
+                tools.remove_all_ipv6addr_hosts(slice['name'], data['hostname'])
         else:
             # if the ipv6 addr set on the slice does not exist yet, so, let's add it
             if (ipv6addr is None) and len(value)>0:

@@ -216,6 +216,9 @@ def start_radvd():
 def GetSlivers(data, config, plc):
 
     type = 'sliver.LXC'
+    virt=tools.get_node_virt()
+    if virt!='lxc':
+        return
 
     interfaces = data['interfaces']
     logger.log(repr(interfaces))

@@ -262,9 +262,12 @@ def get_sliver_process(slice_name, process_cmdline):
 # Added by Guilherme Sperb Machado <gsm@machados.org>
 ###################################################
 
-import re
-import socket
-import fileinput
+try:
+    import re
+    import socket
+    import fileinput
+except:
+    logger.log("Could not import 're', 'socket', or 'fileinput' python packages.")
 
 # TODO: is there anything better to do if the "libvirt", "sliver_libvirt",
 # and "sliver_lxc" are not in place?
@@ -273,7 +276,7 @@ try:
     from sliver_libvirt import Sliver_Libvirt
     import sliver_lxc
 except:
-    logger.log("Could not import sliver_lxc or libvirt or sliver_libvirt -- which is required here.")
+    logger.log("Could not import 'sliver_lxc' or 'libvirt' or 'sliver_libvirt'.")
 ###################################################
 
 def get_sliver_ifconfig(slice_name, device="eth0"):
@@ -425,16 +428,27 @@ def get_hosts_file_path(slicename):
 ###################################################
 # Search if there is a specific ipv6 address in the
 # /etc/hosts file of a given slice
+# If the parameter 'ipv6addr' is None, then search
+# for any ipv6 address
 ###################################################
 def search_ipv6addr_hosts(slicename, ipv6addr):
     hostsFilePath = get_hosts_file_path(slicename)
     found=False
     try:
         for line in fileinput.input(r'%s' % (hostsFilePath)):
-            if re.search(r'%s' % (ipv6addr), line):
-                found=True
-        fileinput.close()
-        return found
+            if ipv6addr is not None:
+                if re.search(r'%s' % (ipv6addr), line):
+                    found=True
+            else:
+                search = re.search(r'^(.*)\s+.*$', line)
+                if search:
+                    ipv6candidate = search.group(1)
+                    ipv6candidatestrip = ipv6candidate.strip()
+                    valid = is_valid_ipv6(ipv6candidatestrip)
+                    if valid:
+                        found=True
+            fileinput.close()
+            return found
     except:
         logger.log("tools: FAILED to search %s in /etc/hosts file of slice=%s" % \
                    (ipv6addr, slicename) )
