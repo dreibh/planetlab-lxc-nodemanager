@@ -12,7 +12,7 @@ Requirements:
 * The prefix specified on 'sliversipv6prefix' tag must be at least 64
   It should vary between 1 and 64, since it is the minimum amount of bits to
   have native IPv6 auto-configuration.
-* The ipv6_address on 'sliversipv6prefix' tag can be any valid IPv6 address.
+* The ipv6_address in 'sliversipv6prefix' tag value can be any valid IPv6 address.
   E.g., 2002:1000:: or 2002:1000::1
 * It is the node manager/admin responsibility to properly set the IPv6 routing,
   since slivers should receive/send any kind of traffic.
@@ -24,10 +24,16 @@ import socket
 import re
 
 import tools
-import libvirt
 import uuid
-from sliver_libvirt import Sliver_Libvirt
 from xml.dom.minidom import parseString
+
+# TODO: is there anything better to do if the "libvirt", "sliver_libvirt",
+# and are not in place in the VS distro?
+try:
+    import libvirt
+    from sliver_libvirt import Sliver_Libvirt
+except:
+    logger.log("Could not import 'sliver_lxc' or 'libvirt'.")
 
 priority=4
 

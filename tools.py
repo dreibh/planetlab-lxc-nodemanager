@@ -236,8 +236,8 @@ def get_sliver_process(slice_name, process_cmdline):
             path = l.split(':')[0]
             comp = l.rsplit(':')[-1]
             slice_name_check = comp.rsplit('/')[-1]
-            # the lines above were added by Guilherme <gsm@machados.org>
-            # due to the ipv6 plugin requirements
+            # the lines below were added by Guilherme <gsm@machados.org>
+            # due to the ipv6 plugin requirements (LXC)
             virt=get_node_virt()
             if virt=='lxc':
                 slice_name_check = slice_name_check.rsplit('.')[0]

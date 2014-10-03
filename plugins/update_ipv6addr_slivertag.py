@@ -11,10 +11,16 @@ import socket
 import re
 
 import tools
-import libvirt
 import uuid
-from sliver_libvirt import Sliver_Libvirt
 from xml.dom.minidom import parseString
+
+# TODO: is there anything better to do if the "libvirt", "sliver_libvirt",
+# and are not in place in the VS distro?
+try:
+    import libvirt
+    from sliver_libvirt import Sliver_Libvirt
+except:
+    logger.log("Could not import 'sliver_lxc' or 'libvirt'.")
 
 priority=150
 
@@ -30,6 +36,10 @@ def get_sliver_tag_id_value(slivertags):
             return slivertag['slice_tag_id'], slivertag['value']
 
 def SetSliverTag(plc, data, tagname):
+
+    virt=tools.get_node_virt()
+    if virt!='lxc':
+        return
 
     for slice in data['slivers']:
         logger.log("update_ipv6addr_slivertag: starting with slice=%s" % (slice['name']) )
