@@ -41,6 +41,8 @@ setup(
         'plugins.syndicate',
         'plugins.vsys',
         'plugins.vsys_privs',
+        'plugins.ipv6',
+        'plugins.update_ipv6addr_slivertag', 
 # lxc
         'sliver_libvirt',
         'sliver_lxc',

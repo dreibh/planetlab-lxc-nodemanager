@@ -175,6 +175,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/plugins/syndicate.*
 %{_datadir}/NodeManager/plugins/vsys.*
 %{_datadir}/NodeManager/plugins/vsys_privs.*
+%{_datadir}/NodeManager/plugins/ipv6.*
+%{_datadir}/NodeManager/plugins/update_ipv6addr_slivertag.*
 %{_datadir}/NodeManager/sliver-initscripts/
 %{_datadir}/NodeManager/sliver-systemd/
 %{_bindir}/forward_api_calls
