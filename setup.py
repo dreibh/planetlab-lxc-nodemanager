@@ -33,7 +33,6 @@ setup(
         'plugins.hostmap',
         'plugins.interfaces',
         'plugins.omf_resctl',
-        'plugins.privatebridge',
         'plugins.rawdisk',
         'plugins.reservation',
         'plugins.sfagids',
@@ -42,11 +41,14 @@ setup(
         'plugins.syndicate',
         'plugins.vsys',
         'plugins.vsys_privs',
+        'plugins.ipv6',
+        'plugins.update_ipv6addr_slivertag', 
 # lxc
         'sliver_libvirt',
         'sliver_lxc',
         'cgroups',
         'coresched_lxc',
+        'plugins.privatebridge',
 # vs
         'sliver_vs',
         'coresched_vs',
