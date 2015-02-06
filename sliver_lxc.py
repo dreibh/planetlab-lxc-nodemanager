@@ -340,6 +340,19 @@ unset pathmunge
         logger.log_call(command)
 
         # Remove rootfs of destroyed domain
+        command = ['/usr/bin/rm', '-rf', containerDir]
+        logger.log_call(command, timeout=BTRFS_TIMEOUT)
+
+        # ???
+        logger.log("-TMP-ls-l %s"%name)
+        command = ['ls', '-lR', containerDir]
+        logger.log_call(command)
+        logger.log("-TMP-vsys-status")
+        command = ['/usr/bin/systemctl', 'status', 'vsys']
+        logger.log_call(command)
+        # ???
+
+        # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=BTRFS_TIMEOUT)
 
@@ -365,7 +378,7 @@ unset pathmunge
             #command=['lsof']
             #logger.log_call(command)
             logger.log("-TMP-ls-l %s"%name)
-            command = ['ls', '-l', containerDir]
+            command = ['ls', '-lR', containerDir]
             logger.log_call(command)
             logger.log("-TMP-lsof")
             command = ['lsof']
