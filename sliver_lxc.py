@@ -367,6 +367,9 @@ unset pathmunge
             logger.log("-TMP-ls-l %s"%name)
             command = ['ls', '-l', containerDir]
             logger.log_call(command)
+            logger.log("-TMP-lsof")
+            command = ['lsof']
+            logger.log_call(command)
             if os.path.exists(containerDir):
                 logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
 
