@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 14
+%define taglevel 15
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -250,6 +250,12 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Wed Feb 18 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-15
+- addition to support for ipv6 to lxc slivers
+- (thanks to Guilherme Sperb Machado)
+- privatebridge plugin is back to the -lxc rpm
+- add systemd dependency to network.target
+
 * Tue Jul 22 2014 Thomas Dreibholz <dreibh@simula.no> - nodeimage-5.2-15
 - nm.service fix: the node manager needs network.target, since it needs to contact the PLC.
 
