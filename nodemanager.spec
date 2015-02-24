@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 14
+%define taglevel 15
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -167,7 +167,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/plugins/hostmap.*
 %{_datadir}/NodeManager/plugins/interfaces.*
 %{_datadir}/NodeManager/plugins/omf_resctl.*
-%{_datadir}/NodeManager/plugins/privatebridge.*
 %{_datadir}/NodeManager/plugins/rawdisk.*
 %{_datadir}/NodeManager/plugins/reservation.*
 %{_datadir}/NodeManager/plugins/sfagids.*
@@ -176,6 +175,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/plugins/syndicate.*
 %{_datadir}/NodeManager/plugins/vsys.*
 %{_datadir}/NodeManager/plugins/vsys_privs.*
+%{_datadir}/NodeManager/plugins/ipv6.*
+%{_datadir}/NodeManager/plugins/update_ipv6addr_slivertag.*
 %{_datadir}/NodeManager/sliver-initscripts/
 %{_datadir}/NodeManager/sliver-systemd/
 %{_bindir}/forward_api_calls
@@ -209,6 +210,7 @@ nodemanager-lxc provides the lxc code for the PlanetLab Node Manager.
 %{_datadir}/NodeManager/sliver_lxc.*
 %{_datadir}/NodeManager/cgroups.*
 %{_datadir}/NodeManager/coresched_lxc.*
+%{_datadir}/NodeManager/plugins/privatebridge.*
 
 %endif
 ##############################
@@ -248,6 +250,12 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Wed Feb 18 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-15
+- addition to support for ipv6 to lxc slivers
+- (thanks to Guilherme Sperb Machado)
+- privatebridge plugin is back to the -lxc rpm
+- add systemd dependency to network.target
+
 * Tue Jul 22 2014 Thomas Dreibholz <dreibh@simula.no> - nodeimage-5.2-15
 - nm.service fix: the node manager needs network.target, since it needs to contact the PLC.
 

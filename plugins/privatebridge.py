@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """ Private Bridge configurator.  """
 
@@ -60,10 +60,23 @@ def log_call_read(command,timeout=logger.default_timeout_minutes*60,poll=1):
                 logger.log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message,timeout))
                 return (-2, None)
                 break
-    except:
-        logger.log_exc("failed to run command %s" % message)
+    except Exception as e:
+        logger.log_exc("failed to run command %s -> %s" % (message,e))
 
     return (-1, None)
+
+### Thierry - 23 Sept 2014
+# regardless of this being shipped on lxc-only or on all nodes, 
+# it is safer to check for the availability of the ovs-vsctl command and just print 
+# out a warning when it's not there, instead of a nasty traceback
+def ovs_available ():
+    "return True if ovs-vsctl can be run"
+    try:
+        child = subprocess.Popen (['ovs-ovsctl', '--help'])
+        child.communicate()
+        return True
+    except:
+        return False
 
 def ovs_vsctl(args):
     return log_call_read(["ovs-vsctl"] + args)
@@ -150,6 +163,11 @@ def configure_slicebridge(sliver, attributes):
     ensure_slicebridge_neighbors(slice_bridge_name, sliver_id, slice_bridge_neighbors)
 
 def GetSlivers(data, conf = None, plc = None):
+
+    if not ovs_available():
+        logger.log ("privatebridge: warning, ovs-vsctl not found - exiting")
+        return
+
     node_id = tools.node_id()
 
     if 'slivers' not in data:

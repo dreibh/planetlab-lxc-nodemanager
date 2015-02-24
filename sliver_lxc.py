@@ -14,7 +14,7 @@ from string import Template
 # vsys probably should not be a plugin
 # the thing is, the right way to handle stuff would be that
 # if slivers get created by doing a,b,c
-# then they sohuld be delted by doing c,b,a
+# then they should be deleted by doing c,b,a
 # the current ordering model for vsys plugins completely fails to capture that
 from plugins.vsys import removeSliverFromVsys, startService as vsysStartService
 
@@ -123,7 +123,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 #        # if /vservers/foo does not exist, it creates /vservers/foo
 #        # but if it does exist, then       it creates /vservers/foo/image !!
 #        # so we need to check the expected container rootfs does not exist yet
-#        # this hopefully could be removed in a future release 
+#        # this hopefully could be removed in a future release
 #        if os.path.exists (containerDir):
 #            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name,containerDir))
 #            command = ['btrfs', 'subvolume', 'delete', containerDir]
@@ -223,7 +223,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
                     logger.log_exc("exception while updating /etc/sudoers")
 
         # customizations for the user environment - root or slice uid
-        # we save the whole business in /etc/planetlab.profile 
+        # we save the whole business in /etc/planetlab.profile
         # and source this file for both root and the slice uid's .profile
         # prompt for slice owner, + LD_PRELOAD for transparently wrap bind
         pl_profile=os.path.join(containerDir,"etc/planetlab.profile")
@@ -261,7 +261,7 @@ unset pathmunge
             # if dir is not yet existing let's forget it for now
             if not os.path.isdir(os.path.dirname(from_root)): continue
             found=False
-            try: 
+            try:
                 contents=file(from_root).readlines()
                 for content in contents:
                     if content==enforced_line: found=True
@@ -359,9 +359,22 @@ unset pathmunge
 
 
         # Remove rootfs of destroyed domain
+        command = ['/usr/bin/rm', '-rf', containerDir]
+        logger.log_call(command, timeout=BTRFS_TIMEOUT)
+
+        # ???
+        logger.log("-TMP-ls-l %s"%name)
+        command = ['ls', '-lR', containerDir]
+        logger.log_call(command)
+        logger.log("-TMP-vsys-status")
+        command = ['/usr/bin/systemctl', 'status', 'vsys']
+        logger.log_call(command)
+        # ???
+
+        # Remove rootfs of destroyed domain
         command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=BTRFS_TIMEOUT)
-        
+
         # For some reason I am seeing this :
         #log_call: running command btrfs subvolume delete /vservers/inri_sl1
         #log_call: ERROR: cannot delete '/vservers/inri_sl1' - Device or resource busy
@@ -385,7 +398,10 @@ unset pathmunge
             #logger.log_call(command)
 
             logger.log("-TMP-ls-l %s"%name)
-            command = ['ls', '-l', containerDir]
+            command = ['ls', '-lR', containerDir]
+            logger.log_call(command)
+            logger.log("-TMP-lsof")
+            command = ['lsof']
             logger.log_call(command)
 
             logger.log("-TMP-RM-RF %s"%containerDir)

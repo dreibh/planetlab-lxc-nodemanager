@@ -135,8 +135,8 @@ NODEURL:=root@$(NODE):/
 endif
 
 # this is for lxc only, we need to exclude the vs stuff that otherwise messes up everything on node
-# keep this in sync with setup-vs.spec
-LXC_EXCLUDES= --exclude sliver_vs.py --exclude coresched_vs.py
+# WARNING: keep this in sync with setup.spec
+LXC_EXCLUDES= --exclude sliver_vs.py --exclude coresched_vs.py --exclude drl.py
 
 # run with make SYNC_RESTART=false if you want to skip restarting nm
 SYNC_RESTART=true
@@ -157,6 +157,26 @@ else
 	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
 	-$(SYNC_RESTART) && { ssh -i $(NODE).key.rsa root@$(NODE) service nm restart ; } ||:
 endif
+
+# this is for vs only, we need to exclude the lxc stuff that otherwise messes up everything on node
+# xxx keep this in sync with setup.spec
+VS_EXCLUDES= --exclude sliver_libvirt.py --exclude sliver_lxc.py --exclude cgroups.py --exclude coresched_lxc.py --exclude privatebridge.py
+
+syncvs: $(NODE).key.rsa
+ifeq (,$(NODEURL))
+	@echo "syncvs: You must define NODE on the command line"
+	@echo "  e.g. make sync NODE=vnode01.inria.fr"
+	@exit 1
+else
+	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	@echo WARNING : this target might not be very reliable - use with care
+	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	+$(RSYNC) $(VS_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
+	+$(RSYNC) ./initscripts/ $(NODEURL)/etc/init.d/
+#	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
+	-$(SYNC_RESTART) && { ssh -i $(NODE).key.rsa root@$(NODE) service nm restart ; } ||:
+endif
+
 
 ### fetching the key
 

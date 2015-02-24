@@ -1,3 +1,5 @@
+# -*- python-indent: 4 -*-
+
 """A few things that didn't seem to fit anywhere else."""
 
 import os, os.path
@@ -69,7 +71,14 @@ def daemon():
     os.dup2(crashlog, 2)
 
 def fork_as(su, function, *args):
-    """fork(), cd / to avoid keeping unused directories open, close all nonstandard file descriptors (to avoid capturing open sockets), fork() again (to avoid zombies) and call <function> with arguments <args> in the grandchild process.  If <su> is not None, set our group and user ids appropriately in the child process."""
+    """
+fork(), cd / to avoid keeping unused directories open,
+close all nonstandard file descriptors (to avoid capturing open sockets),
+fork() again (to avoid zombies) and call <function>
+with arguments <args> in the grandchild process.
+If <su> is not None, set our group and user ids
+ appropriately in the child process.
+    """
     child_pid = os.fork()
     if child_pid == 0:
         try:
@@ -91,9 +100,11 @@ def fork_as(su, function, *args):
 ####################
 # manage files
 def pid_file():
-    """We use a pid file to ensure that only one copy of NM is running at a given time.
+    """
+We use a pid file to ensure that only one copy of NM is running at a given time.
 If successful, this function will write a pid file containing the pid of the current process.
-The return value is the pid of the other running process, or None otherwise."""
+The return value is the pid of the other running process, or None otherwise.
+    """
     other_pid = None
     if os.access(PID_FILE, os.F_OK):  # check for a pid file
         handle = open(PID_FILE)  # pid file exists, read it
@@ -110,7 +121,10 @@ The return value is the pid of the other running process, or None otherwise."""
     return other_pid
 
 def write_file(filename, do_write, **kw_args):
-    """Write file <filename> atomically by opening a temporary file, using <do_write> to write that file, and then renaming the temporary file."""
+    """
+Write file <filename> atomically by opening a temporary file,
+using <do_write> to write that file, and then renaming the temporary file.
+    """
     shutil.move(write_temp_file(do_write, **kw_args), filename)
 
 def write_temp_file(do_write, mode=None, uidgid=None):
@@ -122,13 +136,16 @@ def write_temp_file(do_write, mode=None, uidgid=None):
     finally: f.close()
     return temporary_filename
 
-# replace a target file with a new contents - checks for changes
-# can handle chmod if requested
-# can also remove resulting file if contents are void, if requested
-# performs atomically:
-#    writes in a tmp file, which is then renamed (from sliverauth originally)
-# returns True if a change occurred, or the file is deleted
 def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=False):
+    """
+Replace a target file with a new contents
+checks for changes: does not do anything if previous state was already right
+can handle chmod if requested
+can also remove resulting file if contents are void, if requested
+performs atomically:
+writes in a tmp file, which is then renamed (from sliverauth originally)
+returns True if a change occurred, or the file is deleted
+    """
     try:
         current=file(target).read()
     except:
@@ -151,7 +168,6 @@ def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=
     shutil.move(name,target)
     if chmod: os.chmod(target,chmod)
     return True
-
 
 ####################
 # utilities functions to get (cached) information from the node
@@ -220,6 +236,11 @@ def get_sliver_process(slice_name, process_cmdline):
             path = l.split(':')[0]
             comp = l.rsplit(':')[-1]
             slice_name_check = comp.rsplit('/')[-1]
+            # the lines below were added by Guilherme <gsm@machados.org>
+            # due to the ipv6 plugin requirements (LXC)
+            virt=get_node_virt()
+            if virt=='lxc':
+                slice_name_check = slice_name_check.rsplit('.')[0]
 
             if (slice_name_check == slice_name):
                 slice_path = path
@@ -236,6 +257,27 @@ def get_sliver_process(slice_name, process_cmdline):
         return (None, None)
 
     return (cgroup_fn, pid)
+
+###################################################
+# Added by Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+
+try:
+    import re
+    import socket
+    import fileinput
+except:
+    logger.log("Could not import 're', 'socket', or 'fileinput' python packages.")
+
+# TODO: is there anything better to do if the "libvirt", "sliver_libvirt",
+# and "sliver_lxc" are not in place?
+try:
+    import libvirt
+    from sliver_libvirt import Sliver_Libvirt
+    import sliver_lxc
+except:
+    logger.log("Could not import 'sliver_lxc' or 'libvirt' or 'sliver_libvirt'.")
+###################################################
 
 def get_sliver_ifconfig(slice_name, device="eth0"):
     """ return the output of "ifconfig" run from inside the sliver.
@@ -290,6 +332,39 @@ def get_sliver_ip(slice_name):
 
     return None
 
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Get the slice ipv6 address
+# Only for LXC!
+###################################################
+def get_sliver_ipv6(slice_name):
+    ifconfig = get_sliver_ifconfig(slice_name)
+    if not ifconfig:
+        return None,None
+
+    # example: 'inet6 2001:67c:16dc:1302:5054:ff:fea7:7882  prefixlen 64  scopeid 0x0<global>'
+    prog = re.compile(r'inet6\s+(.*)\s+prefixlen\s+(\d+)\s+scopeid\s+(.+)<global>')
+    for line in ifconfig.split("\n"):
+        search = prog.search(line)
+        if search:
+            ipv6addr = search.group(1)
+            prefixlen = search.group(2)
+            return (ipv6addr,prefixlen)
+    return None,None
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Check if the address is a AF_INET6 family address
+###################################################
+def is_valid_ipv6(ipv6addr):
+    try:
+        socket.inet_pton(socket.AF_INET6, ipv6addr)
+    except socket.error:
+        return False
+    return True
+
 ### this returns the kind of virtualization on the node
 # either 'vs' or 'lxc'
 # also caches it in /etc/planetlab/virt for next calls
@@ -301,9 +376,9 @@ def get_node_virt ():
     except:
         pass
     logger.log("Computing virt..")
-    try: 
+    try:
         if subprocess.call ([ 'vserver', '--help' ]) ==0: virt='vs'
-        else:                                             virt='lxc'      
+        else:                                             virt='lxc'
     except:
         virt='lxc'
     with file(virt_stamp,"w") as f:
@@ -319,6 +394,112 @@ def has_systemctl ():
         _has_systemctl = (subprocess.call([ 'systemctl', '--help' ]) == 0)
     return _has_systemctl
 
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# This method was developed to support the ipv6 plugin
+# Only for LXC!
+###################################################
+def reboot_slivers():
+    type = 'sliver.LXC'
+    # connecting to the libvirtd
+    connLibvirt = Sliver_Libvirt.getConnection(type)
+    domains = connLibvirt.listAllDomains()
+    for domain in domains:
+        try:
+            domain.destroy()
+            logger.log("tools: DESTROYED %s" % (domain.name()) )
+            domain.create()
+            logger.log("tools: CREATED %s" % (domain.name()) )
+        except:
+            logger.log("tools: FAILED to reboot %s" % (domain.name()) )
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Get the /etc/hosts file path
+###################################################
+def get_hosts_file_path(slicename):
+    containerDir = os.path.join(sliver_lxc.Sliver_LXC.CON_BASE_DIR, slicename)
+    return os.path.join(containerDir, 'etc', 'hosts')
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Search if there is a specific ipv6 address in the
+# /etc/hosts file of a given slice
+# If the parameter 'ipv6addr' is None, then search
+# for any ipv6 address
+###################################################
+def search_ipv6addr_hosts(slicename, ipv6addr):
+    hostsFilePath = get_hosts_file_path(slicename)
+    found=False
+    try:
+        for line in fileinput.input(r'%s' % (hostsFilePath)):
+            if ipv6addr is not None:
+                if re.search(r'%s' % (ipv6addr), line):
+                    found=True
+            else:
+                search = re.search(r'^(.*)\s+.*$', line)
+                if search:
+                    ipv6candidate = search.group(1)
+                    ipv6candidatestrip = ipv6candidate.strip()
+                    valid = is_valid_ipv6(ipv6candidatestrip)
+                    if valid:
+                        found=True
+            fileinput.close()
+            return found
+    except:
+        logger.log("tools: FAILED to search %s in /etc/hosts file of slice=%s" % \
+                   (ipv6addr, slicename) )
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Removes all ipv6 addresses from the /etc/hosts
+# file of a given slice
+###################################################
+def remove_all_ipv6addr_hosts(slicename, node):
+    hostsFilePath = get_hosts_file_path(slicename)
+    try:
+        for line in fileinput.input(r'%s' % (hostsFilePath), inplace=True):
+            search = re.search(r'^(.*)\s+(%s|%s)$' % (node,'localhost'), line)
+            if search:
+                ipv6candidate = search.group(1)
+                ipv6candidatestrip = ipv6candidate.strip()
+                valid = is_valid_ipv6(ipv6candidatestrip)
+                if not valid:
+                    print line,
+        fileinput.close()
+        logger.log("tools: REMOVED IPv6 address from /etc/hosts file of slice=%s" % \
+                   (slicename) )
+    except:
+        logger.log("tools: FAILED to remove the IPv6 address from /etc/hosts file of slice=%s" % \
+                   (slicename) )
+
+###################################################
+# Author: Guilherme Sperb Machado <gsm@machados.org>
+###################################################
+# Adds an ipv6 address to the /etc/hosts file within a slice
+###################################################
+def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
+    hostsFilePath = get_hosts_file_path(slicename)
+    logger.log("tools: %s" % (hostsFilePath) )
+    # debugging purposes:
+    #string = "127.0.0.1\tlocalhost\n192.168.100.179\tmyplc-node1-vm.mgmt.local\n"
+    #string = "127.0.0.1\tlocalhost\n"
+    try:
+        with open(hostsFilePath, "a") as file:
+            file.write(ipv6addr + " " + node + "\n")
+            file.close()
+        logger.log("tools: ADDED IPv6 address to /etc/hosts file of slice=%s" % \
+                   (slicename) )
+    except:
+        logger.log("tools: FAILED to add the IPv6 address to /etc/hosts file of slice=%s" % \
+                   (slicename) )
+
+
+
 # how to run a command in a slice
 # now this is a painful matter
 # the problem is with capsh that forces a bash command to be injected in its exec'ed command
@@ -326,7 +507,7 @@ def has_systemctl ():
 # bottom line is, what actually needs to be called is
 # vs:  vserver exec slicename command and its arguments
 # lxc: lxcsu slicename "command and its arguments"
-# which, OK, is no big deal as long as the command is simple enough, 
+# which, OK, is no big deal as long as the command is simple enough,
 # but do not stretch it with arguments that have spaces or need quoting as that will become a nightmare
 def command_in_slice (slicename, argv):
     virt=get_node_virt()
