@@ -116,23 +116,6 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name,refImgDir))
             return
 
-# this hopefully should be fixed now
-#        # in fedora20 we have some difficulty in properly cleaning up /vservers/<slicename>
-#        # also note that running e.g. btrfs subvolume create /vservers/.lvref/image /vservers/foo
-#        # behaves differently, whether /vservers/foo exists or not:
-#        # if /vservers/foo does not exist, it creates /vservers/foo
-#        # but if it does exist, then       it creates /vservers/foo/image !!
-#        # so we need to check the expected container rootfs does not exist yet
-#        # this hopefully could be removed in a future release
-#        if os.path.exists (containerDir):
-#            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name,containerDir))
-#            command = ['btrfs', 'subvolume', 'delete', containerDir]
-#            logger.log_call(command, BTRFS_TIMEOUT)
-#            # re-check
-#            if os.path.exists (containerDir):
-#                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
-#                return
-
         # Snapshot the reference image fs (assume the reference image is in its own
         # subvolume)
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
@@ -332,6 +315,22 @@ unset pathmunge
         except:
             logger.verbose('sliver_lxc.destroy: Domain %s not running... continuing.' % name)
 
+        # ??????
+        if not os.path.isdir('/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d' + name + '.scope'):
+           logger.log("CHECK-a: seems clean! %s"%name)
+        else:
+           logger.log("CHECK-a: BAD! %s"%name)
+        # ??????
+
+#        time.sleep(5)
+#
+#        # ??????
+#        if not os.path.isdir('/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d' + name + '.scope'):
+#           logger.log("CHECK-b: seems clean! %s"%name)
+#        else:
+#           logger.log("CHECK-b: BAD! %s"%name)
+#        # ??????
+
         try:
             logger.log("sliver_lxc.destroy: undefining domain %s"%name)
             dom.undefine()
@@ -342,37 +341,12 @@ unset pathmunge
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command)
 
-
-        # ???????????????????????
-        #logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
-        # also lsof never shows anything relevant; this is painful..
-        #logger.log("-TMP-lsof %s"%name)
-        #command=['lsof']
-        #logger.log_call(command)
-        logger.log("-TMP-RM-RF %s"%name)
-        command = ['/usr/bin/rm', '-rf', name]
-        logger.log_call(command)
-        logger.log("-TMP-ls-l %s"%name)
-        command = ['ls', '-l', containerDir]
-        logger.log_call(command)
-        # ???????????????????????
-
+        ## Remove rootfs of destroyed domain
+        #command = ['/usr/bin/rm', '-rf', containerDir]
+        #logger.log_call(command, timeout=BTRFS_TIMEOUT)
 
         # Remove rootfs of destroyed domain
-        command = ['/usr/bin/rm', '-rf', containerDir]
-        logger.log_call(command, timeout=BTRFS_TIMEOUT)
-
-        # ???
-        logger.log("-TMP-ls-l %s"%name)
-        command = ['ls', '-lR', containerDir]
-        logger.log_call(command)
-        logger.log("-TMP-vsys-status")
-        command = ['/usr/bin/systemctl', 'status', 'vsys']
-        logger.log_call(command)
-        # ???
-
-        # Remove rootfs of destroyed domain
-        command = ['btrfs', 'subvolume', 'delete', containerDir]
+        command = ['btrfs', 'subvolume', 'delete', '-c', containerDir]
         logger.log_call(command, timeout=BTRFS_TIMEOUT)
 
         # For some reason I am seeing this :
@@ -400,26 +374,11 @@ unset pathmunge
             logger.log("-TMP-ls-l %s"%name)
             command = ['ls', '-lR', containerDir]
             logger.log_call(command)
-            logger.log("-TMP-lsof")
-            command = ['lsof']
-            logger.log_call(command)
 
-            logger.log("-TMP-RM-RF %s"%containerDir)
-            command = ['/usr/bin/rm', '-rf', name]
-            logger.log_call(command)
+            logger.log("-TMP-FIND %s"%name)
+            command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/echo', '{}', ';']        
+            logger.log_call(command)               
 
-            logger.log("-TMP-MKDIR %s"%containerDir)
-            command = ['/usr/bin/mkdir', '-p', '/vservers/.trash']
-            logger.log_call(command)
-
-            trashDir = tempfile.mkdtemp(dir='/vservers/.trash')
-            logger.log("-TMP-TRASH %s"%trashDir)
-            command = ['/usr/bin/mv', containerDir, trashDir]
-            logger.log_call(command)
-
-            if os.path.exists(containerDir):
-                logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
-            else:
-               logger.log('sliver_lxc.destroy: Used ugly WORKAROUND for removal of %s - giving up'%name)
+            logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
 
         if vsys_stopped: vsysStartService()
