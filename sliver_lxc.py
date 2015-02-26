@@ -309,11 +309,29 @@ unset pathmunge
         # removeSliverFromVsys return True if it stops vsys, telling us to start it again later
         vsys_stopped = removeSliverFromVsys (name)
 
+#        logger.log("-TMP-LXC-STOP %s"%name)
+#        command = [ '/usr/bin/lxc-stop', '-k', '-n', name ]
+#        logger.log_call(command)
+#        logger.log("-TMP-LXC-DESTROY %s"%name)
+#        command = [ '/usr/bin/lxc-destroy', '-n', name ]
+#        logger.log_call(command)
+
+        try:
+            logger.log("sliver_lxc.shutdown: shutdown domain %s"%name)
+            r = dom.shutdown()
+            logger.log("CHECK-a: shutdown=%d" % r)
+        except:
+            logger.verbose('sliver_lxc.shutdown: Domain %s not running... continuing.' % name)
+
+        time.sleep(5)
+
         try:
             logger.log("sliver_lxc.destroy: destroying domain %s"%name)
-            dom.destroy()
+            r = dom.destroy()
+            logger.log("CHECK-a: destroy=%d" % r)
         except:
             logger.verbose('sliver_lxc.destroy: Domain %s not running... continuing.' % name)
+        
 
         # ??????
         if not os.path.isdir('/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d' + name + '.scope'):
@@ -321,21 +339,35 @@ unset pathmunge
         else:
            logger.log("CHECK-a: BAD! %s"%name)
         # ??????
-
 #        time.sleep(5)
-#
-#        # ??????
-#        if not os.path.isdir('/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d' + name + '.scope'):
-#           logger.log("CHECK-b: seems clean! %s"%name)
-#        else:
-#           logger.log("CHECK-b: BAD! %s"%name)
-#        # ??????
+        
 
         try:
             logger.log("sliver_lxc.destroy: undefining domain %s"%name)
             dom.undefine()
         except:
             logger.verbose('sliver_lxc.destroy: Domain %s is not defined... continuing.' % name)
+
+
+        # ??????
+        if not os.path.isdir('/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d' + name + '.scope'):
+           logger.log("CHECK-b: seems clean! %s"%name)
+        else:
+           logger.log("CHECK-b: BAD! %s"%name)
+        # ??????
+
+        logger.log("-TMP-FIND %s"%name)
+        command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/echo', '{}', ';']        
+        logger.log_call(command)               
+
+        logger.log("-TMP-RM-RF %s"%name)
+        command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/rm', '-rf', '{}', ';']        
+        logger.log_call(command)               
+
+        logger.log("-TMP-FIND %s"%name)
+        command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/echo', '{}', ';']        
+        logger.log_call(command)               
+
 
         # Remove user after destroy domain to force logout
         command = ['/usr/sbin/userdel', '-f', '-r', name]
