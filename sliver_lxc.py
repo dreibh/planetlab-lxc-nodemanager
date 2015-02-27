@@ -316,14 +316,14 @@ unset pathmunge
 #        command = [ '/usr/bin/lxc-destroy', '-n', name ]
 #        logger.log_call(command)
 
-        try:
-            logger.log("sliver_lxc.shutdown: shutdown domain %s"%name)
-            r = dom.shutdown()
-            logger.log("CHECK-a: shutdown=%d" % r)
-        except:
-            logger.verbose('sliver_lxc.shutdown: Domain %s not running... continuing.' % name)
-
-        time.sleep(5)
+#        try:
+#            logger.log("sliver_lxc.shutdown: shutdown domain %s"%name)
+#            r = dom.shutdown()
+#            logger.log("CHECK-a: shutdown=%d" % r)
+#        except:
+#            logger.verbose('sliver_lxc.shutdown: Domain %s not running... continuing.' % name)
+#
+#        time.sleep(5)
 
         try:
             logger.log("sliver_lxc.destroy: destroying domain %s"%name)
