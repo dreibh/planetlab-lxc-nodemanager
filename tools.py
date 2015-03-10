@@ -215,10 +215,11 @@ class NMLock:
 # running ifconfig inside of the slice's context.
 
 def get_sliver_process(slice_name, process_cmdline):
-    """ Utility function to find a process inside of an LXC sliver. Returns
-        (cgroup_fn, pid). cgroup_fn is the filename of the cgroup file for
-        the process, for example /proc/2592/cgroup. Pid is the process id of
-        the process. If the process is not found then (None, None) is returned.
+    """ 
+    Utility function to find a process inside of an LXC sliver. Returns
+    (cgroup_fn, pid). cgroup_fn is the filename of the cgroup file for
+    the process, for example /proc/2592/cgroup. Pid is the process id of
+    the process. If the process is not found then (None, None) is returned.
     """
     try:
         cmd = 'grep %s /proc/*/cgroup | grep freezer'%slice_name
@@ -280,9 +281,10 @@ except:
 ###################################################
 
 def get_sliver_ifconfig(slice_name, device="eth0"):
-    """ return the output of "ifconfig" run from inside the sliver.
+    """ 
+    return the output of "ifconfig" run from inside the sliver.
 
-        side effects: adds "/usr/sbin" to sys.path
+    side effects: adds "/usr/sbin" to sys.path
     """
 
     # See if setns is installed. If it's not then we're probably not running
