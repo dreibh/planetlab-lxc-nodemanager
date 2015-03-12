@@ -114,13 +114,14 @@ class Sliver_Libvirt(Account):
         logger.log_call(command)
 
     def start(self, delay=0):
-        ''' Just start the sliver '''
+        '''Just start the sliver'''
         logger.verbose('sliver_libvirt: %s start'%(self.name))
 
         # Check if it's running to avoid throwing an exception if the
-        # domain was already running, create actually means start
+        # domain was already running
         if not self.is_running():
             try:
+                # create actually means start
                 self.dom.create()
             except Exception, e:
                 # XXX smbaker: attempt to resolve slivers that are stuck in

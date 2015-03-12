@@ -25,7 +25,7 @@ from initscript import Initscript
 from account import Account
 from sliver_libvirt import Sliver_Libvirt
 
-BTRFS_TIMEOUT=15*60
+BTRFS_TIMEOUT = 15*60
 
 class Sliver_LXC(Sliver_Libvirt, Initscript):
     """This class wraps LXC commands"""
@@ -38,18 +38,18 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
     REF_IMG_BASE_DIR = '/vservers/.lvref'
     CON_BASE_DIR     = '/vservers'
 
-    def __init__ (self, rec):
+    def __init__(self, rec):
         name=rec['name']
-        Sliver_Libvirt.__init__ (self,rec)
-        Initscript.__init__ (self,name)
+        Sliver_Libvirt.__init__(self,rec)
+        Initscript.__init__(self,name)
 
-    def configure (self, rec):
-        Sliver_Libvirt.configure (self,rec)
+    def configure(self, rec):
+        Sliver_Libvirt.configure(self, rec)
 
         # in case we update nodemanager..
         self.install_and_enable_vinit()
         # do the configure part from Initscript
-        Initscript.configure(self,rec)
+        Initscript.configure(self, rec)
 
     def start(self, delay=0):
         if 'enabled' in self.rspec and self.rspec['enabled'] <= 0:
@@ -60,7 +60,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # expose .ssh for omf_friendly slivers
         if 'tags' in self.rspec and 'omf_control' in self.rspec['tags']:
             Account.mount_ssh_dir(self.name)
-        Sliver_Libvirt.start (self, delay)
+        Sliver_Libvirt.start(self, delay)
         # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
         self.refresh_slice_vinit()
 
@@ -86,10 +86,10 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # compute guest arch from vref
         # essentially we want x86_64 (default) or i686 here for libvirt
         try:
-            (x,y,arch)=vref.split('-')
+            (x, y, arch) = vref.split('-')
             arch = "x86_64" if arch.find("64")>=0 else "i686"
         except:
-            arch='x86_64'
+            arch = 'x86_64'
 
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
@@ -132,8 +132,8 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 #                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
 #                return
 
-        # Snapshot the reference image fs (assume the reference image is in its own
-        # subvolume)
+        # Snapshot the reference image fs
+        # this assumes the reference image is in its own subvolume
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
         if not logger.log_call(command, timeout=BTRFS_TIMEOUT):
             logger.log('sliver_lxc: ERROR Could not create BTRFS snapshot at', containerDir)
@@ -386,4 +386,5 @@ unset pathmunge
             if os.path.exists(containerDir):
                 logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
 
-        if vsys_stopped: vsysStartService()
+        if vsys_stopped:
+            vsysStartService()

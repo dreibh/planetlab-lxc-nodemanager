@@ -12,53 +12,56 @@ LOG_SLIVERS = '/var/lib/nodemanager/getslivers.txt'
 LOG_DATABASE = '/var/lib/nodemanager/database.txt'
 
 # basically define 3 levels
-LOG_NONE=0
-LOG_NODE=1
-LOG_VERBOSE=2
+LOG_NONE = 0
+LOG_NODE = 1
+LOG_VERBOSE = 2
 # default is to log a reasonable amount of stuff for when running on operational nodes
-LOG_LEVEL=LOG_NODE
+LOG_LEVEL = LOG_NODE
 
 def set_level(level):
     global LOG_LEVEL
     try:
-        assert level in [LOG_NONE,LOG_NODE,LOG_VERBOSE]
-        LOG_LEVEL=level
+        assert level in [LOG_NONE, LOG_NODE, LOG_VERBOSE]
+        LOG_LEVEL = level
     except:
-        logger.log("Failed to set LOG_LEVEL to %s"%level)
+        logger.log("Failed to set LOG_LEVEL to %s" % level)
 
 def verbose(msg):
-    log('(v) '+msg,LOG_VERBOSE)
+    log('(v) ' + msg, LOG_VERBOSE)
 
-def log(msg,level=LOG_NODE):
+def log(msg, level=LOG_NODE):
     """Write <msg> to the log file if level >= current log level (default LOG_NODE)."""
-    if (level > LOG_LEVEL):
+    if level > LOG_LEVEL:
         return
     try:
         fd = os.open(LOG_FILE, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0600)
-        if not msg.endswith('\n'): msg += '\n'
+        if not msg.endswith('\n'):
+            msg += '\n'
         os.write(fd, '%s: %s' % (time.asctime(time.gmtime()), msg))
         os.close(fd)
     except OSError:
         sys.stderr.write(msg)
         sys.stderr.flush()
 
-date_width=24
-def log_exc(msg="",name=None):
+date_width = 24
+def log_exc(msg="", name=None):
     """Log traceback resulting from an exception."""
-    printout=""
-    if name: printout += "%s: "%name
-    printout += "EXCEPTION caught <%s> \n" %msg
+    printout = ""
+    if name:
+        printout += "%s: "%name
+    printout += "EXCEPTION caught <%s> \n" % msg
     for frame in traceback.format_exc().split("\n"):
-        printout+=(date_width+2)*" "+"%s\n"%frame
+        printout += (date_width+2)*" " + "%s\n" % frame
     log(printout)
 
-def log_trace(msg="",name=None):
+def log_trace(msg="", name=None):
     """Log current stack"""
-    printout=""
-    if name: printout += "%s: "%name
+    printout = ""
+    if name:
+        printout += "%s: " % name
     printout += "LOGTRACE\n"
     for frame in traceback.format_stack():
-        printout += "..."+frame
+        printout += "..." + frame
     log(printout)
 
 
@@ -66,11 +69,11 @@ def log_trace(msg="",name=None):
 # for some reason the various modules are still triggered even when the
 # data from PLC cannot be reached
 # we show this message instead of the exception stack instead in this case
-def log_missing_data (msg,key):
+def log_missing_data(msg,key):
     log("%s: could not find the %s key in data (PLC connection down?) - IGNORED"%(msg,key))
 
-def log_data_in_file (data, file, message="",level=LOG_NODE):
-    if (level > LOG_LEVEL):
+def log_data_in_file(data, file, message="",level=LOG_NODE):
+    if level > LOG_LEVEL:
         return
     import pprint, time
     try:
@@ -85,34 +88,35 @@ def log_data_in_file (data, file, message="",level=LOG_NODE):
     except:
         log_exc('logger.log_data_in_file failed - file=%s - message=%r'%(file,message))
 
-def log_slivers (data):
-    log_data_in_file (data, LOG_SLIVERS, "raw GetSlivers")
-def log_database (db):
-    log_data_in_file (db, LOG_DATABASE, "raw database")
+def log_slivers(data):
+    log_data_in_file(data, LOG_SLIVERS, "raw GetSlivers")
+def log_database(db):
+    log_data_in_file(db, LOG_DATABASE, "raw database")
 
 #################### child processes
 # avoid waiting until the process returns;
 # that makes debugging of hanging children hard
 
 class Buffer:
-    def __init__ (self,message='log_call: '):
-        self.buffer=''
-        self.message=message
+    def __init__(self, message='log_call: '):
+        self.buffer = ''
+        self.message = message
 
-    def add (self,c):
+    def add(self,c):
         self.buffer += c
-        if c=='\n': self.flush()
+        if c=='\n':
+            self.flush()
 
-    def flush (self):
+    def flush(self):
         if self.buffer:
-            log (self.message + self.buffer)
-            self.buffer=''
+            log(self.message + self.buffer)
+            self.buffer = ''
 
 # time out in seconds - avoid hanging subprocesses - default is 5 minutes
-default_timeout_minutes=5
+default_timeout_minutes = 5
 
 # returns a bool that is True when everything goes fine and the retcod is 0
-def log_call(command,timeout=default_timeout_minutes*60,poll=1):
+def log_call(command, timeout=default_timeout_minutes*60, poll=1):
     message=" ".join(command)
     log("log_call: running command %s" % message)
     verbose("log_call: timeout=%r s" % timeout)
@@ -125,17 +129,18 @@ def log_call(command,timeout=default_timeout_minutes*60,poll=1):
         buffer = Buffer()
         while True:
             # see if anything can be read within the poll interval
-            (r,w,x)=select.select([child.stdout],[],[],poll)
-            if r: buffer.add(child.stdout.read(1))
+            (r, w, x) = select.select([child.stdout], [], [], poll)
+            if r:
+                buffer.add(child.stdout.read(1))
             # is process over ?
-            returncode=child.poll()
+            returncode = child.poll()
             # yes
             if returncode != None:
                 buffer.flush()
                 # child is done and return 0
                 if returncode == 0:
                     log("log_call:end command (%s) completed" % message)
-                    result=True
+                    result = True
                     break
                 # child has failed
                 else:
@@ -147,5 +152,6 @@ def log_call(command,timeout=default_timeout_minutes*60,poll=1):
                 child.terminate()
                 log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message,timeout))
                 break
-    except: log_exc("failed to run command %s" % message)
+    except:
+        log_exc("failed to run command %s" % message)
     return result
