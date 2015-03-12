@@ -8,10 +8,8 @@ After=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-#ExecStart=/bin/bash -c '/etc/rc.d/init.d/vinit.slice start $(cat /etc/slicename) 2>&1 >> /var/log/vinit &'
-#ExecStop=/bin/bash -c '/etc/rc.d/init.d/vinit.slice stop $(cat /etc/slicename) 2>&1 >> /var/log/vinit &'
-ExecStart=/usr/bin/vinit.start
-ExecStop=/usr/bin/vinit.stop
+ExecStart=/bin/bash -c ' /etc/rc.d/init.d/vinit.slice start $(cat /etc/slicename) 2>&1 >> /var/log/vinit & '
+ExecStop=/bin/bash -c ' /etc/rc.d/init.d/vinit.slice stop $(cat /etc/slicename) 2>&1 >> /var/log/vinit & '
 
 [Install]
 WantedBy=multi-user.target

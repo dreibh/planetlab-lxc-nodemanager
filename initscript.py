@@ -76,16 +76,14 @@ class Initscript:
                 logger.log_exc("Initscript failed to create enabling symlink %s" % enable_link,name=name)
 
 
-#ln -s '/usr/lib/systemd/system/vinit.service' '/etc/systemd/system/multi-user.target.wants/vinit.service'
-
-
     # install or remove the slice inistscript, as instructed by the initscript tag
-    def refresh_slice_vinit(self):
-        code=self.initscript
-        sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice"%self.name
-        if tools.replace_file_with_string(sliver_initscript,code,remove_if_empty=True,chmod=0755):
+    def refresh_slice_vinit(self, force=False):
+        logger.log("initscript.refresh_slice_vinit {}".format(self.name))
+        code = self.initscript
+        sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice" % self.name
+        if tools.replace_file_with_string(sliver_initscript, code, remove_if_empty=True, chmod=0755) or force:
             if code:
-                logger.log("Initscript: %s: Installed new initscript in %s"%(self.name,sliver_initscript))
+                logger.log("Initscript: %s: Installed new initscript in %s" % (self.name, sliver_initscript))
                 if self.is_running():
                     # Only need to rerun the initscript if the vserver is
                     # already running. If the vserver isn't running, then the
@@ -93,5 +91,6 @@ class Initscript:
                     # /etc/rc.d/vinit when the vserver is started.
                     self.rerun_slice_vinit()
             else:
-                logger.log("Initscript: %s: Removed obsolete initscript %s"%(self.name,sliver_initscript))
-
+                logger.log("Initscript: %s: Removed obsolete initscript %s" % (self.name, sliver_initscript))
+        else:
+            logger.debug("initscript.refresh_slice_vinit {} - void".format(self.name))

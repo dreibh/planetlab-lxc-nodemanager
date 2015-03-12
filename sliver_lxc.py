@@ -62,20 +62,27 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             Account.mount_ssh_dir(self.name)
         Sliver_Libvirt.start(self, delay)
         # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
-        self.refresh_slice_vinit()
+        self.refresh_slice_vinit(force=True)
 
-    def rerun_slice_vinit (self):
-        """This is called whenever the initscript code changes"""
-        # xxx - todo - not sure exactly how to:
-        # (.) invoke something in the guest
-        # (.) which options of systemctl should be used to trigger a restart
-        # should not prevent the first run from going fine hopefully
-        logger.log("WARNING: sliver_lxc.rerun_slice_vinit not implemented yet")
-
+    def rerun_slice_vinit(self):
+        """This is called at startup, and whenever the initscript code changes"""
+        logger.log("sliver_lxc.rerun_slice_vinit {}".format(self.name))
+        plain = "virsh -c lxc:/// lxc-enter-namespace --noseclabel -- {} /usr/bin/systemctl --system daemon-reload"\
+            .format(self.name)
+        command = plain.split()
+        logger.log_call(command, timeout=3)
+        plain = "virsh -c lxc:/// lxc-enter-namespace --noseclabel -- {} /usr/bin/systemctl restart vinit.service"\
+            .format(self.name)
+        command = plain.split()
+        logger.log_call(command, timeout=3)
+                
+        
     @staticmethod
     def create(name, rec=None):
-        ''' Create dirs, copy fs image, lxc_create '''
-        logger.verbose ('sliver_lxc: %s create'%(name))
+        '''
+        Create dirs, copy fs image, lxc_create
+        '''
+        logger.verbose('sliver_lxc: %s create' % name)
         conn = Sliver_Libvirt.getConnection(Sliver_LXC.TYPE)
 
         vref = rec['vref']
