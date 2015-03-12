@@ -62,7 +62,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             Account.mount_ssh_dir(self.name)
         Sliver_Libvirt.start(self, delay)
         # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
-        self.refresh_slice_vinit(force=True)
+        self.refresh_slice_vinit()
 
     def rerun_slice_vinit(self):
         """This is called at startup, and whenever the initscript code changes"""

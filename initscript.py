@@ -39,8 +39,8 @@ class Initscript:
         suitable for init-based VMs
         """
         vinit_source = "/usr/share/NodeManager/sliver-initscripts/vinit"
-        vinit_script = "/vservers/%s/etc/rc.d/init.d/vinit"%self.name
-        enable_link = "/vservers/%s/etc/rc.d/rc3.d/S99vinit"%self.name
+        vinit_script = "/vservers/%s/etc/rc.d/init.d/vinit" % self.name
+        enable_link = "/vservers/%s/etc/rc.d/rc3.d/S99vinit" % self.name
         enable_target = "../init.d/vinit"
         # install in sliver
         code = file(vinit_source).read()
@@ -60,8 +60,8 @@ class Initscript:
         suitable for systemd-based VMs
         """
         vinit_source = "/usr/share/NodeManager/sliver-systemd/vinit.service"
-        vinit_unit_file = "/vservers/%s/usr/lib/systemd/system/vinit.service"%self.name
-        enable_link = "/vservers/%s/etc/systemd/system/multi-user.target.wants/vinit.service"%self.name
+        vinit_unit_file = "/vservers/%s/usr/lib/systemd/system/vinit.service" % self.name
+        enable_link = "/vservers/%s/etc/systemd/system/multi-user.target.wants/vinit.service" % self.name
         enable_target = "/usr/lib/systemd/system/vinit.service"
         # install in sliver
         code = file(vinit_source).read()
@@ -77,11 +77,11 @@ class Initscript:
 
 
     # install or remove the slice inistscript, as instructed by the initscript tag
-    def refresh_slice_vinit(self, force=False):
+    def refresh_slice_vinit(self):
         logger.log("initscript.refresh_slice_vinit {}".format(self.name))
         code = self.initscript
         sliver_initscript="/vservers/%s/etc/rc.d/init.d/vinit.slice" % self.name
-        if tools.replace_file_with_string(sliver_initscript, code, remove_if_empty=True, chmod=0755) or force:
+        if tools.replace_file_with_string(sliver_initscript, code, remove_if_empty=True, chmod=0755):
             if code:
                 logger.log("Initscript: %s: Installed new initscript in %s" % (self.name, sliver_initscript))
                 if self.is_running():
