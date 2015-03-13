@@ -93,4 +93,4 @@ class Initscript:
             else:
                 logger.log("Initscript: %s: Removed obsolete initscript %s" % (self.name, sliver_initscript))
         else:
-            logger.debug("initscript.refresh_slice_vinit {} - void".format(self.name))
+            logger.log("initscript.refresh_slice_vinit {} - void".format(self.name))
