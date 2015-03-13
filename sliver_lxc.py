@@ -65,9 +65,9 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # expose .ssh for omf_friendly slivers
         if 'tags' in self.rspec and 'omf_control' in self.rspec['tags']:
             Account.mount_ssh_dir(self.name)
+#        logger.log("NM is exiting for debug - just about to start {}".format(self.name))
+#        exit(0)
         Sliver_Libvirt.start(self, delay)
-        # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
-        self.refresh_slice_vinit()
 
     def rerun_slice_vinit(self):
         """This is called at startup, and whenever the initscript code changes"""

@@ -148,11 +148,14 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
             self.set_resources()
 
         # do the configure part from Initscript
-        Initscript.configure(self,rec)
-
-        Account.configure(self, rec)  # install ssh keys
+        # i.e. install slice initscript if defined
+        Initscript.configure(self, rec)
+        # install ssh keys
+        Account.configure(self, rec)
 
     # remember configure() always gets called *before* start()
+    # in particular the slice initscript
+    # is expected to be in place already at this point
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
             logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
@@ -164,8 +167,6 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         # expose .ssh for omf_friendly slivers
         if 'omf_control' in self.rspec['tags']:
             Account.mount_ssh_dir(self.name)
-        # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
-        self.refresh_slice_vinit()
         child_pid = os.fork()
         if child_pid == 0:
             # VServer.start calls fork() internally,
