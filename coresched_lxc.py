@@ -238,27 +238,19 @@ class CoreSched:
         self.freezeUnits("freezer.state", freezeList)
 
     def freezeUnits (self, var_name, freezeList):
-        for (cgroup, freeze) in freezeList.items():
+        for (slicename, freeze) in freezeList.items():
             try:
-                logger.verbose("CoreSched: setting freezer for " + cgroup + " to " + freeze)
-                attempts = []
-#                attempts.append("/dev/cgroup/{}/var_name".format(cgroup, var_name))
-                attempts.append("/sys/fs/cgroup/freezer/libvirt/lxc/{}/{}".format(cgroup, var_name))
-                attempts.append("/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d{}.scope/{}".format(cgroup, var_name))
+                logger.verbose("CoreSched: setting freezer for " + slicename + " to " + freeze)
+                cgroup_path = cgroups.get_cgroup_path(slicename, 'freezer')
+                cgroup = os.path.join(cgroup_path, var_name)
+
                 if glo_coresched_simulate:
-                    for attempt in attempts: print "F", attempt
+                        print "F", cgroup
                 else:
-                    ok = False
-                    for attempt in attempts:
-                        if os.path.exists(attempt):
-                            file(attempt, "w").write(freeze)
-                            ok = True
-                            break
-                    if not ok:
-                        logger.log("CoreSched: could not freezeUnits with {}".format(cgroup))
+                    file(cgroup, "w").write(freeze)
             except Exception as e:
                 # the cgroup probably didn't exit...
-                logger.log("CoreSched: exception while setting freeze for {} ({})".format(cgroup, e))
+                logger.log("CoreSched: exception while setting freeze for {} ({})".format(slicename, e))
 
     def reserveUnits (self, var_name, reservations):
         """ 
@@ -286,10 +278,9 @@ class CoreSched:
                 cpus = default
 
             if glo_coresched_simulate:
-                print "R", "/dev/cgroup/" + cgroup + "/" + var_name, self.listToRange(cpus)
+                print "R", cgroup + "/" + var_name, self.listToRange(cpus)
             else:
                 cgroups.write(cgroup, var_name, self.listToRange(cpus))
-                #file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
 
     def reserveDefault (self, var_name, cpus):
         #if not os.path.exists("/etc/vservers/.defaults/cgroup"):
