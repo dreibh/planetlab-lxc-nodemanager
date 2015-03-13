@@ -98,8 +98,8 @@ class Account:
         """
         Write <rec['keys']> to my authorized_keys file.
         """
-        logger.verbose('account: configuring %s' % self.name)
         new_keys = rec['keys']
+        logger.verbose('account: configuring {} with {} keys'.format(self.name, len(new_keys)))
         if new_keys != self.keys:
             # get the unix account info
             gid = grp.getgrnam("slices")[2]
