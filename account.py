@@ -1,6 +1,7 @@
 ### 
 
-"""Functionality common to all account classes.
+"""
+Functionality common to all account classes.
 
 Each subclass of Account must provide five methods:
   (*) create() and destroy(), which are static;
@@ -43,9 +44,11 @@ create_sem = threading.Semaphore(1)
 destroy_sem = threading.Semaphore(1)
 
 def register_class(acct_class):
-    """Call once for each account class. This method adds the class
-to the dictionaries used to look up account classes by shell and
-type."""
+    """
+    Call once for each account class. This method adds the class
+    to the dictionaries used to look up account classes
+    by shell and type.
+    """
     shell_acct_class[acct_class.SHELL] = acct_class
     type_acct_class[acct_class.TYPE] = acct_class
 
@@ -62,7 +65,10 @@ def all():
     return [pw_ent[0] for pw_ent in allpwents()]
 
 def get(name):
-    """Return the worker object for a particular username.  If no such object exists, create it first."""
+    """
+    Return the worker object for a particular username.
+    If no such object exists, create it first.
+    """
     name_worker_lock.acquire()
     try:
         if name not in name_worker: name_worker[name] = Worker(name)
@@ -70,23 +76,29 @@ def get(name):
     finally: name_worker_lock.release()
 
 
-# xxx strictly speaking this class should not use self.name that in fact
-# is accidentally inited by the subclasses constructor...
 class Account:
+    """
+    Base class for all types of account
+    """
+
     def __init__(self, name):
         self.name = name
         self.keys = ''
         logger.verbose('account: Initing account %s'%name)
 
     @staticmethod
-    def create(name, vref = None): abstract
+    def create(name, vref = None):
+        abstract
 
     @staticmethod
-    def destroy(name): abstract
+    def destroy(name):
+        abstract
 
     def configure(self, rec):
-        """Write <rec['keys']> to my authorized_keys file."""
-        logger.verbose('account: configuring %s'%self.name)
+        """
+        Write <rec['keys']> to my authorized_keys file.
+        """
+        logger.verbose('account: configuring %s' % self.name)
         new_keys = rec['keys']
         if new_keys != self.keys:
             # get the unix account info
@@ -119,9 +131,12 @@ class Account:
 
             logger.log('account: %s: installed ssh keys' % self.name)
 
-    def start(self, delay=0): pass
-    def stop(self): pass
-    def is_running(self): pass
+    def start(self, delay=0):
+        pass
+    def stop(self):
+        pass
+    def is_running(self):
+        pass
 
     ### this used to be a plain method but because it needs to be invoked by destroy
     # which is a static method, they need to become static as well
@@ -170,8 +185,10 @@ class Worker:
         self._acct = None  # the account object currently associated with this worker
 
     def ensure_created(self, rec):
-        """Check account type is still valid.  If not, recreate sliver.
-If still valid, check if running and configure/start if not."""
+        """
+        Check account type is still valid.  If not, recreate sliver.
+        If still valid, check if running and configure/start if not.
+        """
         logger.log_data_in_file(rec,"/var/lib/nodemanager/%s.rec.txt"%rec['name'],
                                 'raw rec captured in ensure_created',logger.LOG_VERBOSE)
         curr_class = self._get_class()
@@ -189,7 +206,8 @@ If still valid, check if running and configure/start if not."""
             # reservable nodes
             if rec['reservation_alive']:
                 # this sliver has the lease, it is safe to start it
-                if not self.is_running(): self.start(rec)
+                if not self.is_running():
+                    self.start()
                 else: self.configure(rec)
             else:
                 # not having the lease, do not start it
@@ -199,11 +217,14 @@ If still valid, check if running and configure/start if not."""
         # in a reservable node
         else:
             if not self.is_running() or next_class != curr_class:
-                self.start(rec)
-            else: self.configure(rec)
+                self.start()
+            else:
+                self.configure(rec)
 
-    def ensure_destroyed(self): self._destroy(self._get_class())
+    def ensure_destroyed(self):
+        self._destroy(self._get_class())
 
+    # take rec as an arg here for api_calls
     def start(self, rec, d = 0):
         self._acct.configure(rec)
         self._acct.start(delay=d)
@@ -211,7 +232,8 @@ If still valid, check if running and configure/start if not."""
     def configure(self, rec):
         self._acct.configure(rec)
 
-    def stop(self): self._acct.stop()
+    def stop(self):
+        self._acct.stop()
 
     def is_running(self):
         if (self._acct != None) and self._acct.is_running():
