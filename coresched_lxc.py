@@ -4,6 +4,7 @@
 
 import logger
 import os
+import os.path
 import cgroups
 
 glo_coresched_simulate = False
@@ -233,23 +234,34 @@ class CoreSched:
     def freezeUnits (self, var_name, freezeList):
         for (cgroup, freeze) in freezeList.items():
             try:
-                logger.log("CoreSched: setting freezer for " + cgroup + " to " + freeze)
+                logger.verbose("CoreSched: setting freezer for " + cgroup + " to " + freeze)
+                attempts = []
+#                attempts.append("/dev/cgroup/{}/var_name".format(cgroup, var_name))
+                attempts.append("/sys/fs/cgroup/freezer/libvirt/lxc/{}/{}".format(cgroup, var_name))
+                attempts.append("/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d{}.scope/{}".format(cgroup, var_name))
                 if glo_coresched_simulate:
-                    print "F", "/dev/cgroup/" + cgroup + "/" + var_name, freeze
+                    for attempt in attempts: print "F", attempt
                 else:
-                    #file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write(freeze)
-                    file("/sys/fs/cgroup/freezer/libvirt/lxc/" + cgroup + "/" + var_name, "w").write(freeze)
-            except:
+                    ok = False
+                    for attempt in attempts:
+                        if os.path.exists(attempt):
+                            file(attempt, "w").write(freeze)
+                            ok = True
+                            break
+                    if not ok:
+                        logger.log("CoreSched: could not freezeUnits with {}".format(cgroup))
+            except Exception as e:
                 # the cgroup probably didn't exit...
-                logger.log("CoreSched: exception while setting freeze for " + cgroup)
+                logger.log("CoreSched: exception while setting freeze for {} ({})".format(cgroup, e))
 
     def reserveUnits (self, var_name, reservations):
-        """ give a set of reservations (dictionary of slicename:cpuid_list),
-            write those reservations to the appropriate cgroup files.
+        """ 
+        give a set of reservations (dictionary of slicename:cpuid_list),
+        write those reservations to the appropriate cgroup files.
 
-            reservations["_default"] is assumed to be the default reservation
-            for slices that do not reserve cores. It's essentially the leftover
-            cpu cores.
+        reservations["_default"] is assumed to be the default reservation
+        for slices that do not reserve cores. It's essentially the leftover
+        cpu cores.
         """
 
         default = reservations["_default"]
