@@ -42,7 +42,7 @@ def SetSliverTag(plc, data, tagname):
         return
 
     for slice in data['slivers']:
-        logger.log("update_ipv6addr_slivertag: starting with slice=%s" % (slice['name']) )
+#        logger.log("update_ipv6addr_slivertag: starting with slice=%s" % (slice['name']) )
 
         # TODO: what about the prefixlen? should we add on it as well?
         # here, I'm just taking the ipv6addr (value)
@@ -95,8 +95,8 @@ def SetSliverTag(plc, data, tagname):
             if not result:
                 tools.remove_all_ipv6addr_hosts(slice['name'], data['hostname'])
                 tools.add_ipv6addr_hosts_line(slice['name'], data['hostname'], value)
-        logger.log("update_ipv6addr_slivertag: finishing the update process for " +
-               "slice=%s" % (slice['name']) )
+#        logger.log("update_ipv6addr_slivertag: finishing the update process for " +
+#               "slice=%s" % (slice['name']) )
 
 def GetSlivers(data, config, plc):
     SetSliverTag(plc, data, ipv6addrtag)
