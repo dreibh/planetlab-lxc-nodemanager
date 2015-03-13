@@ -117,6 +117,8 @@ class NodeManager:
                 if getattr(module,'persistent_data',False):
                     module_data=last_data
                 callback(data, config, plc)
+            except SystemExit as e:
+                sys.exit(e)
             except:
                 logger.log_exc("nodemanager: GetSlivers failed to run callback for module %r"%module)
 

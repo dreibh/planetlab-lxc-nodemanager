@@ -13,6 +13,8 @@ In order to maintain service when the node reboots during a network
 partition, the database is constantly being dumped to disk.
 """
 
+import sys
+
 import cPickle
 import threading
 import time
@@ -156,6 +158,8 @@ It may be necessary in the future to do something smarter."""
                     if sliver.is_running():
                         logger.verbose ("database: sync : ensure_create'ing 'delegated' sliver %s"%name)
                         sliver.ensure_created(rec)
+            except SystemExit as e:
+                sys.exit(e)
             except:
                 logger.log_exc("database: sync failed to handle sliver",name=name)
 
