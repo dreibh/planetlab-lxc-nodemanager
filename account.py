@@ -207,7 +207,7 @@ class Worker:
             if rec['reservation_alive']:
                 # this sliver has the lease, it is safe to start it
                 if not self.is_running():
-                    self.start()
+                    self.start(rec)
                 else: self.configure(rec)
             else:
                 # not having the lease, do not start it
@@ -217,7 +217,7 @@ class Worker:
         # in a reservable node
         else:
             if not self.is_running() or next_class != curr_class:
-                self.start()
+                self.start(rec)
             else:
                 self.configure(rec)
 

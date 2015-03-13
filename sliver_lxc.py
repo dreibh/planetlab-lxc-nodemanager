@@ -44,6 +44,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         Initscript.__init__(self,name)
 
     def configure(self, rec):
+        logger.log('========== sliver_lxc.configure {}'.format(self.name))
         Sliver_Libvirt.configure(self, rec)
 
         # in case we update nodemanager..
@@ -51,7 +52,11 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # do the configure part from Initscript
         Initscript.configure(self, rec)
 
+    # remember configure() always gets called *before* start()
+    # in particular the slice initscript
+    # is expected to be in place already at this point
     def start(self, delay=0):
+        logger.log('==================== sliver_lxc.start {}'.format(self.name))
         if 'enabled' in self.rspec and self.rspec['enabled'] <= 0:
             logger.log('sliver_lxc: not starting %s, is not enabled'%self.name)
             return

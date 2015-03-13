@@ -152,6 +152,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
 
         Account.configure(self, rec)  # install ssh keys
 
+    # remember configure() always gets called *before* start()
     def start(self, delay=0):
         if self.rspec['enabled'] <= 0:
             logger.log('sliver_vs: not starting %s, is not enabled'%self.name)
