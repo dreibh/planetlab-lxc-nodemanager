@@ -7,7 +7,6 @@ import sys
 import time
 import os, os.path
 import grp
-import tempfile
 from pwd import getpwnam
 from string import Template
 
@@ -26,7 +25,7 @@ from initscript import Initscript
 from account import Account
 from sliver_libvirt import Sliver_Libvirt
 
-BTRFS_TIMEOUT=15*60
+BTRFS_TIMEOUT = 15*60
 
 class Sliver_LXC(Sliver_Libvirt, Initscript):
     """This class wraps LXC commands"""
@@ -39,20 +38,25 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
     REF_IMG_BASE_DIR = '/vservers/.lvref'
     CON_BASE_DIR     = '/vservers'
 
-    def __init__ (self, rec):
+    def __init__(self, rec):
         name=rec['name']
-        Sliver_Libvirt.__init__ (self,rec)
-        Initscript.__init__ (self,name)
+        Sliver_Libvirt.__init__(self,rec)
+        Initscript.__init__(self,name)
 
-    def configure (self, rec):
-        Sliver_Libvirt.configure (self,rec)
+    def configure(self, rec):
+        logger.log('========== sliver_lxc.configure {}'.format(self.name))
+        Sliver_Libvirt.configure(self, rec)
 
         # in case we update nodemanager..
         self.install_and_enable_vinit()
         # do the configure part from Initscript
-        Initscript.configure(self,rec)
+        Initscript.configure(self, rec)
 
+    # remember configure() always gets called *before* start()
+    # in particular the slice initscript
+    # is expected to be in place already at this point
     def start(self, delay=0):
+        logger.log('==================== sliver_lxc.start {}'.format(self.name))
         if 'enabled' in self.rspec and self.rspec['enabled'] <= 0:
             logger.log('sliver_lxc: not starting %s, is not enabled'%self.name)
             return
@@ -61,22 +65,29 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # expose .ssh for omf_friendly slivers
         if 'tags' in self.rspec and 'omf_control' in self.rspec['tags']:
             Account.mount_ssh_dir(self.name)
-        Sliver_Libvirt.start (self, delay)
-        # if a change has occured in the slice initscript, reflect this in /etc/init.d/vinit.slice
-        self.refresh_slice_vinit()
+#        logger.log("NM is exiting for debug - just about to start {}".format(self.name))
+#        exit(0)
+        Sliver_Libvirt.start(self, delay)
 
-    def rerun_slice_vinit (self):
-        """This is called whenever the initscript code changes"""
-        # xxx - todo - not sure exactly how to:
-        # (.) invoke something in the guest
-        # (.) which options of systemctl should be used to trigger a restart
-        # should not prevent the first run from going fine hopefully
-        logger.log("WARNING: sliver_lxc.rerun_slice_vinit not implemented yet")
-
+    def rerun_slice_vinit(self):
+        """This is called at startup, and whenever the initscript code changes"""
+        logger.log("sliver_lxc.rerun_slice_vinit {}".format(self.name))
+        plain = "virsh -c lxc:/// lxc-enter-namespace --noseclabel -- {} /usr/bin/systemctl --system daemon-reload"\
+            .format(self.name)
+        command = plain.split()
+        logger.log_call(command, timeout=3)
+        plain = "virsh -c lxc:/// lxc-enter-namespace --noseclabel -- {} /usr/bin/systemctl restart vinit.service"\
+            .format(self.name)
+        command = plain.split()
+        logger.log_call(command, timeout=3)
+                
+        
     @staticmethod
     def create(name, rec=None):
-        ''' Create dirs, copy fs image, lxc_create '''
-        logger.verbose ('sliver_lxc: %s create'%(name))
+        '''
+        Create dirs, copy fs image, lxc_create
+        '''
+        logger.verbose('sliver_lxc: %s create' % name)
         conn = Sliver_Libvirt.getConnection(Sliver_LXC.TYPE)
 
         vref = rec['vref']
@@ -87,10 +98,10 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # compute guest arch from vref
         # essentially we want x86_64 (default) or i686 here for libvirt
         try:
-            (x,y,arch)=vref.split('-')
+            (x, y, arch) = vref.split('-')
             arch = "x86_64" if arch.find("64")>=0 else "i686"
         except:
-            arch='x86_64'
+            arch = 'x86_64'
 
         # Get the type of image from vref myplc tags specified as:
         # pldistro = lxc
@@ -116,8 +127,25 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name,refImgDir))
             return
 
-        # Snapshot the reference image fs (assume the reference image is in its own
-        # subvolume)
+# this hopefully should be fixed now
+#        # in fedora20 we have some difficulty in properly cleaning up /vservers/<slicename>
+#        # also note that running e.g. btrfs subvolume create /vservers/.lvref/image /vservers/foo
+#        # behaves differently, whether /vservers/foo exists or not:
+#        # if /vservers/foo does not exist, it creates /vservers/foo
+#        # but if it does exist, then       it creates /vservers/foo/image !!
+#        # so we need to check the expected container rootfs does not exist yet
+#        # this hopefully could be removed in a future release
+#        if os.path.exists (containerDir):
+#            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name,containerDir))
+#            command = ['btrfs', 'subvolume', 'delete', containerDir]
+#            logger.log_call(command, BTRFS_TIMEOUT)
+#            # re-check
+#            if os.path.exists (containerDir):
+#                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
+#                return
+
+        # Snapshot the reference image fs
+        # this assumes the reference image is in its own subvolume
         command = ['btrfs', 'subvolume', 'snapshot', refImgDir, containerDir]
         if not logger.log_call(command, timeout=BTRFS_TIMEOUT):
             logger.log('sliver_lxc: ERROR Could not create BTRFS snapshot at', containerDir)
@@ -231,9 +259,7 @@ unset pathmunge
         with open(pl_profile,'w') as f:
             f.write("export PS1='%s@\H \$ '\n"%(name))
             f.write("%s\n"%ld_preload_text)
-            f.write("if [ -e /etc/planetlab/lib/bind_public.so ] ; then   # Only preload bind_public if it exists.\n")
-            f.write("   export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
-            f.write("fi\n")
+            f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
             f.write("%s\n"%usrmove_path_text)
             f.write("%s\n"%usrmove_path_code)
 
@@ -309,38 +335,11 @@ unset pathmunge
         # removeSliverFromVsys return True if it stops vsys, telling us to start it again later
         vsys_stopped = removeSliverFromVsys (name)
 
-#        logger.log("-TMP-LXC-STOP %s"%name)
-#        command = [ '/usr/bin/lxc-stop', '-k', '-n', name ]
-#        logger.log_call(command)
-#        logger.log("-TMP-LXC-DESTROY %s"%name)
-#        command = [ '/usr/bin/lxc-destroy', '-n', name ]
-#        logger.log_call(command)
-
-#        try:
-#            logger.log("sliver_lxc.shutdown: shutdown domain %s"%name)
-#            r = dom.shutdown()
-#            logger.log("CHECK-a: shutdown=%d" % r)
-#        except:
-#            logger.verbose('sliver_lxc.shutdown: Domain %s not running... continuing.' % name)
-#
-#        time.sleep(5)
-
         try:
             logger.log("sliver_lxc.destroy: destroying domain %s"%name)
-            r = dom.destroy()
-            logger.log("CHECK-a: destroy=%d" % r)
+            dom.destroy()
         except:
             logger.verbose('sliver_lxc.destroy: Domain %s not running... continuing.' % name)
-        
-
-        # ??????
-        if not os.path.isdir('/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d' + name + '.scope'):
-           logger.log("CHECK-a: seems clean! %s"%name)
-        else:
-           logger.log("CHECK-a: BAD! %s"%name)
-        # ??????
-#        time.sleep(5)
-        
 
         try:
             logger.log("sliver_lxc.destroy: undefining domain %s"%name)
@@ -348,37 +347,25 @@ unset pathmunge
         except:
             logger.verbose('sliver_lxc.destroy: Domain %s is not defined... continuing.' % name)
 
-
-        # ??????
-        if not os.path.isdir('/sys/fs/cgroup/freezer/machine.slice/machine-lxc\\x2d' + name + '.scope'):
-           logger.log("CHECK-b: seems clean! %s"%name)
-        else:
-           logger.log("CHECK-b: BAD! %s"%name)
-        # ??????
-
-        logger.log("-TMP-FIND %s"%name)
-        command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/echo', '{}', ';']        
-        logger.log_call(command)               
-
-        logger.log("-TMP-RM-RF %s"%name)
-        command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/rm', '-rf', '{}', ';']        
-        logger.log_call(command)               
-
-        logger.log("-TMP-FIND %s"%name)
-        command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/echo', '{}', ';']        
-        logger.log_call(command)               
-
-
         # Remove user after destroy domain to force logout
         command = ['/usr/sbin/userdel', '-f', '-r', name]
         logger.log_call(command)
 
-        ## Remove rootfs of destroyed domain
-        #command = ['/usr/bin/rm', '-rf', containerDir]
-        #logger.log_call(command, timeout=BTRFS_TIMEOUT)
+        # Remove rootfs of destroyed domain
+        command = ['/usr/bin/rm', '-rf', containerDir]
+        logger.log_call(command, timeout=BTRFS_TIMEOUT)
+
+        # ???
+        logger.log("-TMP-ls-l %s"%name)
+        command = ['ls', '-lR', containerDir]
+        logger.log_call(command)
+        logger.log("-TMP-vsys-status")
+        command = ['/usr/bin/systemctl', 'status', 'vsys']
+        logger.log_call(command)
+        # ???
 
         # Remove rootfs of destroyed domain
-        command = ['btrfs', 'subvolume', 'delete', '-c', containerDir]
+        command = ['btrfs', 'subvolume', 'delete', containerDir]
         logger.log_call(command, timeout=BTRFS_TIMEOUT)
 
         # For some reason I am seeing this :
@@ -402,15 +389,14 @@ unset pathmunge
             #logger.log("-TMP-lsof %s"%name)
             #command=['lsof']
             #logger.log_call(command)
-
             logger.log("-TMP-ls-l %s"%name)
             command = ['ls', '-lR', containerDir]
             logger.log_call(command)
+            logger.log("-TMP-lsof")
+            command = ['lsof']
+            logger.log_call(command)
+            if os.path.exists(containerDir):
+                logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
 
-            logger.log("-TMP-FIND %s"%name)
-            command = ['/usr/bin/find', '/sys/fs/', '-name','*' + name + '*', '-exec', '/usr/bin/echo', '{}', ';']        
-            logger.log_call(command)               
-
-            logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
-
-        if vsys_stopped: vsysStartService()
+        if vsys_stopped:
+            vsysStartService()

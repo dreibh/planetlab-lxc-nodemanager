@@ -1,25 +1,27 @@
-"""Whole core scheduling
-
+"""
+Whole-core scheduling
 """
 
 import logger
 import os
+import os.path
 import cgroups
 
 glo_coresched_simulate = False
 joinpath = os.path.join
 
 class CoreSched:
-    """ Whole-core scheduler
+    """ 
+    Whole-core scheduler
 
-        The main entrypoint is adjustCores(self, slivers) which takes a
-        dictionary of sliver records. The cpu_cores field is pulled from the
-        effective rspec (rec["_rspec"]) for each sliver.
+    The main entrypoint is adjustCores(self, slivers) which takes a
+    dictionary of sliver records. The cpu_cores field is pulled from the
+    effective rspec (rec["_rspec"]) for each sliver.
 
-        If cpu_cores > 0 for a sliver, then that sliver will reserve one or
-        more of the cpu_cores on the machine.
+    If cpu_cores > 0 for a sliver, then that sliver will reserve one or
+    more of the cpu_cores on the machine.
 
-        One core is always left unreserved for system slices.
+    One core is always left unreserved for system slices.
     """
 
     def __init__(self, cgroup_var_name="cpuset.cpus", slice_attr_name="cpu_cores"):
@@ -32,8 +34,9 @@ class CoreSched:
         self.cpu_siblings={}
 
     def get_cgroup_var(self, name=None, subsys=None, filename=None):
-        """ decode cpuset.cpus or cpuset.mems into a list of units that can
-            be reserved.
+        """ 
+        decode cpuset.cpus or cpuset.mems into a list of units that can
+        be reserved.
         """
 
         assert(filename!=None or name!=None)
@@ -64,7 +67,8 @@ class CoreSched:
         return units
 
     def get_cpus(self):
-        """ return a list of available cpu identifiers: [0,1,2,3...]
+        """ 
+        return a list of available cpu identifiers: [0,1,2,3...]
         """
 
         # the cpus never change, so if it's already been computed then don't
@@ -110,9 +114,10 @@ class CoreSched:
         return self.find_cpu_mostsiblings(cpus)
 
     def get_cgroups (self):
-        """ return a list of cgroups
-            this might change as vservers are instantiated, so always compute
-            it dynamically.
+        """ 
+        return a list of cgroups
+        this might change as vservers are instantiated, 
+        so always compute it dynamically.
         """
         return cgroups.get_cgroups()
         #cgroups = []
@@ -123,9 +128,10 @@ class CoreSched:
         #return cgroups
 
     def decodeCoreSpec (self, cores):
-        """ Decode the value of the core attribute. It's a number, followed by
-            an optional letter "b" to indicate besteffort cores should also
-            be supplied.
+        """ 
+        Decode the value of the core attribute. 
+        It's a number, followed by an optional letter "b" to indicate besteffort
+        cores should also be supplied.
         """
         bestEffort = False
 
@@ -141,9 +147,10 @@ class CoreSched:
         return (cores, bestEffort)
 
     def adjustCores (self, slivers):
-        """ slivers is a dict of {sliver_name: rec}
-                rec is a dict of attributes
-                    rec['_rspec'] is the effective rspec
+        """ 
+        slivers is a dict of {sliver_name: rec}
+           rec is a dict of attributes
+           rec['_rspec'] is the effective rspec
         """
 
         cpus = self.get_cpus()[:]
@@ -231,25 +238,28 @@ class CoreSched:
         self.freezeUnits("freezer.state", freezeList)
 
     def freezeUnits (self, var_name, freezeList):
-        for (cgroup, freeze) in freezeList.items():
+        for (slicename, freeze) in freezeList.items():
             try:
-                logger.log("CoreSched: setting freezer for " + cgroup + " to " + freeze)
+                logger.verbose("CoreSched: setting freezer for " + slicename + " to " + freeze)
+                cgroup_path = cgroups.get_cgroup_path(slicename, 'freezer')
+                cgroup = os.path.join(cgroup_path, var_name)
+
                 if glo_coresched_simulate:
-                    print "F", "/dev/cgroup/" + cgroup + "/" + var_name, freeze
+                        print "F", cgroup
                 else:
-                    #file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write(freeze)
-                    file("/sys/fs/cgroup/freezer/libvirt/lxc/" + cgroup + "/" + var_name, "w").write(freeze)
-            except:
+                    file(cgroup, "w").write(freeze)
+            except Exception as e:
                 # the cgroup probably didn't exit...
-                logger.log("CoreSched: exception while setting freeze for " + cgroup)
+                logger.log("CoreSched: exception while setting freeze for {} ({})".format(slicename, e))
 
     def reserveUnits (self, var_name, reservations):
-        """ give a set of reservations (dictionary of slicename:cpuid_list),
-            write those reservations to the appropriate cgroup files.
+        """ 
+        give a set of reservations (dictionary of slicename:cpuid_list),
+        write those reservations to the appropriate cgroup files.
 
-            reservations["_default"] is assumed to be the default reservation
-            for slices that do not reserve cores. It's essentially the leftover
-            cpu cores.
+        reservations["_default"] is assumed to be the default reservation
+        for slices that do not reserve cores. It's essentially the leftover
+        cpu cores.
         """
 
         default = reservations["_default"]
@@ -268,10 +278,9 @@ class CoreSched:
                 cpus = default
 
             if glo_coresched_simulate:
-                print "R", "/dev/cgroup/" + cgroup + "/" + var_name, self.listToRange(cpus)
+                print "R", cgroup + "/" + var_name, self.listToRange(cpus)
             else:
                 cgroups.write(cgroup, var_name, self.listToRange(cpus))
-                #file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
 
     def reserveDefault (self, var_name, cpus):
         #if not os.path.exists("/etc/vservers/.defaults/cgroup"):
@@ -284,13 +293,15 @@ class CoreSched:
         pass
 
     def listToRange (self, list):
-        """ take a list of items [1,2,3,5,...] and return it as a range: "1-3,5"
-            for now, just comma-separate
+        """ 
+        take a list of items [1,2,3,5,...] and return it as a range: "1-3,5"
+        for now, just comma-separate
         """
         return ",".join( [str(i) for i in list] )
 
     def get_mems(self):
-        """ return a list of available cpu identifiers: [0,1,2,3...]
+        """ 
+        return a list of available cpu identifiers: [0,1,2,3...]
         """
 
         # the cpus never change, so if it's already been computed then don't
@@ -333,8 +344,9 @@ class CoreSched:
         return self.mems
 
     def find_associated_memnode(self, mems, cpu):
-        """ Given a list of memory nodes and a cpu, see if one of the nodes in
-            the list can be used with that cpu.
+        """ 
+        Given a list of memory nodes and a cpu, see if one of the nodes in
+        the list can be used with that cpu.
         """
         for item in mems:
             if cpu in self.mems_map[item]:
@@ -342,8 +354,8 @@ class CoreSched:
         return None
 
     def get_memnode_cpus(self, index):
-        """ for a given memory node, return the CPUs that it is associated
-            with.
+        """
+        for a given memory node, return the CPUs that it is associated with.
         """
         fn = "/sys/devices/system/node/node" + str(index) + "/cpulist"
         if not os.path.exists(fn):

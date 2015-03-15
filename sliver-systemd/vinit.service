@@ -1,10 +1,16 @@
 [Unit]
-Description=User-defined initscript manager
+Description=User-defined initscript launcher
 After=network-online.target
+Requires=network-online.target
 
+# inspired from
+# http://www.freedesktop.org/software/systemd/man/systemd.service.html
+# stoppable oneshot service
 [Service]
-Type=forking
-ExecStart=/bin/bash -c '/etc/rc.d/init.d/vinit.slice start $(cat /etc/slicename) >> /var/log/vinit 2>&1 &'
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c ' [ -f /etc/rc.d/init.d/vinit.slice ] && /etc/rc.d/init.d/vinit.slice start $(cat /etc/slicename) 2>&1 >> /var/log/vinit & '
+ExecStop= /bin/bash -c ' [ -f /etc/rc.d/init.d/vinit.slice ] && /etc/rc.d/init.d/vinit.slice stop $(cat /etc/slicename) 2>&1 >> /var/log/vinit & '
 
 [Install]
 WantedBy=multi-user.target

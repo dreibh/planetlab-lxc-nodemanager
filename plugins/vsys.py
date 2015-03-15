@@ -13,7 +13,10 @@ def start():
     logger.log("vsys: plugin starting up...")
 
 def GetSlivers(data, config=None, plc=None):
-    """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
+    """
+    For each sliver with the vsys attribute:
+    set the script ACL, create the vsys directory in the slice, and restart vsys
+    """
 
     if 'slivers' not in data:
         logger.log_missing_data("vsys.GetSlivers",'slivers')
@@ -47,19 +50,23 @@ def GetSlivers(data, config=None, plc=None):
 
 # check for systemctl, use it if present
 # keyword being 'start', 'stop' or 'restart'
-def handleService (keyword):
+def handleService(keyword):
     if tools.has_systemctl():
         logger.log("vsys: %s'ing vsys service through systemctl"%keyword)
-        return logger.log_call(["systemctl", keyword, "vsys"])
+        return logger.log_call(["systemctl", keyword, "vsys"], timeout=5)
     else:
         logger.log("vsys: %s'ing vsys service through /etc/init.d/vsys"%keyword)
-        return logger.log_call(["/etc/init.d/vsys", keyword])
-def startService(): return handleService ('start')
-def stopService(): return handleService ('stop')
-def restartService(): return handleService ('restart')
+        return logger.log_call(["/etc/init.d/vsys", keyword], timeout=5)
+
+def startService():
+    return handleService ('start')
+def stopService():
+    return handleService ('stop')
+def restartService():
+    return handleService ('restart')
 
 def createVsysDir(sliver):
-    '''Create /vsys directory in slice.  Update vsys conf file.'''
+    """Create /vsys directory in slice.  Update vsys conf file."""
     try:
         os.mkdir("/vservers/%s/vsys" % sliver)
         return True

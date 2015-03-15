@@ -198,3 +198,11 @@ else
 	@echo "FETCHING key"
 	+scp $(KEYURL) $@
 endif
+
+########## exp. too
+SLICE=inri_sl1
+
+syncvinit:
+	$(RSYNC) sliver-systemd/vinit.st* $(NODEURL)/vservers/$(SLICE)/usr/bin/
+	$(RSYNC) sliver-systemd/vinit.service $(NODEURL)/vservers/$(SLICE)/usr/lib/systemd/system/
+	echo "remember to run 'systemctl --system daemon-reload' within this slice"
