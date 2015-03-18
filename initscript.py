@@ -70,6 +70,10 @@ class Initscript:
         """
         suitable for systemd-based VMs
         """
+        # how are we wrt slice re-creation if we just kill this stuff
+        # of course no initscript will trigger at all ...
+        return
+
         vinit_source = "/usr/share/NodeManager/sliver-systemd/vinit.service"
         vinit_unit_file = "/vservers/%s/usr/lib/systemd/system/vinit.service" % self.name
         enable_link = "/vservers/%s/etc/systemd/system/multi-user.target.wants/vinit.service" % self.name
