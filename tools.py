@@ -215,7 +215,7 @@ class NMLock:
 # running ifconfig inside of the slice's context.
 
 def get_sliver_process(slice_name, process_cmdline):
-    """ 
+    """
     Utility function to find a process inside of an LXC sliver. Returns
     (cgroup_fn, pid). cgroup_fn is the filename of the cgroup file for
     the process, for example /proc/2592/cgroup. Pid is the process id of
@@ -238,10 +238,24 @@ def get_sliver_process(slice_name, process_cmdline):
             comp = l.rsplit(':')[-1]
             slice_name_check = comp.rsplit('/')[-1]
             # the lines below were added by Guilherme <gsm@machados.org>
-            # due to the ipv6 plugin requirements (LXC)
+            # due to the LXC requirements
+            # What we have to consider here is that libervirt on Fedora 18
+            # uses the following line:
+            # /proc/1253/cgroup:6:freezer:/machine.slice/auto_sirius.libvirt-lxc
+            # While the libvirt on Fedora 20 and 21 uses the following line:
+            # /proc/1253/cgroup:6:freezer:/machine.slice/machine-lxc\x2del_sirius.scope
+            # Further documentation on:
+            # https://libvirt.org/cgroups.html#systemdScope
             virt=get_node_virt()
             if virt=='lxc':
-                slice_name_check = slice_name_check.rsplit('.')[0]
+                # This is for Fedora 20 or later
+                regexf20orlater = re.compile(r'machine-lxc\\x2d(.+).scope')
+                isf20orlater = regexf20orlater.search(slice_name_check)
+                if isf20orlater:
+                    slice_name_check = isf20orlater.group(1)
+                else:
+                    # This is for Fedora 18
+                    slice_name_check = slice_name_check.rsplit('.')[0]
 
             if (slice_name_check == slice_name):
                 slice_path = path
@@ -281,7 +295,7 @@ except:
 ###################################################
 
 def get_sliver_ifconfig(slice_name, device="eth0"):
-    """ 
+    """
     return the output of "ifconfig" run from inside the sliver.
 
     side effects: adds "/usr/sbin" to sys.path
@@ -449,8 +463,8 @@ def search_ipv6addr_hosts(slicename, ipv6addr):
                     valid = is_valid_ipv6(ipv6candidatestrip)
                     if valid:
                         found=True
-            fileinput.close()
-            return found
+        fileinput.close()
+        return found
     except:
         logger.log("tools: FAILED to search %s in /etc/hosts file of slice=%s" % \
                    (ipv6addr, slicename) )
