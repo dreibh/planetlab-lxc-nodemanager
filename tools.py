@@ -423,12 +423,23 @@ def reboot_slivers():
     domains = connLibvirt.listAllDomains()
     for domain in domains:
         try:
-            domain.destroy()
-            logger.log("tools: DESTROYED %s" % (domain.name()) )
-            domain.create()
-            logger.log("tools: CREATED %s" % (domain.name()) )
-        except:
-            logger.log("tools: FAILED to reboot %s" % (domain.name()) )
+            # set the flag VIR_DOMAIN_REBOOT_INITCTL, which uses "initctl"
+            result = domain.reboot(0x04)
+            if result==0: logger.log("tools: REBOOT %s" % (domain.name()) )
+            else:
+                raise Exception()
+        except Exception, e:
+            logger.log("tools: FAILED to reboot %s (%s)" % (domain.name(), e) )
+            logger.log("tools: Trying to DESTROY/CREATE %s instead..." % (domain.name()) )
+            try:
+                result = domain.destroy()
+                if result==0: logger.log("tools: DESTROYED %s" % (domain.name()) )
+                else: logger.log("tools: FAILED in the DESTROY call of %s" % (domain.name()) )
+                result = domain.create()
+                if result==0: logger.log("tools: CREATED %s" % (domain.name()) )
+                else: logger.log("tools: FAILED in the CREATE call of %s" % (domain.name()) )
+            except Exception, e:
+                logger.log("tools: FAILED to DESTROY/CREATE %s (%s)" % (domain.name(), e) )
 
 ###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
