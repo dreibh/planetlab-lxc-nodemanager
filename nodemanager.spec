@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 15
+%define taglevel 16
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -250,6 +250,13 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Fri Apr 03 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-16
+- initscript plugin reviewed
+- turn off the initscript machinery completely on hosts that run f>=20
+- some tweaks related to cgroup naming in f>=20, including for ipv6
+- ideally all code depending on the cgroup naming scheme should use cgroups.py
+- we are not there yet but this is a bit cleaner already
+
 * Wed Feb 18 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-15
 - addition to support for ipv6 to lxc slivers
 - (thanks to Guilherme Sperb Machado)
