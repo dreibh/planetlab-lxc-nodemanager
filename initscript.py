@@ -29,6 +29,7 @@ class Initscript:
                     self.rerun_slice_vinit()
             else:
                 logger.log("Initscript: %s: Removed obsolete initscript %s" % (self.name, sliver_initscript))
+
     def install_and_enable_vinit(self):
         "prepare sliver rootfs init and systemd so the vinit service kicks in"
         # the fact that systemd attempts to run old-style services 
@@ -75,14 +76,14 @@ class Initscript:
         ########## initscripts : current status - march 2015
         ##########
         #
-        # the initscripts business worked smoothly up to f18 incusive
+        # the initscripts business worked smoothly up to f18 inclusive
         # with f20 and the apparition of machinectl, things started to
         # behave really weird
         #
         # so starting with f20, after having tried pretty hard to get this right,
         # but to no success obviously, and in order to stay on the safe side
         # of the force, I am turning off the initscript machinery completely
-        # that is to say: the vinit.service does not get installed at all installed
+        # that is to say: the vinit.service does not get installed at all
         # 
         if os.path.isfile('/usr/bin/machinectl'):
             logger.log("WARNING: initscripts are not supported anymore in nodes that have machinectl")
