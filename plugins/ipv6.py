@@ -3,7 +3,7 @@
 """
 Description: IPv6 Support and Management to Slices
 ipv6 nodemanager plugin
-Version: 0.7
+Version: 0.8
 Author: Guilherme Sperb Machado <gsm@machados.org>
 
 Requirements:
@@ -229,7 +229,7 @@ def GetSlivers(data, config, plc):
     interfaces = data['interfaces']
     logger.log(repr(interfaces))
     for interface in interfaces:
-        logger.log('ipv6: get interface: %r'%(interface))
+        #logger.log('ipv6: get interface: %r'%(interface))
         if 'interface_tag_ids' in interface:
             interface_tag_ids = "interface_tag_ids"
             interface_tag_id = "interface_tag_id"
@@ -240,17 +240,17 @@ def GetSlivers(data, config, plc):
                     ipv6addrprefix = setting['value'].split('/', 1)
                     ipv6addr = ipv6addrprefix[0]
                     valid_prefix = False
-                    logger.log("ipv6: len(ipv6addrprefix)=%s" % (len(ipv6addrprefix)) )
+                    #logger.log("ipv6: len(ipv6addrprefix)=%s" % (len(ipv6addrprefix)) )
                     if len(ipv6addrprefix)>1:
                         prefix = ipv6addrprefix[1]
-                        logger.log("ipv6: prefix=%s" % (prefix) )
+                        #logger.log("ipv6: prefix=%s" % (prefix) )
                         if int(prefix)>0 and int(prefix)<=64:
                             valid_prefix = True
                         else:
                             valid_prefix = False
                     else:
                         valid_prefix = False
-                    logger.log("ipv6: '%s'=%s" % (sliversipv6prefixtag,ipv6addr) )
+                    #logger.log("ipv6: '%s'=%s" % (sliversipv6prefixtag,ipv6addr) )
                     valid_ipv6 = tools.is_valid_ipv6(ipv6addr)
                     if not(valid_ipv6):
                         logger.log("ipv6: the 'sliversipv6prefix' tag presented a non-valid IPv6 address!")

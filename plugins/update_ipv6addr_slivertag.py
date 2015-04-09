@@ -1,7 +1,7 @@
 """
 Description: Update the IPv6 Address sliver tag accordingly to the IPv6 address set
 update_ipv6addr_slivertag nodemanager plugin
-Version: 0.5
+Version: 0.6
 Author: Guilherme Sperb Machado <gsm@machados.org>
 """
 
@@ -42,9 +42,18 @@ def SetSliverTag(plc, data, tagname):
         return
 
     for slice in data['slivers']:
-#        logger.log("update_ipv6addr_slivertag: starting with slice=%s" % (slice['name']) )
+        #logger.log("update_ipv6addr_slivertag: starting with slice=%s" % (slice['name']) )
 
-        # TODO: what about the prefixlen? should we add on it as well?
+        # Check if the slice to be processed in a "system" slice
+        # If so, just loop to the next slice
+        system_slice = False
+        for attribute in slice['attributes']:
+            if attribute['tagname']=='system' and attribute['value']=='1':
+                system_slice = True
+                break
+        if system_slice: continue
+
+        # TODO: what about the prefixlen? Should we also inform the prefixlen?
         # here, I'm just taking the ipv6addr (value)
         value,prefixlen = tools.get_sliver_ipv6(slice['name'])
 
@@ -52,7 +61,7 @@ def SetSliverTag(plc, data, tagname):
         slivertags = plc.GetSliceTags({"name":slice['name'],"node_id":node_id,"tagname":tagname})
         #logger.log(repr(str(slivertags)))
         #for tag in slivertags:
-            #    logger.log(repr(str(tag)))
+        #    logger.log(repr(str(tag)))
 
         try:
             slivertag_id,ipv6addr = get_sliver_tag_id_value(slivertags)
@@ -95,9 +104,8 @@ def SetSliverTag(plc, data, tagname):
             if not result:
                 tools.remove_all_ipv6addr_hosts(slice['name'], data['hostname'])
                 tools.add_ipv6addr_hosts_line(slice['name'], data['hostname'], value)
-#        logger.log("update_ipv6addr_slivertag: finishing the update process for " +
-#               "slice=%s" % (slice['name']) )
+            #logger.log("update_ipv6addr_slivertag: finishing the update process for " +
+            #   "slice=%s" % (slice['name']) )
 
 def GetSlivers(data, config, plc):
     SetSliverTag(plc, data, ipv6addrtag)
-    logger.log("update_ipv6addr_slivertag: all done!")

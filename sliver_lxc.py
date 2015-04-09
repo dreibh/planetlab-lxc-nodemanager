@@ -290,7 +290,7 @@ unset pathmunge
         # Template for libvirt sliver configuration
         template_filename_sliceimage = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR,'lxc_template.xml')
         if os.path.isfile (template_filename_sliceimage):
-            logger.log("WARNING: using compat template %s"%template_filename_sliceimage)
+            logger.verbose("Using XML template %s"%template_filename_sliceimage)
             template_filename=template_filename_sliceimage
         else:
             logger.log("Cannot find XML template %s"%template_filename_sliceimage)
