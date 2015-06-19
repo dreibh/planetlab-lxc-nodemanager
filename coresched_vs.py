@@ -242,7 +242,8 @@ class CoreSched:
             if glo_coresched_simulate:
                 print "R", "/dev/cgroup/" + cgroup + "/" + var_name, self.listToRange(cpus)
             else:
-                file("/dev/cgroup/" + cgroup + "/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
+                with opwn("/dev/cgroup/{}/{}".format(cgroup, var_name), "w") as f:
+                    f.write( self.listToRange(cpus) + "\n" )
 
     def reserveDefault (self, var_name, cpus):
         if not os.path.exists("/etc/vservers/.defaults/cgroup"):
@@ -251,7 +252,8 @@ class CoreSched:
         if glo_coresched_simulate:
             print "RDEF", "/etc/vservers/.defaults/cgroup/" + var_name, self.listToRange(cpus)
         else:
-            file("/etc/vservers/.defaults/cgroup/" + var_name, "w").write( self.listToRange(cpus) + "\n" )
+            with open("/etc/vservers/.defaults/cgroup/{}".format(var_name), "w") as f:
+                f.write( self.listToRange(cpus) + "\n" )
 
     def listToRange (self, list):
         """ take a list of items [1,2,3,5,...] and return it as a range: "1-3,5"

@@ -232,7 +232,8 @@ If this is not the case, please remove the pid file {}. -- exiting""".format(oth
 
             # Load /etc/planetlab/session
             if os.path.exists(self.options.session):
-                session = file(self.options.session).read().strip()
+                with open(self.options.session) as f:
+                    session = f.read().strip()
             else:
                 session = None
 

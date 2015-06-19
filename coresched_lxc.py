@@ -247,7 +247,8 @@ class CoreSched:
                 if glo_coresched_simulate:
                         print "F", cgroup
                 else:
-                    file(cgroup, "w").write(freeze)
+                    with open(cgroup, "w") as f:
+                        f.write(freeze)
             except Exception as e:
                 # the cgroup probably didn't exit...
                 logger.log("CoreSched: exception while setting freeze for {} ({})".format(slicename, e))

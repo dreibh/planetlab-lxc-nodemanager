@@ -147,7 +147,8 @@ writes in a tmp file, which is then renamed (from sliverauth originally)
 returns True if a change occurred, or the file is deleted
     """
     try:
-        current = file(target).read()
+        with open(target) as f:
+            current = f.read()
     except:
         current = ""
     if current == new_contents:
@@ -178,7 +179,8 @@ def node_id():
     global _node_id
     if _node_id is None:
         try:
-            _node_id = int(file("/etc/planetlab/node_id").read())
+            with open("/etc/planetlab/node_id") as f:
+                _node_id = int(f.read())
         except:
             _node_id = ""
     return _node_id
@@ -390,7 +392,8 @@ def is_valid_ipv6(ipv6addr):
 virt_stamp = "/etc/planetlab/virt"
 def get_node_virt ():
     try:
-        return file(virt_stamp).read().strip()
+        with open(virt_stamp) as f:
+            return f.read().strip()
     except:
         pass
     logger.log("Computing virt..")

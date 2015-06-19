@@ -64,11 +64,12 @@ def read_privs():
                 pass
 
             for tagname in tagnames:
-                tagfile = os.path.join(slicedir,tagname)
-                values_n = file(tagfile).readlines()
-                values = map(lambda s:s.rstrip(),values_n)
-                slice = os.path.basename(slicedir)
-                cur_privs[slice][tagname]=values
+                tagfilename = os.path.join(slicedir,tagname)
+                with open(tagfilename) as tagfile:
+                    values_n = tagfile.readlines()
+                    values = [ v.rstrip() for v in values_n ]
+                    slice = os.path.basename(slicedir)
+                    cur_privs[slice][tagname] = values
 
     return cur_privs
 

@@ -55,7 +55,8 @@ class Initscript:
         enable_link = "/vservers/%s/etc/rc.d/rc3.d/S99vinit" % self.name
         enable_target = "../init.d/vinit"
         # install in sliver
-        code = file(vinit_source).read()
+        with open(vinit_source) as f:
+            code = f.read()
         if tools.replace_file_with_string(vinit_script, code, chmod=0755):
             logger.log("Initscript: %s: installed generic vinit rc script" % self.name)
         # create symlink for runlevel 3
@@ -94,7 +95,8 @@ class Initscript:
         enable_link = "/vservers/%s/etc/systemd/system/multi-user.target.wants/vinit.service" % self.name
         enable_target = "/usr/lib/systemd/system/vinit.service"
         # install in sliver
-        code = file(vinit_source).read()
+        with open(vinit_source) as f:
+            code = f.read()
         if tools.replace_file_with_string(vinit_unit_file, code, chmod=0755):
             logger.log("Initscript: %s: installed vinit.service unit file" % self.name)
         # create symlink for enabling this unit

@@ -155,9 +155,10 @@ class Account:
             root_ssh = "/home/{}/.ssh".format(slicename)
             sliver_ssh = "/vservers/{}/home/{}/.ssh".format(slicename, slicename)
             def is_mounted (root_ssh):
-                for mount_line in file('/proc/mounts').readlines():
-                    if mount_line.find (root_ssh) >= 0:
-                        return True
+                with open('/proc/mounts') as mountsfile:
+                    for mount_line in mountsfile.readlines():
+                        if mount_line.find (root_ssh) >= 0:
+                            return True
                 return False
             if do_mount:
                 # any of both might not exist yet

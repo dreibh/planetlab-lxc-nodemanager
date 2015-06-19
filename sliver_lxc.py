@@ -194,12 +194,14 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 
         logger.log("creating /etc/slicename file in {}".format(os.path.join(containerDir, 'etc/slicename')))
         try:
-            file(os.path.join(containerDir, 'etc/slicename'), 'w').write(name)
+            with open(os.path.join(containerDir, 'etc/slicename'), 'w') as f:
+                f.write(name)
         except:
             logger.log_exc("exception while creating /etc/slicename")
 
         try:
-            file(os.path.join(containerDir, 'etc/slicefamily'), 'w').write(vref)
+            with open(os.path.join(containerDir, 'etc/slicefamily'), 'w') as f:
+                f.write(vref)
         except:
             logger.log_exc("exception while creating /etc/slicefamily")
 
@@ -240,7 +242,8 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             sudoers = os.path.join(containerDir, 'etc/sudoers')
             if os.path.exists(sudoers):
                 try:
-                    file(sudoers, 'a').write("{} ALL=(ALL) NOPASSWD: ALL\n".format(name))
+                    with open(sudoers, 'a') as f:
+                        f.write("{} ALL=(ALL) NOPASSWD: ALL\n".format(name))
                 except:
                     logger.log_exc("exception while updating /etc/sudoers")
 
@@ -282,10 +285,11 @@ unset pathmunge
             if not os.path.isdir(os.path.dirname(from_root)): continue
             found = False
             try:
-                contents = file(from_root).readlines()
-                for content in contents:
-                    if content == enforced_line:
-                        found = True
+                with open(from_root) as f:
+                    contents = f.readlines()
+                    for content in contents:
+                        if content == enforced_line:
+                            found = True
             except IOError:
                 pass
             if not found:
@@ -302,7 +306,7 @@ unset pathmunge
 
         # Template for libvirt sliver configuration
         template_filename_sliceimage = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR, 'lxc_template.xml')
-        if os.path.isfile (template_filename_sliceimage):
+        if os.path.isfile(template_filename_sliceimage):
             logger.verbose("Using XML template {}".format(template_filename_sliceimage))
             template_filename = template_filename_sliceimage
         else:

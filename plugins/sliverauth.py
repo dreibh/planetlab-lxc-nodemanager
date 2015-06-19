@@ -112,12 +112,13 @@ def generate_sshkey (sliver):
     if not os.path.isdir (dotssh):
         os.mkdir (dotssh, 0700)
         logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), dotssh ] )
-    if not os.path.isfile (pubfile):
+    if not os.path.isfile(pubfile):
         comment="%s@%s"%(sliver['name'],socket.gethostname())
         logger.log_call( [ 'ssh-keygen', '-t', 'rsa', '-N', '', '-f', keyfile , '-C', comment] )
         os.chmod (keyfile, 0400)
         logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), keyfile, pubfile ] )
-    return file(pubfile).read().strip()
+    with open(pubfile) as f:
+        return f.read().strip()
 
 # a sliver can get created, deleted and re-created
 # the slice having the tag is not sufficient to skip key geneneration

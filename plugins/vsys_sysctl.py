@@ -46,7 +46,8 @@ def GetSlivers(data, config=None, plc=None):
                     # slice. This lets us know that we've done the sysctl.
                     try:
                         logger.log("vsys_sysctl: create file %s value %s" % (fn, value))
-                        file(fn,"w").write(value+"\n")
+                        with open(fn,"w") as f:
+                            f.write(value+"\n")
                     except:
                         logger.log("vsys_sysctl: failed to create file %s" % fn)
 

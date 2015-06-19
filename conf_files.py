@@ -107,7 +107,8 @@ if __name__ == '__main__':
 
     # Load /etc/planetlab/session
     if os.path.exists(options.session):
-        session = file(options.session).read().strip()
+        with open(options.session) as f:
+            session = f.read().strip()
     else:
         session = options.session
 
