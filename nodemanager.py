@@ -37,11 +37,11 @@ class NodeManager:
     # NOTE: modules listed here will also be loaded in this order
     # once loaded, they get re-ordered after their priority (lower comes first)
     # for determining the runtime order
-    core_modules=['net', 'conf_files', 'slivermanager', 'bwmon']
+    core_modules = ['net', 'conf_files', 'slivermanager', 'bwmon']
 
-    default_period=600
-    default_random=301
-    default_priority=100
+    default_period = 600
+    default_random = 301
+    default_priority = 100
 
     def __init__ (self):
 
@@ -81,7 +81,7 @@ class NodeManager:
             self.modules += plugins
         if self.options.user_module:
             assert self.options.user_module in self.modules
-            self.modules=[self.options.user_module]
+            self.modules = [self.options.user_module]
             logger.verbose('nodemanager: Running single module %s'%self.options.user_module)
 
 
@@ -100,22 +100,22 @@ class NodeManager:
             # log it for debug purposes, no matter what verbose is
             logger.log_slivers(data)
             logger.verbose("nodemanager: Sync w/ PLC done")
-            last_data=data
+            last_data = data
         except:
             logger.log_exc("nodemanager: failed in GetSlivers")
             #  XXX So some modules can at least boostrap.
             logger.log("nodemanager:  Can't contact PLC to GetSlivers().  Continuing.")
             data = {}
             # for modules that request it though the 'persistent_data' property
-            last_data=self.loadSlivers()
+            last_data = self.loadSlivers()
         #  Invoke GetSlivers() functions from the callback modules
         for module in self.loaded_modules:
             logger.verbose('nodemanager: triggering %s.GetSlivers'%module.__name__)
             try:
                 callback = getattr(module, 'GetSlivers')
-                module_data=data
+                module_data = data
                 if getattr(module,'persistent_data',False):
-                    module_data=last_data
+                    module_data = last_data
                 callback(data, config, plc)
             except SystemExit as e:
                 sys.exit(e)
@@ -128,7 +128,7 @@ class NodeManager:
         Get PLC wide defaults from _default system slice.  Adds them to config class.
         """
         for slice in data.get('slivers'):
-            if slice['name'] == config.PLC_SLICE_PREFIX+"_default":
+            if slice['name'] == config.PLC_SLICE_PREFIX + "_default":
                 attr_dict = {}
                 for attr in slice.get('attributes'): attr_dict[attr['tagname']] = attr['value']
                 if len(attr_dict):
@@ -149,14 +149,15 @@ class NodeManager:
         # It is safe to override the attributes with this, as this method has the right logic
         for sliver in data.get('slivers'):
             try:
-                slicefamily=sliver.get('GetSliceFamily')
+                slicefamily = sliver.get('GetSliceFamily')
                 for att in sliver['attributes']:
-                    if att['tagname']=='vref':
-                        att['value']=slicefamily
+                    if att['tagname'] == 'vref':
+                        att['value'] = slicefamily
                         continue
                 sliver['attributes'].append({ 'tagname':'vref','value':slicefamily})
             except:
-                logger.log_exc("nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",name=sliver['name'])
+                logger.log_exc("nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",
+                               name=sliver['name'])
 
     def dumpSlivers (self, slivers):
         f = open(NodeManager.DB_FILE, "w")
@@ -180,7 +181,8 @@ class NodeManager:
         # used e.g. in vsys-scripts's sliceip
         tools.get_node_virt()
         try:
-            if self.options.daemon: tools.daemon()
+            if self.options.daemon:
+                tools.daemon()
 
             # set log level
             if (self.options.verbose):
@@ -204,7 +206,7 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
             for module in self.modules:
                 try:
                     m = __import__(module)
-                    logger.verbose("nodemanager: triggering %s.start"%m.__name__)
+                    logger.verbose("nodemanager: triggering %s.start" % m.__name__)
                     try:        m.start()
                     except:     logger.log("WARNING: module %s did not start")
                     self.loaded_modules.append(m)
@@ -216,7 +218,7 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
                         sys.exit(1)
 
             # sort on priority (lower first)
-            def sort_module_priority (m1,m2):
+            def sort_module_priority (m1, m2):
                 return getattr(m1,'priority',NodeManager.default_priority) - getattr(m2,'priority',NodeManager.default_priority)
             self.loaded_modules.sort(sort_module_priority)
 
@@ -232,8 +234,8 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
 
 
             # get random periods
-            iperiod=int(self.options.period)
-            irandom=int(self.options.random)
+            iperiod = int(self.options.period)
+            irandom = int(self.options.random)
 
             # Initialize XML-RPC client
             plc = PLCAPI(config.plc_api_uri, config.cacert, session, timeout=iperiod/2)
@@ -252,12 +254,12 @@ If this is not the case, please remove the pid file %s. -- exiting""" % (other_p
 
             while True:
             # Main nodemanager Loop
-                work_beg=time.time()
+                work_beg = time.time()
                 logger.log('nodemanager: mainloop - calling GetSlivers - period=%d random=%d'%(iperiod,irandom))
                 self.GetSlivers(config, plc)
-                delay=iperiod + random.randrange(0,irandom)
-                work_end=time.time()
-                work_duration=int(work_end-work_beg)
+                delay = iperiod + random.randrange(0,irandom)
+                work_end = time.time()
+                work_duration = int(work_end-work_beg)
                 logger.log('nodemanager: mainloop has worked for %s s - sleeping for %d s'%(work_duration,delay))
                 time.sleep(delay)
         except SystemExit:

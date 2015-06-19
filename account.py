@@ -109,15 +109,15 @@ class Account:
 
             # write out authorized_keys file and conditionally create
             # the .ssh subdir if need be.
-            dot_ssh = os.path.join(pw_dir,'.ssh')
+            dot_ssh = os.path.join(pw_dir, '.ssh')
             if not os.path.isdir(dot_ssh):
                 if not os.path.isdir(pw_dir):
-                    logger.verbose('account: WARNING: homedir %s does not exist for %s!'%(pw_dir,self.name))
+                    logger.verbose('account: WARNING: homedir %s does not exist for %s!'%(pw_dir, self.name))
                     os.mkdir(pw_dir)
                     os.chown(pw_dir, uid, gid)
                 os.mkdir(dot_ssh)
 
-            auth_keys = os.path.join(dot_ssh,'authorized_keys')
+            auth_keys = os.path.join(dot_ssh, 'authorized_keys')
             tools.write_file(auth_keys, lambda f: f.write(new_keys))
 
             # set access permissions and ownership properly
@@ -151,32 +151,33 @@ class Account:
     def _manage_ssh_dir (slicename, do_mount):
         logger.log ("_manage_ssh_dir, requested to "+("mount" if do_mount else "umount")+" ssh dir for "+ slicename)
         try:
-            root_ssh="/home/%s/.ssh"%slicename
-            sliver_ssh="/vservers/%s/home/%s/.ssh"%(slicename,slicename)
+            root_ssh = "/home/%s/.ssh"%slicename
+            sliver_ssh = "/vservers/%s/home/%s/.ssh"%(slicename, slicename)
             def is_mounted (root_ssh):
                 for mount_line in file('/proc/mounts').readlines():
-                    if mount_line.find (root_ssh)>=0: return True
+                    if mount_line.find (root_ssh) >= 0:
+                        return True
                 return False
             if do_mount:
                 # any of both might not exist yet
-                for path in [root_ssh,sliver_ssh]:
+                for path in [root_ssh, sliver_ssh]:
                     if not os.path.exists (path):
                         os.mkdir(path)
                     if not os.path.isdir (path):
                         raise Exception
                 if not is_mounted(root_ssh):
-                    command=['mount','--bind','-o','ro',root_ssh,sliver_ssh]
-                    mounted=logger.log_call (command)
-                    msg="OK" if mounted else "WARNING: FAILED"
-                    logger.log("_manage_ssh_dir: mounted %s into slice %s - %s"%(root_ssh,slicename,msg))
+                    command = ['mount', '--bind', '-o', 'ro', root_ssh, sliver_ssh]
+                    mounted = logger.log_call (command)
+                    msg = "OK" if mounted else "WARNING: FAILED"
+                    logger.log("_manage_ssh_dir: mounted %s into slice %s - %s"%(root_ssh, slicename, msg))
             else:
                 if is_mounted (sliver_ssh):
-                    command=['umount',sliver_ssh]
-                    umounted=logger.log_call(command)
-                    msg="OK" if umounted else "WARNING: FAILED"
-                    logger.log("_manage_ssh_dir: umounted %s - %s"%(sliver_ssh,msg))
+                    command = ['umount', sliver_ssh]
+                    umounted = logger.log_call(command)
+                    msg = "OK" if umounted else "WARNING: FAILED"
+                    logger.log("_manage_ssh_dir: umounted %s - %s"%(sliver_ssh, msg))
         except:
-            logger.log_exc("_manage_ssh_dir failed",name=slicename)
+            logger.log_exc("_manage_ssh_dir failed", name=slicename)
 
 class Worker:
 
@@ -189,8 +190,8 @@ class Worker:
         Check account type is still valid.  If not, recreate sliver.
         If still valid, check if running and configure/start if not.
         """
-        logger.log_data_in_file(rec,"/var/lib/nodemanager/%s.rec.txt"%rec['name'],
-                                'raw rec captured in ensure_created',logger.LOG_VERBOSE)
+        logger.log_data_in_file(rec, "/var/lib/nodemanager/%s.rec.txt"%rec['name'],
+                                'raw rec captured in ensure_created', logger.LOG_VERBOSE)
         curr_class = self._get_class()
         next_class = type_acct_class[rec['type']]
         if next_class != curr_class:
@@ -199,7 +200,7 @@ class Worker:
             try: next_class.create(self.name, rec)
             finally: create_sem.release()
         if not isinstance(self._acct, next_class): self._acct = next_class(rec)
-        logger.verbose("account.Worker.ensure_created: %s, running=%r"%(self.name,self.is_running()))
+        logger.verbose("account.Worker.ensure_created: %s, running=%r"%(self.name, self.is_running()))
 
         # reservation_alive is set on reservable nodes, and its value is a boolean
         if 'reservation_alive' in rec:

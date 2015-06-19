@@ -39,9 +39,9 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
     CON_BASE_DIR     = '/vservers'
 
     def __init__(self, rec):
-        name=rec['name']
-        Sliver_Libvirt.__init__(self,rec)
-        Initscript.__init__(self,name)
+        name = rec['name']
+        Sliver_Libvirt.__init__(self, rec)
+        Initscript.__init__(self, name)
 
     def configure(self, rec):
         logger.log('========== sliver_lxc.configure {}'.format(self.name))
@@ -93,13 +93,13 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         vref = rec['vref']
         if vref is None:
             vref = "lxc-f18-x86_64"
-            logger.log("sliver_libvirt: %s: WARNING - no vref attached, using hard-wired default %s" % (name,vref))
+            logger.log("sliver_libvirt: %s: WARNING - no vref attached, using hard-wired default %s" % (name, vref))
 
         # compute guest arch from vref
         # essentially we want x86_64 (default) or i686 here for libvirt
         try:
             (x, y, arch) = vref.split('-')
-            arch = "x86_64" if arch.find("64")>=0 else "i686"
+            arch = "x86_64" if arch.find("64") >= 0 else "i686"
         except:
             arch = 'x86_64'
 
@@ -123,8 +123,8 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 
         # check the template exists -- there's probably a better way..
         if not os.path.isdir(refImgDir):
-            logger.log('sliver_lxc: %s: ERROR Could not create sliver - reference image %s not found' % (name,vref))
-            logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name,refImgDir))
+            logger.log('sliver_lxc: %s: ERROR Could not create sliver - reference image %s not found' % (name, vref))
+            logger.log('sliver_lxc: %s: ERROR Expected reference image in %s'%(name, refImgDir))
             return
 
 # this hopefully should be fixed now
@@ -136,12 +136,12 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 #        # so we need to check the expected container rootfs does not exist yet
 #        # this hopefully could be removed in a future release
 #        if os.path.exists (containerDir):
-#            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name,containerDir))
+#            logger.log("sliver_lxc: %s: WARNING cleaning up pre-existing %s"%(name, containerDir))
 #            command = ['btrfs', 'subvolume', 'delete', containerDir]
 #            logger.log_call(command, BTRFS_TIMEOUT)
 #            # re-check
 #            if os.path.exists (containerDir):
-#                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name,containerDir))
+#                logger.log('sliver_lxc: %s: ERROR Could not create sliver - could not clean up empty %s'%(name, containerDir))
 #                return
 
         # Snapshot the reference image fs
@@ -187,14 +187,14 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         command = ['cp', '/home/%s/.ssh/id_rsa.pub'%name, '%s/root/.ssh/authorized_keys'%containerDir]
         logger.log_call(command)
 
-        logger.log("creating /etc/slicename file in %s" % os.path.join(containerDir,'etc/slicename'))
+        logger.log("creating /etc/slicename file in %s" % os.path.join(containerDir, 'etc/slicename'))
         try:
-            file(os.path.join(containerDir,'etc/slicename'), 'w').write(name)
+            file(os.path.join(containerDir, 'etc/slicename'), 'w').write(name)
         except:
             logger.log_exc("exception while creating /etc/slicename")
 
         try:
-            file(os.path.join(containerDir,'etc/slicefamily'), 'w').write(vref)
+            file(os.path.join(containerDir, 'etc/slicefamily'), 'w').write(vref)
         except:
             logger.log_exc("exception while creating /etc/slicefamily")
 
@@ -215,21 +215,21 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             etcgroup = os.path.join(containerDir, 'etc/group')
             if os.path.exists(etcpasswd):
                 # create all accounts with gid=1001 - i.e. 'slices' like it is in the root context
-                slices_gid=1001
+                slices_gid = 1001
                 logger.log("adding user %(name)s id %(uid)d gid %(slices_gid)d to %(etcpasswd)s" % (locals()))
                 try:
-                    file(etcpasswd,'a').write("%(name)s:x:%(uid)d:%(slices_gid)d::/home/%(name)s:/bin/bash\n" % locals())
+                    file(etcpasswd, 'a').write("%(name)s:x:%(uid)d:%(slices_gid)d::/home/%(name)s:/bin/bash\n" % locals())
                 except:
                     logger.log_exc("exception while updating %s"%etcpasswd)
                 logger.log("adding group slices with gid %(slices_gid)d to %(etcgroup)s"%locals())
                 try:
-                    file(etcgroup,'a').write("slices:x:%(slices_gid)d\n"%locals())
+                    file(etcgroup, 'a').write("slices:x:%(slices_gid)d\n"%locals())
                 except:
                     logger.log_exc("exception while updating %s"%etcgroup)
             sudoers = os.path.join(containerDir, 'etc/sudoers')
             if os.path.exists(sudoers):
                 try:
-                    file(sudoers,'a').write("%s ALL=(ALL) NOPASSWD: ALL\n" % name)
+                    file(sudoers, 'a').write("%s ALL=(ALL) NOPASSWD: ALL\n" % name)
                 except:
                     logger.log_exc("exception while updating /etc/sudoers")
 
@@ -237,12 +237,12 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         # we save the whole business in /etc/planetlab.profile
         # and source this file for both root and the slice uid's .profile
         # prompt for slice owner, + LD_PRELOAD for transparently wrap bind
-        pl_profile=os.path.join(containerDir,"etc/planetlab.profile")
-        ld_preload_text="""# by default, we define this setting so that calls to bind(2),
+        pl_profile = os.path.join(containerDir, "etc/planetlab.profile")
+        ld_preload_text = """# by default, we define this setting so that calls to bind(2),
 # when invoked on 0.0.0.0, get transparently redirected to the public interface of this node
 # see https://svn.planet-lab.org/wiki/LxcPortForwarding"""
-        usrmove_path_text="""# VM's before Features/UsrMove need /bin and /sbin in their PATH"""
-        usrmove_path_code="""
+        usrmove_path_text = """# VM's before Features/UsrMove need /bin and /sbin in their PATH"""
+        usrmove_path_code = """
 pathmunge () {
         if ! echo $PATH | /bin/egrep -q "(^|:)$1($|:)" ; then
            if [ "$2" = "after" ] ; then
@@ -256,7 +256,7 @@ pathmunge /bin after
 pathmunge /sbin after
 unset pathmunge
 """
-        with open(pl_profile,'w') as f:
+        with open(pl_profile, 'w') as f:
             f.write("export PS1='%s@\H \$ '\n"%(name))
             f.write("%s\n"%ld_preload_text)
             f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
@@ -266,21 +266,23 @@ unset pathmunge
         # make sure this file is sourced from both root's and slice's .profile
         enforced_line = "[ -f /etc/planetlab.profile ] && source /etc/planetlab.profile\n"
         for path in [ 'root/.profile', 'home/%s/.profile'%name ]:
-            from_root=os.path.join(containerDir,path)
+            from_root = os.path.join(containerDir, path)
             # if dir is not yet existing let's forget it for now
             if not os.path.isdir(os.path.dirname(from_root)): continue
-            found=False
+            found = False
             try:
-                contents=file(from_root).readlines()
+                contents = file(from_root).readlines()
                 for content in contents:
-                    if content==enforced_line: found=True
-            except IOError: pass
+                    if content == enforced_line:
+                        found = True
+            except IOError:
+                pass
             if not found:
-                with open(from_root,"a") as user_profile:
+                with open(from_root, "a") as user_profile:
                     user_profile.write(enforced_line)
                 # in case we create the slice's .profile when writing
-                if from_root.find("/home")>=0:
-                    command=['chown','%s:slices'%name,from_root]
+                if from_root.find("/home") >= 0:
+                    command = ['chown', '%s:slices'%name, from_root]
                     logger.log_call(command)
 
         # Lookup for xid and create template after the user is created so we
@@ -288,10 +290,10 @@ unset pathmunge
         xid = bwlimit.get_xid(name)
 
         # Template for libvirt sliver configuration
-        template_filename_sliceimage = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR,'lxc_template.xml')
+        template_filename_sliceimage = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR, 'lxc_template.xml')
         if os.path.isfile (template_filename_sliceimage):
             logger.verbose("Using XML template %s"%template_filename_sliceimage)
-            template_filename=template_filename_sliceimage
+            template_filename = template_filename_sliceimage
         else:
             logger.log("Cannot find XML template %s"%template_filename_sliceimage)
             return
@@ -384,10 +386,10 @@ unset pathmunge
             logger.log('sliver_lxc.destroy: %s cleanly destroyed.'%name)
         else:
             # we're in /
-            #logger.log("-TMP-cwd %s : %s"%(name,os.getcwd()))
+            #logger.log("-TMP-cwd %s : %s"%(name, os.getcwd()))
             # also lsof never shows anything relevant; this is painful..
             #logger.log("-TMP-lsof %s"%name)
-            #command=['lsof']
+            #command = ['lsof']
             #logger.log_call(command)
             logger.log("-TMP-ls-l %s"%name)
             command = ['ls', '-lR', containerDir]

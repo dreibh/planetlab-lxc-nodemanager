@@ -73,11 +73,11 @@ class Sliver_Libvirt(Account):
 
     @staticmethod
     def dom_details (dom):
-        output=""
-        output += " id=%s - OSType=%s"%(dom.ID(),dom.OSType())
+        output = ""
+        output += " id=%s - OSType=%s"%(dom.ID(), dom.OSType())
         # calling state() seems to be working fine
-        (state,reason)=dom.state()
-        output += " state=%s, reason=%s"%(STATES.get(state,state),REASONS.get(reason,reason))
+        (state, reason) = dom.state()
+        output += " state=%s, reason=%s"%(STATES.get(state, state),REASONS.get(reason, reason))
         try:
             # try to use info() - this however does not work for some reason on f20
             # info cannot get info operation failed: Cannot read cputime for domain
@@ -90,8 +90,8 @@ class Sliver_Libvirt(Account):
 
     def __repr__(self):
         ''' Helper method to get a "nice" output of the domain struct for debug purposes'''
-        output="Domain %s"%self.name
-        dom=self.dom
+        output = "Domain %s"%self.name
+        dom = self.dom
         if dom is None: 
             output += " [no attached dom ?!?]"
         else:
@@ -152,13 +152,13 @@ class Sliver_Libvirt(Account):
         try:
             self.dom.destroy()
         except:
-            logger.log_exc("in sliver_libvirt.stop",name=self.name)
+            logger.log_exc("in sliver_libvirt.stop", name=self.name)
 
     def is_running(self):
         ''' Return True if the domain is running '''
-        (state,_) = self.dom.state()
+        (state, _) = self.dom.state()
         result = (state == libvirt.VIR_DOMAIN_RUNNING)
-        logger.verbose('sliver_libvirt.is_running: %s => %s'%(self,result))
+        logger.verbose('sliver_libvirt.is_running: %s => %s'%(self, result))
         return result
 
     def configure(self, rec):

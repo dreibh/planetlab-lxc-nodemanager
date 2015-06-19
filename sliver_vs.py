@@ -42,9 +42,9 @@ KEEP_LIMIT = vserver.VC_LIM_KEEP
 DEFAULT_ALLOCATION = {}
 for rlimit in vserver.RLIMITS.keys():
     rlim = rlimit.lower()
-    DEFAULT_ALLOCATION["%s_min"%rlim]=KEEP_LIMIT
-    DEFAULT_ALLOCATION["%s_soft"%rlim]=KEEP_LIMIT
-    DEFAULT_ALLOCATION["%s_hard"%rlim]=KEEP_LIMIT
+    DEFAULT_ALLOCATION["%s_min"%rlim] = KEEP_LIMIT
+    DEFAULT_ALLOCATION["%s_soft"%rlim] = KEEP_LIMIT
+    DEFAULT_ALLOCATION["%s_hard"%rlim] = KEEP_LIMIT
 
 class Sliver_VS(vserver.VServer, Account, Initscript):
     """This class wraps vserver.VServer to make its interface closer to what we need."""
@@ -54,21 +54,21 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
     _init_disk_info_sem = BoundedSemaphore()
 
     def __init__(self, rec):
-        name=rec['name']
+        name = rec['name']
         logger.verbose ('sliver_vs: %s init'%name)
         try:
             logger.log("sliver_vs: %s: first chance..."%name)
-            vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
+            vserver.VServer.__init__(self, name, logfile='/var/log/nodemanager')
             Account.__init__ (self, name)
             Initscript.__init__ (self, name)
         except Exception, err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
-                logger.log_exc("sliver_vs:__init__ (first chance) %s",name=name)
+                logger.log_exc("sliver_vs:__init__ (first chance) %s", name=name)
                 logger.log('sliver_vs: %s: recreating bad vserver' % name)
                 self.destroy(name)
             self.create(name, rec)
-            vserver.VServer.__init__(self, name,logfile='/var/log/nodemanager')
+            vserver.VServer.__init__(self, name, logfile='/var/log/nodemanager')
             Account.__init__ (self, name)
             Initscript.__init__ (self, name)
 
@@ -87,7 +87,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
             # added by caglar
             # band-aid for short period as old API doesn't have GetSliceFamily function
             vref = "planetlab-f8-i386"
-            logger.log("sliver_vs: %s: ERROR - no vref attached, using hard-wired default %s"%(name,vref))
+            logger.log("sliver_vs: %s: ERROR - no vref attached, using hard-wired default %s"%(name, vref))
 
         # used to look in /etc/planetlab/family,
         # now relies on the 'GetSliceFamily' extra attribute in GetSlivers()
@@ -95,25 +95,26 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
 
         # check the template exists -- there's probably a better way..
         if not os.path.isdir ("/vservers/.vref/%s"%vref):
-            logger.log ("sliver_vs: %s: ERROR Could not create sliver - vreference image %s not found"%(name,vref))
+            logger.log ("sliver_vs: %s: ERROR Could not create sliver - vreference image %s not found"%(name, vref))
             return
 
         # compute guest personality
         try:
-            (x,y,arch)=vref.split('-')
+            (x, y, arch) = vref.split('-')
         # mh, this of course applies when 'vref' is e.g. 'netflow'
         # and that's not quite right
         except:
-            arch='i386'
+            arch = 'i386'
 
-        def personality (arch): return "linux64" if arch.find("64") >=0 else "linux32"
+        def personality (arch):
+            return "linux64" if arch.find("64") >= 0 else "linux32"
 
-        command=[]
+        command = []
         # be verbose
-        command += ['/bin/bash','-x',]
+        command += ['/bin/bash', '-x', ]
         command += ['/usr/sbin/vuseradd', ]
         if 'attributes' in rec and 'isolate_loopback' in rec['attributes'] and rec['attributes']['isolate_loopback'] == '1':
-            command += [ "-i",]
+            command += [ "-i", ]
         # the vsliver imge to use
         command += [ '-t', vref, ]
         # slice name
@@ -125,7 +126,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         # set personality: only if needed (if arch's differ)
         if tools.root_context_arch() != arch:
             file('/etc/vservers/%s/personality' % name, 'w').write(personality(arch)+"\n")
-            logger.log('sliver_vs: %s: set personality to %s'%(name,personality(arch)))
+            logger.log('sliver_vs: %s: set personality to %s'%(name, personality(arch)))
 
     @staticmethod
     def destroy(name):
@@ -135,7 +136,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         # but it is no big deal as umount_ssh_dir checks before it umounts..
         Account.umount_ssh_dir(name)
         logger.log("sliver_vs: destroying %s"%name)
-        logger.log_call(['/bin/bash','-x','/usr/sbin/vuserdel', name, ])
+        logger.log_call(['/bin/bash', '-x', '/usr/sbin/vuserdel', name, ])
 
 
     def configure(self, rec):
@@ -190,7 +191,8 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
     def rerun_slice_vinit(self):
         command = "/usr/sbin/vserver %s exec /etc/rc.d/init.d/vinit restart" % (self.name)
         logger.log("vsliver_vs: %s: Rerunning slice initscript: %s" % (self.name, command))
-        subprocess.call(command + "&", stdin=open('/dev/null', 'r'), stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=True)
+        subprocess.call(command + "&", stdin=open('/dev/null', 'r'),
+                        stdout=open('/dev/null', 'w'), stderr=subprocess.STDOUT, shell=True)
 
     def set_resources(self):
         disk_max = self.rspec['disk_max']
@@ -207,7 +209,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
                 self.disk_usage_initialized = True
             vserver.VServer.set_disklimit(self, max(disk_max, self.disk_blocks))
         except:
-            logger.log_exc('sliver_vs: failed to set max disk usage',name=self.name)
+            logger.log_exc('sliver_vs: failed to set max disk usage', name=self.name)
 
         # get/set the min/soft/hard values for all of the vserver
         # related RLIMITS.  Note that vserver currently only
@@ -224,7 +226,8 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
 
         self.set_capabilities_config(self.rspec['capabilities'])
         if self.rspec['capabilities']:
-            logger.log('sliver_vs: %s: setting capabilities to %s' % (self.name, self.rspec['capabilities']))
+            logger.log('sliver_vs: %s: setting capabilities to %s'
+                       % (self.name, self.rspec['capabilities']))
 
         cpu_pct = self.rspec['cpu_pct']
         cpu_share = self.rspec['cpu_share']
@@ -232,7 +235,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         count = 1
         for key in self.rspec.keys():
             if key.find('sysctl.') == 0:
-                sysctl=key.split('.')
+                sysctl = key.split('.')
                 try:
                     # /etc/vservers/<guest>/sysctl/<id>/
                     dirname = "/etc/vservers/%s/sysctl/%s" % (self.name, count)
@@ -248,10 +251,10 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
                     value.close()
                     count += 1
 
-                    logger.log("sliver_vs: %s: writing %s=%s"%(self.name,key,self.rspec[key]))
+                    logger.log("sliver_vs: %s: writing %s=%s"%(self.name, key, self.rspec[key]))
                 except IOError, e:
-                    logger.log("sliver_vs: %s: could not set %s=%s"%(self.name,key,self.rspec[key]))
-                    logger.log("sliver_vs: %s: error = %s"%(self.name,e))
+                    logger.log("sliver_vs: %s: could not set %s=%s"%(self.name, key, self.rspec[key]))
+                    logger.log("sliver_vs: %s: error = %s"%(self.name, e))
 
 
         if self.rspec['enabled'] > 0:
@@ -283,11 +286,11 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
                 if not os.path.exists (vserver_config_path):
                     os.makedirs (vserver_config_path)
                 file('%s/slice_id'%vserver_config_path, 'w').write("%d\n"%self.slice_id)
-                logger.log("sliver_vs: Recorded slice id %d for slice %s"%(self.slice_id,self.name))
-            except IOError,e:
-                logger.log("sliver_vs: Could not record slice_id for slice %s. Error: %s"%(self.name,str(e)))
-            except Exception,e:
-                logger.log_exc("sliver_vs: Error recording slice id: %s"%str(e),name=self.name)
+                logger.log("sliver_vs: Recorded slice id %d for slice %s"%(self.slice_id, self.name))
+            except IOError as e:
+                logger.log("sliver_vs: Could not record slice_id for slice %s. Error: %s"%(self.name, str(e)))
+            except Exception as e:
+                logger.log_exc("sliver_vs: Error recording slice id: %s"%str(e), name=self.name)
 
 
             if self.enabled == False:
