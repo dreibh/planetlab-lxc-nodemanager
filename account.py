@@ -138,6 +138,21 @@ class Account:
         pass
     def is_running(self):
         pass
+    def needs_reimage(self, target_slicefamily):
+        stampname = "/vservers/{}/etc/slicefamily".format(self.name)
+        try:
+            with open(stampname) as f:
+                current_slicefamily = f.read().strip()
+                if current_slicefamily != target_slicefamily:
+                    logger.info("slice {} : new slice family - would require reimaging"
+                                .format(self.name))
+                    return True
+                else:
+                    return False
+        except IOError as e:
+            logger.verbose("Missing slicefamily {} - considered OK"
+                           .format(self.name))
+            return False
 
     ### this used to be a plain method but because it needs to be invoked by destroy
     # which is a static method, they need to become static as well
@@ -223,7 +238,7 @@ class Worker:
         # xxx it's not clear what to do when a sliver changes type/class
         # in a reservable node
         else:
-            if not self.is_running() or next_class != curr_class:
+            if not self.is_running() or self.needs_reimage(ref['vref']) or next_class != curr_class:
                 self.start(rec)
             else:
                 self.configure(rec)
@@ -243,13 +258,22 @@ class Worker:
         self._acct.stop()
 
     def is_running(self):
-        if (self._acct != None) and self._acct.is_running():
-            status = True
+        if self._acct and self._acct.is_running():
+            return True
         else:
-            status = False
-            logger.verbose("account: Worker({}): is not running".format(self.name))
-        return status
+            logger.verbose("Worker.is_running ({}) - no account or not running".format(self.name))
+            return False
 
+    def needs_reimage(self, target_slicefamily):
+        if not self._acct:
+            logger.verbose("Worker.needs_reimage ({}) - no account".format(self.name))
+            return True
+        elif self._acct.needs_reimage(target_slicefamily):
+            logger.info("Worker.needs_reimage ({}) - account needs reimage (tmp: DRY RUN)".format(self.name))
+            return False
+        else:
+            return False
+    
     def _destroy(self, curr_class):
         self._acct = None
         if curr_class:
