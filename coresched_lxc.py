@@ -185,7 +185,7 @@ class CoreSched:
                     lastCpu = cpu
 
                     logger.log("CoreSched: allocating unit " + str(cpu) + " to slice " + name)
-                    reservations[name] = reservations.get(name,[]) + [cpu]
+                    reservations[name] = reservations.get(name, []) + [cpu]
 
                     # now find a memory node to go with the cpu
                     if memSchedule:
@@ -193,7 +193,7 @@ class CoreSched:
                         if mem != None:
                             mems.remove(mem)
                             logger.log("CoreSched: allocating memory node " + str(mem) + " to slice " + name)
-                            mem_reservations[name] = mem_reservations.get(name,[]) + [mem]
+                            mem_reservations[name] = mem_reservations.get(name, []) + [mem]
                         else:
                             logger.log("CoreSched: failed to find memory node for cpu" + str(cpu))
 
@@ -226,9 +226,9 @@ class CoreSched:
             # note that if a reservation is [], then we don't need to add
             # bestEffort cores to it, since it is bestEffort by default.
 
-            if reservations.get(name,[]) != []:
+            if reservations.get(name, []) != []:
                 reservations[name] = reservations[name] + reservations["_default"]
-                mem_reservations[name] = mem_reservations.get(name,[]) + mem_reservations["_default"]
+                mem_reservations[name] = mem_reservations.get(name, []) + mem_reservations["_default"]
                 logger.log("CoreSched: adding besteffort units to " + name + ". new units = " + str(reservations[name]))
 
         self.reserveUnits(self.cgroup_var_name, reservations)
@@ -397,12 +397,12 @@ if __name__=="__main__":
     print "cpus:", x.listToRange(x.get_cpus())
     print "sibling map:"
     for item in x.get_cpus():
-        print " ", item, ",".join([str(y) for y in x.cpu_siblings.get(item,[])])
+        print " ", item, ",".join([str(y) for y in x.cpu_siblings.get(item, [])])
 
     print "mems:", x.listToRange(x.get_mems())
     print "cpu to memory map:"
     for item in x.get_mems():
-        print " ", item, ",".join([str(y) for y in x.mems_map.get(item,[])])
+        print " ", item, ",".join([str(y) for y in x.mems_map.get(item, [])])
 
     rspec_sl_test1 = {"cpu_cores": "1"}
     rec_sl_test1 = {"_rspec": rspec_sl_test1}

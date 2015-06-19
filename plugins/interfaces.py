@@ -26,7 +26,7 @@ def start():
 def GetSlivers(data, config=None, plc=None):
 
     if 'slivers' not in data:
-        logger.log_missing_data("interfaces.GetSlivers",'slivers')
+        logger.log_missing_data("interfaces.GetSlivers", 'slivers')
         return
 
     for sliver in data['slivers']:
@@ -43,7 +43,7 @@ def GetSlivers(data, config=None, plc=None):
             if tag['tagname'] == 'interface':
                 interfaces = eval(tag['value'])
 
-                if not isinstance(interfaces, (list,tuple)):
+                if not isinstance(interfaces, (list, tuple)):
                     # if interface is not a list, then make it into a singleton list
                     interfaces = [interfaces]
 
@@ -55,7 +55,7 @@ def GetSlivers(data, config=None, plc=None):
                         url = mydict['url']
                         try:
                             contents = curlwrapper.retrieve(url)
-                        except xmlrpclib.ProtocolError,e:
+                        except xmlrpclib.ProtocolError as e:
                             logger.log('interfaces (%s): failed to retrieve %s' % (slicename, url))
                             continue
                     else:

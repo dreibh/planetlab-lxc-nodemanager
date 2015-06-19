@@ -30,10 +30,10 @@ def GetSlivers(data, config, plc):
     if not 'interfaces' in data:
         # added by caglar
         # band-aid for short period as old API returns networks instead of interfaces
-        # logger.log_missing_data('net.GetSlivers','interfaces')
+        # logger.log_missing_data('net.GetSlivers', 'interfaces')
         # return
         if not 'networks' in data:
-            logger.log_missing_data('net.GetSlivers','interfaces')
+            logger.log_missing_data('net.GetSlivers', 'interfaces')
             return
         else:
             KEY_NAME = "networks"

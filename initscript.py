@@ -62,7 +62,7 @@ class Initscript:
         # create symlink for runlevel 3
         if not os.path.islink(enable_link):
             try:
-                logger.log("Initscript: %s: creating runlevel3 symlink %s" % (self.name,enable_link))
+                logger.log("Initscript: %s: creating runlevel3 symlink %s" % (self.name, enable_link))
                 os.symlink(enable_target, enable_link)
             except:
                 logger.log_exc("Initscript failed to create runlevel3 symlink %s" % enable_link, name=self.name)
@@ -105,4 +105,4 @@ class Initscript:
                 logger.log("Initscript: %s: creating enabling symlink %s" % (self.name, enable_link))
                 os.symlink(enable_target, enable_link)
             except:
-                logger.log_exc("Initscript failed to create enabling symlink %s" % enable_link,name=name)
+                logger.log_exc("Initscript failed to create enabling symlink %s" % enable_link, name=name)

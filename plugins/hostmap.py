@@ -30,7 +30,7 @@ SUFFIX = "# ----- End -----"
 def GetSlivers(data, config=None, plc=None):
 
     if 'slivers' not in data:
-        logger.log_missing_data("hostmap.GetSlivers",'slivers')
+        logger.log_missing_data("hostmap.GetSlivers", 'slivers')
         return
 
     if 'hostname' not in data:

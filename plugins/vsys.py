@@ -19,7 +19,7 @@ def GetSlivers(data, config=None, plc=None):
     """
 
     if 'slivers' not in data:
-        logger.log_missing_data("vsys.GetSlivers",'slivers')
+        logger.log_missing_data("vsys.GetSlivers", 'slivers')
         return
 
     # Touch ACLs and create dict of available
@@ -30,7 +30,7 @@ def GetSlivers(data, config=None, plc=None):
     _restart = False
     # Parse attributes and update dict of scripts
     if 'slivers' not in data:
-        logger.log_missing_data("vsys.GetSlivers",'slivers')
+        logger.log_missing_data("vsys.GetSlivers", 'slivers')
         return
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
@@ -127,12 +127,11 @@ def parseAcls():
     for (root, dirs, files) in os.walk(VSYSBKEND):
         for file in files:
             if file.endswith(".acl") and not file.startswith("local_"):
-                f = open(root+"/"+file,"r+")
-                scriptname = file.replace(".acl", "")
-                scriptacls[scriptname] = []
-                for slice in f.readlines():
-                    scriptacls[scriptname].append(slice.rstrip())
-                f.close()
+                with open(root+"/"+file, "r+") as f:
+                    scriptname = file.replace(".acl", "")
+                    scriptacls[scriptname] = []
+                    for slice in f.readlines():
+                        scriptacls[scriptname].append(slice.rstrip())
     # return what scripts are configured for which slices.
     return scriptacls
 
@@ -145,7 +144,7 @@ def writeConf(slivers, oldslivers):
     if (len(slivers) != len(oldslivers)) or \
     (len(set(oldslivers) - set(slivers)) != 0):
         logger.log("vsys:  Updating %s" % VSYSCONF)
-        f = open(VSYSCONF,"w")
+        f = open(VSYSCONF, "w")
         for sliver in slivers:
             f.write("/vservers/%(name)s/vsys %(name)s\n" % {"name": sliver})
         f.truncate()
@@ -189,4 +188,4 @@ def trashVsysHandleInSliver (sliver):
         logger.log("vsys.trashVsysHandleInSliver: no action needed, %s not found"%slice_vsys_area)
         return
     retcod=subprocess.call([ 'rm', '-rf' , slice_vsys_area])
-    logger.log ("vsys.trashVsysHandleInSliver: Removed %s (retcod=%s)"%(slice_vsys_area,retcod))
+    logger.log ("vsys.trashVsysHandleInSliver: Removed %s (retcod=%s)"%(slice_vsys_area, retcod))

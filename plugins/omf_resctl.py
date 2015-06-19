@@ -54,20 +54,20 @@ omf_rc_trigger_log="/var/log/plc_trigger_omf_rc.log"
 # hopefully temporary: when trigger script is missing, fetch it at the url here
 omf_rc_trigger_url="http://git.mytestbed.net/?p=omf.git;a=blob_plain;f=omf_rc/bin/plc_trigger_omf_rc;hb=HEAD"
 def fetch_trigger_script_if_missing (slicename):
-    full_path="/vservers/%s/%s"%(slicename,omf_rc_trigger_script)
+    full_path="/vservers/%s/%s"%(slicename, omf_rc_trigger_script)
     if not os.path.isfile (full_path):
-        retcod=subprocess.call (['curl','--silent','-o',full_path,omf_rc_trigger_url])
+        retcod=subprocess.call (['curl', '--silent', '-o', full_path, omf_rc_trigger_url])
         if retcod!=0:
             logger.log("Could not fetch %s"%omf_rc_trigger_url)
         else:
-            subprocess.call(['chmod','+x',full_path])
+            subprocess.call(['chmod', '+x', full_path])
             logger.log("omf_resctl: fetched %s"%(full_path))
             logger.log("omf_resctl: from %s"%(omf_rc_trigger_url))
 
 def GetSlivers(data, conf = None, plc = None):
     logger.log("omf_resctl.GetSlivers")
     if 'accounts' not in data:
-        logger.log_missing_data("omf_resctl.GetSlivers",'accounts')
+        logger.log_missing_data("omf_resctl.GetSlivers", 'accounts')
         return
 
     try:
@@ -93,18 +93,18 @@ def GetSlivers(data, conf = None, plc = None):
         expires=str(sliver['expires'])
         yaml_template = config_ple_template
         yaml_contents = yaml_template\
-            .replace('_xmpp_server_',xmpp_server)\
-            .replace('_slicename_',slicename)\
-            .replace('_hostname_',hostname)\
-            .replace('_expires_',expires)
-        yaml_full_path="/vservers/%s/%s"%(slicename,yaml_slice_path)
+            .replace('_xmpp_server_', xmpp_server)\
+            .replace('_slicename_', slicename)\
+            .replace('_hostname_', hostname)\
+            .replace('_expires_', expires)
+        yaml_full_path="/vservers/%s/%s"%(slicename, yaml_slice_path)
         yaml_full_dir=os.path.dirname(yaml_full_path)
         if not os.path.isdir(yaml_full_dir):
             try: os.makedirs(yaml_full_dir)
             except OSError: pass
 
-        config_changes=tools.replace_file_with_string(yaml_full_path,yaml_contents)
-        logger.log("yaml_contents length=%d, config_changes=%r"%(len(yaml_contents),config_changes))
+        config_changes=tools.replace_file_with_string(yaml_full_path, yaml_contents)
+        logger.log("yaml_contents length=%d, config_changes=%r"%(len(yaml_contents), config_changes))
         # would make sense to also check for changes to authorized_keys 
         # would require saving a copy of that some place for comparison
         # xxx todo
@@ -118,12 +118,12 @@ def GetSlivers(data, conf = None, plc = None):
                 # hence sudo -i
                 slice_command = [ "sudo", "-i",  omf_rc_trigger_script ]
                 to_run = tools.command_in_slice (slicename, slice_command)
-                log_filename = "/vservers/%s/%s"%(slicename,omf_rc_trigger_log)
+                log_filename = "/vservers/%s/%s"%(slicename, omf_rc_trigger_log)
                 logger.log("omf_resctl: starting %s"%to_run)
                 logger.log("redirected into %s"%log_filename)
                 logger.log("*not* waiting for completion..")
-                with open(log_filename,"a") as log_file:
-                    subprocess.Popen(to_run, stdout=log_file,stderr=subprocess.STDOUT)
+                with open(log_filename, "a") as log_file:
+                    subprocess.Popen(to_run, stdout=log_file, stderr=subprocess.STDOUT)
                 # a first version tried to 'communicate' on that subprocess instance
                 # but that tended to create deadlocks in some cases
                 # causing nodemanager to stall...

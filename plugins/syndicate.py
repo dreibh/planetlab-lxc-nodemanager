@@ -57,7 +57,7 @@ def GetSlivers(data, conf = None, plc = None):
     node_id = tools.node_id()
 
     if 'slivers' not in data:
-        logger.log_missing_data("syndicate.GetSlivers",'slivers')
+        logger.log_missing_data("syndicate.GetSlivers", 'slivers')
         return
 
     syndicate_sliver = None

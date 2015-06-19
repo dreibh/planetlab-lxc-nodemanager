@@ -18,7 +18,7 @@ def start():
 def GetSlivers(data, config=None, plc=None):
 
     if 'slivers' not in data:
-        logger.log_missing_data("vsys_privs.GetSlivers",'slivers')
+        logger.log_missing_data("vsys_privs.GetSlivers", 'slivers')
         return
 
 
@@ -26,7 +26,7 @@ def GetSlivers(data, config=None, plc=None):
 
     # Parse attributes and update dict of scripts
     if 'slivers' not in data:
-        logger.log_missing_data("vsys_privs.GetSlivers",'slivers')
+        logger.log_missing_data("vsys_privs.GetSlivers", 'slivers')
         return
     for sliver in data['slivers']:
         slice = sliver['name']
@@ -52,19 +52,19 @@ def read_privs():
     cur_privs={}
     priv_finder = os.walk(VSYS_PRIV_DIR)
     priv_find = [i for i in priv_finder]
-    (rootdir,slices,foo) = priv_find[0]
+    (rootdir, slices, foo) = priv_find[0]
 
     for slice in slices:
         cur_privs[slice]={}
 
     if (len(priv_find)>1):
-        for (slicedir,bar,tagnames) in priv_find[1:]:
+        for (slicedir, bar, tagnames) in priv_find[1:]:
             if (bar != []):
                 # The depth of the vsys-privileges directory = 1
                 pass
 
             for tagname in tagnames:
-                tagfilename = os.path.join(slicedir,tagname)
+                tagfilename = os.path.join(slicedir, tagname)
                 with open(tagfilename) as tagfile:
                     values_n = tagfile.readlines()
                     values = [ v.rstrip() for v in values_n ]
@@ -73,10 +73,10 @@ def read_privs():
 
     return cur_privs
 
-def write_privs(cur_privs,privs):
+def write_privs(cur_privs, privs):
     for slice in privs.keys():
         variables = privs[slice]
-        slice_dir = os.path.join(VSYS_PRIV_DIR,slice)
+        slice_dir = os.path.join(VSYS_PRIV_DIR, slice)
         if (not os.path.exists(slice_dir)):
             os.mkdir(slice_dir)
 
@@ -90,24 +90,24 @@ def write_privs(cur_privs,privs):
                 pass
             else:
                 v_file = os.path.join(slice_dir, k)
-                f = open(v_file,'w')
+                f = open(v_file, 'w')
                 data = '\n'.join(v)
                 f.write(data)
                 f.close()
-                logger.log("vsys_privs: added vsys attribute %s for %s"%(k,slice))
+                logger.log("vsys_privs: added vsys attribute %s for %s"%(k, slice))
 
     # Remove files and directories
     # that are invalid
     for slice in cur_privs.keys():
         variables = cur_privs[slice]
-        slice_dir = os.path.join(VSYS_PRIV_DIR,slice)
+        slice_dir = os.path.join(VSYS_PRIV_DIR, slice)
 
         # Add values that do not exist
         for k in variables.keys():
             if (privs.has_key(slice)
                     and cur_privs[slice].has_key(k)):
                 # ok, spare this tag
-                print "Sparing  %s, %s "%(slice,k)
+                print "Sparing  %s, %s "%(slice, k)
             else:
                 v_file = os.path.join(slice_dir, k)
                 os.remove(v_file)
@@ -118,14 +118,14 @@ def write_privs(cur_privs,privs):
 
 if __name__ == "__main__":
     test_slivers = {'slivers':[
-        {'name':'foo','attributes':[
-            {'tagname':'vsys_m','value':'2'},
-            {'tagname':'vsys_m','value':'3'},
-            {'tagname':'vsys_m','value':'4'}
+        {'name':'foo', 'attributes':[
+            {'tagname':'vsys_m', 'value':'2'},
+            {'tagname':'vsys_m', 'value':'3'},
+            {'tagname':'vsys_m', 'value':'4'}
             ]},
-        {'name':'bar','attributes':[
-            #{'tagname':'vsys_x','value':'z'}
+        {'name':'bar', 'attributes':[
+            #{'tagname':'vsys_x', 'value':'z'}
             ]}
         ]}
-    start(None,None)
+    start(None, None)
     GetSlivers(test_slivers)

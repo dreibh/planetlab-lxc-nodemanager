@@ -25,9 +25,9 @@ persistent_data = True
 
 ##############################
 # rough implementation for a singleton class
-def Singleton (klass,*args,**kwds):
-    if not hasattr(klass,'_instance'):
-        klass._instance=klass(*args,**kwds)
+def Singleton (klass, *args, **kwds):
+    if not hasattr(klass, '_instance'):
+        klass._instance=klass(*args, **kwds)
     return klass._instance
 
 def start():
@@ -58,11 +58,11 @@ class reservation:
 
         # check we're using a compliant GetSlivers
         if 'reservation_policy' not in data:
-            logger.log_missing_data("reservation.GetSlivers",'reservation_policy')
+            logger.log_missing_data("reservation.GetSlivers", 'reservation_policy')
             return
         self.reservation_policy=data['reservation_policy']
         if 'leases' not in data:
-            logger.log_missing_data("reservation.GetSlivers",'leases')
+            logger.log_missing_data("reservation.GetSlivers", 'leases')
             return
 
         # store data locally
@@ -72,10 +72,10 @@ class reservation:
         # regular nodes are not affected
         if self.reservation_policy == 'none':
             return
-        elif self.reservation_policy not in ['lease_or_idle','lease_or_shared']:
+        elif self.reservation_policy not in ['lease_or_idle', 'lease_or_shared']:
             logger.log("reservation: ignoring -- unexpected value for reservation_policy %r"%self.reservation_policy)
             return
-        # at this point we have reservation_policy in ['lease_or_idle','lease_or_shared']
+        # at this point we have reservation_policy in ['lease_or_idle', 'lease_or_shared']
         # we make no difference for now
         logger.log("reservation.GetSlivers: reservable node -- policy=%s"%self.reservation_policy)
         self.sync_timers_from_leases()
@@ -107,21 +107,21 @@ class reservation:
     def sync_timers_from_leases (self):
         self.clear_timers()
         for lease in self.data['leases']:
-            self.ensure_timer_from_until(lease['t_from'],lease['t_until'])
+            self.ensure_timer_from_until(lease['t_from'], lease['t_until'])
 
     # assuming t1<t2
-    def ensure_timer_from_until (self, t1,t2):
+    def ensure_timer_from_until (self, t1, t2):
         now=int(time.time())
         # both times are in the past: forget about it
         if t2 < now : return
         # we're in the middle of the lease: make sure to arm a callback in the near future for checking
         # this mostly is for starting the slice if nodemanager gets started in the middle of a lease
         if t1 < now : 
-            self.ensure_timer (now,now+10)
+            self.ensure_timer (now, now+10)
         # both are in the future : arm them
         else :
-            self.ensure_timer (now,self.round_time(t1))
-            self.ensure_timer (now,self.round_time(t2))
+            self.ensure_timer (now, self.round_time(t1))
+            self.ensure_timer (now, self.round_time(t2))
 
     def ensure_timer(self, now, timestamp):
         if timestamp in self.timers: return
@@ -132,7 +132,7 @@ class reservation:
                             reservation.time_printable(now),
                             reservation.time_printable(timestamp)))
             self.granularity_callback (now)
-        timer=threading.Timer(timestamp-now,this_closure)
+        timer=threading.Timer(timestamp-now, this_closure)
         self.timers[timestamp]=timer
         timer.start()
 
@@ -146,7 +146,7 @@ class reservation:
 
     @staticmethod
     def time_printable (timestamp):
-        return time.strftime ("%Y-%m-%d %H:%M UTC",time.gmtime(timestamp))
+        return time.strftime ("%Y-%m-%d %H:%M UTC", time.gmtime(timestamp))
 
     @staticmethod
     def lease_printable (lease):
@@ -166,7 +166,7 @@ class reservation:
         leases=self.data['leases']
         ###
         if reservation.debug:
-            logger.log('reservation.granularity_callback now=%f round_now=%d arg=%d...'%(now,round_now,time_arg))
+            logger.log('reservation.granularity_callback now=%f round_now=%d arg=%d...'%(now, round_now, time_arg))
         if leases and reservation.debug:
             logger.log('reservation: Listing leases beg')
             for lease in leases:
@@ -177,12 +177,12 @@ class reservation:
         ending_lease=None
         for lease in leases:
             if lease['t_until']==round_now:
-                logger.log('reservation: end of lease for slice %s - (lease=%s)'%(lease['name'],reservation.lease_printable(lease)))
+                logger.log('reservation: end of lease for slice %s - (lease=%s)'%(lease['name'], reservation.lease_printable(lease)))
                 ending_lease=lease
         starting_lease=None
         for lease in leases:
             if lease['t_from']==round_now:
-                logger.log('reservation: start of lease for slice %s - (lease=%s)'%(lease['name'],reservation.lease_printable(lease)))
+                logger.log('reservation: start of lease for slice %s - (lease=%s)'%(lease['name'], reservation.lease_printable(lease)))
                 starting_lease=lease
 
         ########## nothing is starting nor ending
@@ -218,12 +218,12 @@ class reservation:
             logger.log("reservation.granularity_callback: suspending all slices")
             self.suspend_all_slices()
 
-    def debug_box(self,message,slicename=None):
+    def debug_box(self, message, slicename=None):
         if reservation.debug:
             logger.log ('reservation: '+message)
             logger.log_call( ['/usr/sbin/vserver-stat', ] )
             if slicename:
-                logger.log_call ( ['/usr/sbin/vserver',slicename,'status', ])
+                logger.log_call ( ['/usr/sbin/vserver', slicename, 'status', ])
 
     def is_running (self, slicename):
         try:
@@ -234,7 +234,7 @@ class reservation:
     # quick an d dirty - this does not obey the account/sliver_vs/controller hierarchy
     def suspend_slice(self, slicename):
         logger.log('reservation: Suspending slice %s'%(slicename))
-        self.debug_box('before suspending',slicename)
+        self.debug_box('before suspending', slicename)
         worker=account.get(slicename)
         try:
             logger.log("reservation: Located worker object %r"%worker)
@@ -243,14 +243,14 @@ class reservation:
             # when the underlying worker is not entirely initialized yet
             pass
         except:
-            logger.log_exc("reservation.suspend_slice: Could not stop slice through its worker",name=slicename)
+            logger.log_exc("reservation.suspend_slice: Could not stop slice through its worker", name=slicename)
         # we hope the status line won't return anything
-        self.debug_box('after suspending',slicename)
+        self.debug_box('after suspending', slicename)
 
     # exclude can be a slicename or a list
     # this probably should run in parallel
     def suspend_all_slices (self, exclude=[]):
-        if isinstance(exclude,str): exclude=[exclude,]
+        if isinstance(exclude, str): exclude=[exclude,]
         for sliver in self.data['slivers']:
             # skip excluded
             if sliver['name'] in exclude: continue
@@ -263,7 +263,7 @@ class reservation:
 
     def restart_slice(self, slicename):
         logger.log('reservation: Restarting slice %s'%(slicename))
-        self.debug_box('before restarting',slicename)
+        self.debug_box('before restarting', slicename)
         worker=account.get(slicename)
         try:
             # dig in self.data to retrieve corresponding rec
@@ -276,6 +276,6 @@ class reservation:
             logger.log("reservation: Located record at the db %r"%record)
             worker.start(record)
         except:
-            logger.log_exc("reservation.restart_slice: Could not start slice through its worker",name=slicename)
+            logger.log_exc("reservation.restart_slice: Could not start slice through its worker", name=slicename)
         # we hope the status line won't return anything
-        self.debug_box('after restarting',slicename)
+        self.debug_box('after restarting', slicename)

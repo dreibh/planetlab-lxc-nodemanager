@@ -13,7 +13,7 @@ def GetSlivers(data, config=None, plc=None):
     """For each sliver with the vsys attribute, set the script ACL, create the vsys directory in the slice, and restart vsys."""
 
     if 'slivers' not in data:
-        logger.log_missing_data("vsys.GetSlivers",'slivers')
+        logger.log_missing_data("vsys.GetSlivers", 'slivers')
         return
 
     slices = []
@@ -30,7 +30,7 @@ def GetSlivers(data, config=None, plc=None):
                     except:
                         logger.log("vsys_sysctl: failed to create dir %s" % dir)
 
-                (junk, key) = attribute['tagname'].split(".",1)
+                (junk, key) = attribute['tagname'].split(".", 1)
                 value = str(attribute['value'])
 
                 fn = os.path.join(dir, key)
@@ -46,14 +46,14 @@ def GetSlivers(data, config=None, plc=None):
                     # slice. This lets us know that we've done the sysctl.
                     try:
                         logger.log("vsys_sysctl: create file %s value %s" % (fn, value))
-                        with open(fn,"w") as f:
+                        with open(fn, "w") as f:
                             f.write(value+"\n")
                     except:
                         logger.log("vsys_sysctl: failed to create file %s" % fn)
 
 def test_value(fn, value):
     try:
-        slice_value = file(fn,"r").readline().strip()
+        slice_value = file(fn, "r").readline().strip()
     except:
         slice_value = None
 

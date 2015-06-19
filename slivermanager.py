@@ -7,7 +7,8 @@ also to make inter-sliver resource loans.  The sliver manager is also
 responsible for handling delegation accounts.
 """
 
-import string,re
+import string
+import re
 import time
 
 import logger
@@ -149,7 +150,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     # Take initscripts (global) returned by API, build a hash scriptname->code
     iscripts_hash = {}
     if 'initscripts' not in data:
-        logger.log_missing_data("slivermanager.GetSlivers",'initscripts')
+        logger.log_missing_data("slivermanager.GetSlivers", 'initscripts')
         return
     for initscript_rec in data['initscripts']:
         logger.verbose("slivermanager: initscript: %s" % initscript_rec['name'])
@@ -183,7 +184,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
 
         ### set initscripts; set empty rec['initscript'] if not
         # if tag 'initscript_code' is set, that's what we use
-        iscode = attributes.get('initscript_code','')
+        iscode = attributes.get('initscript_code', '')
         if iscode:
             rec['initscript']=iscode
         else:

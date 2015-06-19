@@ -77,7 +77,7 @@ class NodeManager:
         if os.path.exists(self.options.path):
             sys.path.append(self.options.path)
             plugins = [ os.path.split(os.path.splitext(x)[0])[1]
-                        for x in glob.glob( os.path.join(self.options.path,'*.py') )
+                        for x in glob.glob( os.path.join(self.options.path, '*.py') )
                         if not x.endswith("/__init__.py")
                         ]
             self.modules += plugins
@@ -116,7 +116,7 @@ class NodeManager:
             try:
                 callback = getattr(module, 'GetSlivers')
                 module_data = data
-                if getattr(module,'persistent_data',False):
+                if getattr(module, 'persistent_data', False):
                     module_data = last_data
                 callback(data, config, plc)
             except SystemExit as e:
@@ -157,7 +157,7 @@ class NodeManager:
                     if att['tagname'] == 'vref':
                         att['value'] = slicefamily
                         continue
-                sliver['attributes'].append({ 'tagname':'vref','value':slicefamily})
+                sliver['attributes'].append({ 'tagname':'vref', 'value':slicefamily})
             except:
                 logger.log_exc("nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",
                                name=sliver['name'])
@@ -222,7 +222,7 @@ If this is not the case, please remove the pid file {}. -- exiting""".format(oth
 
             # sort on priority (lower first)
             def module_priority (m):
-                return getattr(m,'priority',NodeManager.default_priority) 
+                return getattr(m, 'priority', NodeManager.default_priority) 
             self.loaded_modules.sort(key=module_priority)
 
             logger.log('ordered modules:')
@@ -251,7 +251,7 @@ If this is not the case, please remove the pid file {}. -- exiting""".format(oth
                 try:
                     plc.update_session()
                     logger.log("nodemanager: Authentication Failure. Retrying")
-                except Exception,e:
+                except Exception as e:
                     logger.log("nodemanager: Retry Failed. ({}); Waiting..".format(e))
                 time.sleep(iperiod)
             logger.log("nodemanager: Authentication Succeeded!")
@@ -263,11 +263,11 @@ If this is not the case, please remove the pid file {}. -- exiting""".format(oth
                 logger.log('nodemanager: mainloop - calling GetSlivers - period={} random={}'
                            .format(iperiod, irandom))
                 self.GetSlivers(config, plc)
-                delay = iperiod + random.randrange(0,irandom)
+                delay = iperiod + random.randrange(0, irandom)
                 work_end = time.time()
                 work_duration = int(work_end-work_beg)
                 logger.log('nodemanager: mainloop has worked for {} s - sleeping for {} s'
-                           .format(work_duration,delay))
+                           .format(work_duration, delay))
                 time.sleep(delay)
         except SystemExit:
             pass

@@ -62,7 +62,7 @@ def GetSlivers(data, config, plc = None):
                             _writeconf = True
                         # Add to dict of codemuxslices.  Make list to support more than one
                         # codemuxed host per slice.
-                        codemuxslices.setdefault(sliver['name'],[])
+                        codemuxslices.setdefault(sliver['name'], [])
                         codemuxslices[sliver['name']].append(params)
                 except:
                     logger.log("codemux:  sliver %s not running yet.  Deferring."\
@@ -153,9 +153,9 @@ def restartService():
     if not os.path.exists("/etc/init.d/codemux"): return
     logger.log("codemux:  Restarting codemux service")
     if isRunning():
-        logger.log_call(["/etc/init.d/codemux","condrestart", ])
+        logger.log_call(["/etc/init.d/codemux", "condrestart", ])
     else:
-        logger.log_call(["/etc/init.d/codemux","restart", ])
+        logger.log_call(["/etc/init.d/codemux", "restart", ])
 
 def startService():
     if not os.path.exists("/etc/init.d/codemux"): return

@@ -45,12 +45,12 @@ class conf_files:
         try:
             uid = pwd.getpwnam(cf_rec['file_owner'])[2]
         except:
-            logger.log('conf_files: cannot find user %s -- %s not updated'%(cf_rec['file_owner'],dest))
+            logger.log('conf_files: cannot find user %s -- %s not updated'%(cf_rec['file_owner'], dest))
             return
         try:
             gid = grp.getgrnam(cf_rec['file_group'])[2]
         except:
-            logger.log('conf_files: cannot find group %s -- %s not updated'%(cf_rec['file_group'],dest))
+            logger.log('conf_files: cannot find group %s -- %s not updated'%(cf_rec['file_group'], dest))
             return
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
         # set node_id at the end of the request - hacky
@@ -63,7 +63,7 @@ class conf_files:
         try:
             logger.verbose("conf_files: retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)
-        except xmlrpclib.ProtocolError,e:
+        except xmlrpclib.ProtocolError as e:
             logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
             return
         if not cf_rec['always_update'] and sha(contents).digest() == self.checksum(dest):
@@ -74,7 +74,7 @@ class conf_files:
         logger.log('conf_files: installing file %s from %s' % (dest, url))
         try: os.makedirs(os.path.dirname(dest))
         except OSError: pass
-        tools.write_file(dest, lambda f: f.write(contents), mode=mode, uidgid=(uid,gid))
+        tools.write_file(dest, lambda f: f.write(contents), mode=mode, uidgid=(uid, gid))
         if self.system(cf_rec['postinstall_cmd']): self.system(err_cmd)
 
     def run_once(self, data):
@@ -83,7 +83,7 @@ class conf_files:
                 try: self.update_conf_file(f)
                 except: logger.log_exc("conf_files: failed to update conf_file")
         else:
-            logger.log_missing_data("conf_files.run_once",'conf_files')
+            logger.log_missing_data("conf_files.run_once", 'conf_files')
 
 
 def start(): pass

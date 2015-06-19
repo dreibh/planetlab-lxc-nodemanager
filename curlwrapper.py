@@ -28,14 +28,14 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
     if timeout: 
         command += ('--max-time', str(timeout))
         command += ('--connect-timeout', str(timeout))
-    command += (url,)
+    command += (url, )
     if verbose:
-        print 'Invoking ',command
-        if postdata: print 'with postdata=',postdata
+        print 'Invoking ', command
+        if postdata: print 'with postdata=', postdata
     p = Sopen(command , stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
     if postdata: p.stdin.write(postdata)
     p.stdin.close()
-    sout, sin, serr = select([p.stdout,p.stderr],[],[], timeout)
+    sout, sin, serr = select([p.stdout, p.stderr], [], [], timeout)
     if len(sout) == 0 and len(sin) == 0 and len(serr) == 0: 
         logger.verbose("curlwrapper: timed out after %s" % timeout)
         p.kill(signal.SIGKILL) 

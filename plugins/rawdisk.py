@@ -51,13 +51,13 @@ def get_unused_devices():
 
 def GetSlivers(data, config=None, plc=None):
     if 'slivers' not in data:
-        logger.log_missing_data("rawdisk.GetSlivers",'slivers')
+        logger.log_missing_data("rawdisk.GetSlivers", 'slivers')
         return
 
     devices = get_unused_devices()
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
-            name = attribute.get('tagname',attribute.get('name',''))
+            name = attribute.get('tagname', attribute.get('name', ''))
             if name == 'rawdisk':
                 for i in devices:
                     st = os.stat(i)
