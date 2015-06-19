@@ -84,7 +84,7 @@ class Account:
     def __init__(self, name):
         self.name = name
         self.keys = ''
-        logger.verbose('account: Initing account %s'%name)
+        logger.verbose('account: Initing account {}'.format(name))
 
     @staticmethod
     def create(name, vref = None):
@@ -112,7 +112,8 @@ class Account:
             dot_ssh = os.path.join(pw_dir, '.ssh')
             if not os.path.isdir(dot_ssh):
                 if not os.path.isdir(pw_dir):
-                    logger.verbose('account: WARNING: homedir %s does not exist for %s!'%(pw_dir, self.name))
+                    logger.verbose('account: WARNING: homedir {} does not exist for {}!'
+                                   .format(pw_dir, self.name))
                     os.mkdir(pw_dir)
                     os.chown(pw_dir, uid, gid)
                 os.mkdir(dot_ssh)
@@ -129,7 +130,7 @@ class Account:
             # set self.keys to new_keys only when all of the above ops succeed
             self.keys = new_keys
 
-            logger.log('account: %s: installed ssh keys' % self.name)
+            logger.log('account: {}: installed ssh keys'.format(self.name))
 
     def start(self, delay=0):
         pass
@@ -151,8 +152,8 @@ class Account:
     def _manage_ssh_dir (slicename, do_mount):
         logger.log ("_manage_ssh_dir, requested to "+("mount" if do_mount else "umount")+" ssh dir for "+ slicename)
         try:
-            root_ssh = "/home/%s/.ssh"%slicename
-            sliver_ssh = "/vservers/%s/home/%s/.ssh"%(slicename, slicename)
+            root_ssh = "/home/{}/.ssh".format(slicename)
+            sliver_ssh = "/vservers/{}/home/{}/.ssh".format(slicename, slicename)
             def is_mounted (root_ssh):
                 for mount_line in file('/proc/mounts').readlines():
                     if mount_line.find (root_ssh) >= 0:
@@ -169,13 +170,15 @@ class Account:
                     command = ['mount', '--bind', '-o', 'ro', root_ssh, sliver_ssh]
                     mounted = logger.log_call (command)
                     msg = "OK" if mounted else "WARNING: FAILED"
-                    logger.log("_manage_ssh_dir: mounted %s into slice %s - %s"%(root_ssh, slicename, msg))
+                    logger.log("_manage_ssh_dir: mounted {} into slice {} - {}"
+                               .format(root_ssh, slicename, msg))
             else:
                 if is_mounted (sliver_ssh):
                     command = ['umount', sliver_ssh]
                     umounted = logger.log_call(command)
                     msg = "OK" if umounted else "WARNING: FAILED"
-                    logger.log("_manage_ssh_dir: umounted %s - %s"%(sliver_ssh, msg))
+                    logger.log("_manage_ssh_dir: umounted {} - {}"
+                               .format(sliver_ssh, msg))
         except:
             logger.log_exc("_manage_ssh_dir failed", name=slicename)
 
@@ -190,7 +193,7 @@ class Worker:
         Check account type is still valid.  If not, recreate sliver.
         If still valid, check if running and configure/start if not.
         """
-        logger.log_data_in_file(rec, "/var/lib/nodemanager/%s.rec.txt"%rec['name'],
+        logger.log_data_in_file(rec, "/var/lib/nodemanager/{}.rec.txt".format(rec['name']),
                                 'raw rec captured in ensure_created', logger.LOG_VERBOSE)
         curr_class = self._get_class()
         next_class = type_acct_class[rec['type']]
@@ -199,8 +202,10 @@ class Worker:
             create_sem.acquire()
             try: next_class.create(self.name, rec)
             finally: create_sem.release()
-        if not isinstance(self._acct, next_class): self._acct = next_class(rec)
-        logger.verbose("account.Worker.ensure_created: %s, running=%r"%(self.name, self.is_running()))
+        if not isinstance(self._acct, next_class):
+            self._acct = next_class(rec)
+        logger.verbose("account.Worker.ensure_created: {}, running={}"
+                       .format(self.name, self.is_running()))
 
         # reservation_alive is set on reservable nodes, and its value is a boolean
         if 'reservation_alive' in rec:
@@ -241,7 +246,7 @@ class Worker:
             status = True
         else:
             status = False
-            logger.verbose("account: Worker(%s): is not running" % self.name)
+            logger.verbose("account: Worker({}): is not running".format(self.name))
         return status
 
     def _destroy(self, curr_class):

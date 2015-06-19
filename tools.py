@@ -147,56 +147,56 @@ writes in a tmp file, which is then renamed (from sliverauth originally)
 returns True if a change occurred, or the file is deleted
     """
     try:
-        current=file(target).read()
+        current = file(target).read()
     except:
-        current=""
-    if current==new_contents:
+        current = ""
+    if current == new_contents:
         # if turns out to be an empty string, and remove_if_empty is set,
         # then make sure to trash the file if it exists
         if remove_if_empty and not new_contents and os.path.isfile(target):
-            logger.verbose("tools.replace_file_with_string: removing file %s"%target)
+            logger.verbose("tools.replace_file_with_string: removing file {}".format(target))
             try: os.unlink(target)
             finally: return True
         return False
     # overwrite target file: create a temp in the same directory
-    path=os.path.dirname(target) or '.'
-    fd, name = tempfile.mkstemp('','repl',path)
-    os.write(fd,new_contents)
+    path = os.path.dirname(target) or '.'
+    fd, name = tempfile.mkstemp('', 'repl', path)
+    os.write(fd, new_contents)
     os.close(fd)
     if os.path.exists(target):
         os.unlink(target)
-    shutil.move(name,target)
-    if chmod: os.chmod(target,chmod)
+    shutil.move(name, target)
+    if chmod: os.chmod(target, chmod)
     return True
 
 ####################
 # utilities functions to get (cached) information from the node
 
 # get node_id from /etc/planetlab/node_id and cache it
-_node_id=None
+_node_id = None
 def node_id():
     global _node_id
     if _node_id is None:
         try:
-            _node_id=int(file("/etc/planetlab/node_id").read())
+            _node_id = int(file("/etc/planetlab/node_id").read())
         except:
-            _node_id=""
+            _node_id = ""
     return _node_id
 
-_root_context_arch=None
+_root_context_arch = None
 def root_context_arch():
     global _root_context_arch
     if not _root_context_arch:
-        sp=subprocess.Popen(["uname","-i"],stdout=subprocess.PIPE)
-        (_root_context_arch,_)=sp.communicate()
-        _root_context_arch=_root_context_arch.strip()
+        sp = subprocess.Popen(["uname", "-i"], stdout=subprocess.PIPE)
+        (_root_context_arch, _) = sp.communicate()
+        _root_context_arch = _root_context_arch.strip()
     return _root_context_arch
 
 
 ####################
 class NMLock:
     def __init__(self, file):
-        logger.log("tools: Lock %s initialized." % file, 2)
+        logger.log("tools: Lock {} initialized.".format(file), 2)
         self.fd = os.open(file, os.O_RDWR|os.O_CREAT, 0600)
         flags = fcntl.fcntl(self.fd, fcntl.F_GETFD)
         flags |= fcntl.FD_CLOEXEC
@@ -222,11 +222,11 @@ def get_sliver_process(slice_name, process_cmdline):
     the process. If the process is not found then (None, None) is returned.
     """
     try:
-        cmd = 'grep %s /proc/*/cgroup | grep freezer'%slice_name
+        cmd = 'grep {} /proc/*/cgroup | grep freezer'.format(slice_name)
         output = os.popen(cmd).readlines()
     except:
         # the slice couldn't be found
-        logger.log("get_sliver_process: couldn't find slice %s" % slice_name)
+        logger.log("get_sliver_process: couldn't find slice {}".format(slice_name))
         return (None, None)
 
     cgroup_fn = None
@@ -246,8 +246,8 @@ def get_sliver_process(slice_name, process_cmdline):
             # /proc/1253/cgroup:6:freezer:/machine.slice/machine-lxc\x2del_sirius.scope
             # Further documentation on:
             # https://libvirt.org/cgroups.html#systemdScope
-            virt=get_node_virt()
-            if virt=='lxc':
+            virt = get_node_virt()
+            if virt == 'lxc':
                 # This is for Fedora 20 or later
                 regexf20orlater = re.compile(r'machine-lxc\\x2d(.+).scope')
                 isf20orlater = regexf20orlater.search(slice_name_check)
@@ -260,7 +260,8 @@ def get_sliver_process(slice_name, process_cmdline):
             if (slice_name_check == slice_name):
                 slice_path = path
                 pid = slice_path.split('/')[2]
-                cmdline = open('/proc/%s/cmdline'%pid).read().rstrip('\n\x00')
+                with open('/proc/{}/cmdline'.format(pid)) as cmdfile:
+                    cmdline = cmdfile.read().rstrip('\n\x00')
                 if (cmdline == process_cmdline):
                     cgroup_fn = slice_path
                     break
@@ -268,7 +269,8 @@ def get_sliver_process(slice_name, process_cmdline):
             break
 
     if (not cgroup_fn) or (not pid):
-        logger.log("get_sliver_process: process %s not running in slice %s" % (process_cmdline, slice_name))
+        logger.log("get_sliver_process: process {} not running in slice {}"
+                   .format(process_cmdline, slice_name))
         return (None, None)
 
     return (cgroup_fn, pid)
@@ -315,7 +317,7 @@ def get_sliver_ifconfig(slice_name, device="eth0"):
     if (not cgroup_fn) or (not pid):
         return None
 
-    path = '/proc/%s/ns/net'%pid
+    path = '/proc/{}/ns/net'.format(pid)
 
     result = None
     try:
@@ -326,7 +328,7 @@ def get_sliver_ifconfig(slice_name, device="eth0"):
         sub.wait()
 
         if (sub.returncode != 0):
-            logger.log("get_slice_ifconfig: error in ifconfig: %s" % sub.stderr.read())
+            logger.log("get_slice_ifconfig: error in ifconfig: {}".format(sub.stderr.read()))
 
         result = sub.stdout.read()
     finally:
@@ -343,7 +345,7 @@ def get_sliver_ip(slice_name):
         if "inet addr:" in line:
             # example: '          inet addr:192.168.122.189  Bcast:192.168.122.255  Mask:255.255.255.0'
             parts = line.strip().split()
-            if len(parts)>=2 and parts[1].startswith("addr:"):
+            if len(parts) >= 2 and parts[1].startswith("addr:"):
                 return parts[1].split(":")[1]
 
     return None
@@ -357,7 +359,7 @@ def get_sliver_ip(slice_name):
 def get_sliver_ipv6(slice_name):
     ifconfig = get_sliver_ifconfig(slice_name)
     if not ifconfig:
-        return None,None
+        return None, None
 
     # example: 'inet6 2001:67c:16dc:1302:5054:ff:fea7:7882  prefixlen 64  scopeid 0x0<global>'
     prog = re.compile(r'inet6\s+(.*)\s+prefixlen\s+(\d+)\s+scopeid\s+(.+)<global>')
@@ -366,8 +368,8 @@ def get_sliver_ipv6(slice_name):
         if search:
             ipv6addr = search.group(1)
             prefixlen = search.group(2)
-            return (ipv6addr,prefixlen)
-    return None,None
+            return (ipv6addr, prefixlen)
+    return None, None
 
 ###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
@@ -385,7 +387,7 @@ def is_valid_ipv6(ipv6addr):
 # either 'vs' or 'lxc'
 # also caches it in /etc/planetlab/virt for next calls
 # could be promoted to core nm if need be
-virt_stamp="/etc/planetlab/virt"
+virt_stamp = "/etc/planetlab/virt"
 def get_node_virt ():
     try:
         return file(virt_stamp).read().strip()
@@ -393,17 +395,16 @@ def get_node_virt ():
         pass
     logger.log("Computing virt..")
     try:
-        if subprocess.call ([ 'vserver', '--help' ]) ==0: virt='vs'
-        else:                                             virt='lxc'
+        virt = 'vs' if subprocess.call ([ 'vserver', '--help' ]) == 0 else 'lxc'
     except:
         virt='lxc'
-    with file(virt_stamp,"w") as f:
+    with file(virt_stamp, "w") as f:
         f.write(virt)
     return virt
 
 ### this return True or False to indicate that systemctl is present on that box
 # cache result in memory as _has_systemctl
-_has_systemctl=None
+_has_systemctl = None
 def has_systemctl ():
     global _has_systemctl
     if _has_systemctl is None:
@@ -425,21 +426,24 @@ def reboot_slivers():
         try:
             # set the flag VIR_DOMAIN_REBOOT_INITCTL, which uses "initctl"
             result = domain.reboot(0x04)
-            if result==0: logger.log("tools: REBOOT %s" % (domain.name()) )
+            if result == 0:
+                logger.log("tools: REBOOT {}".format(domain.name()) )
             else:
                 raise Exception()
         except Exception, e:
-            logger.log("tools: FAILED to reboot %s (%s)" % (domain.name(), e) )
-            logger.log("tools: Trying to DESTROY/CREATE %s instead..." % (domain.name()) )
+            logger.log("tools: FAILED to reboot {} ({})".format(domain.name(), e) )
+            logger.log("tools: Trying to DESTROY/CREATE {} instead...".format(domain.name()) )
             try:
                 result = domain.destroy()
-                if result==0: logger.log("tools: DESTROYED %s" % (domain.name()) )
-                else: logger.log("tools: FAILED in the DESTROY call of %s" % (domain.name()) )
+                if result==0:
+                    logger.log("tools: DESTROYED {}".format(domain.name()) )
+                else: logger.log("tools: FAILED in the DESTROY call of {}".format(domain.name()) )
                 result = domain.create()
-                if result==0: logger.log("tools: CREATED %s" % (domain.name()) )
-                else: logger.log("tools: FAILED in the CREATE call of %s" % (domain.name()) )
+                if result==0:
+                    logger.log("tools: CREATED {}".format(domain.name()) )
+                else: logger.log("tools: FAILED in the CREATE call of {}".format(domain.name()) )
             except Exception, e:
-                logger.log("tools: FAILED to DESTROY/CREATE %s (%s)" % (domain.name(), e) )
+                logger.log("tools: FAILED to DESTROY/CREATE {} ({})".format(domain.name(), e) )
 
 ###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
@@ -460,12 +464,12 @@ def get_hosts_file_path(slicename):
 ###################################################
 def search_ipv6addr_hosts(slicename, ipv6addr):
     hostsFilePath = get_hosts_file_path(slicename)
-    found=False
+    found = False
     try:
-        for line in fileinput.input(r'%s' % (hostsFilePath)):
+        for line in fileinput.input(r'{}'.format(hostsFilePath)):
             if ipv6addr is not None:
-                if re.search(r'%s' % (ipv6addr), line):
-                    found=True
+                if re.search(r'{}'.format(ipv6addr), line):
+                    found = True
             else:
                 search = re.search(r'^(.*)\s+.*$', line)
                 if search:
@@ -473,12 +477,12 @@ def search_ipv6addr_hosts(slicename, ipv6addr):
                     ipv6candidatestrip = ipv6candidate.strip()
                     valid = is_valid_ipv6(ipv6candidatestrip)
                     if valid:
-                        found=True
+                        found = True
         fileinput.close()
         return found
     except:
-        logger.log("tools: FAILED to search %s in /etc/hosts file of slice=%s" % \
-                   (ipv6addr, slicename) )
+        logger.log("tools: FAILED to search {} in /etc/hosts file of slice={}"
+                   .format(ipv6addr, slicename))
 
 ###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
@@ -489,8 +493,8 @@ def search_ipv6addr_hosts(slicename, ipv6addr):
 def remove_all_ipv6addr_hosts(slicename, node):
     hostsFilePath = get_hosts_file_path(slicename)
     try:
-        for line in fileinput.input(r'%s' % (hostsFilePath), inplace=True):
-            search = re.search(r'^(.*)\s+(%s|%s)$' % (node,'localhost'), line)
+        for line in fileinput.input(r'{}'.format(hostsFilePath), inplace=True):
+            search = re.search(r'^(.*)\s+({}|{})$'.format(node, 'localhost'), line)
             if search:
                 ipv6candidate = search.group(1)
                 ipv6candidatestrip = ipv6candidate.strip()
@@ -498,11 +502,11 @@ def remove_all_ipv6addr_hosts(slicename, node):
                 if not valid:
                     print line,
         fileinput.close()
-        logger.log("tools: REMOVED IPv6 address from /etc/hosts file of slice=%s" % \
-                   (slicename) )
+        logger.log("tools: REMOVED IPv6 address from /etc/hosts file of slice={}"
+                   .format(slicename) )
     except:
-        logger.log("tools: FAILED to remove the IPv6 address from /etc/hosts file of slice=%s" % \
-                   (slicename) )
+        logger.log("tools: FAILED to remove the IPv6 address from /etc/hosts file of slice={}"
+                   .format(slicename) )
 
 ###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
@@ -511,7 +515,7 @@ def remove_all_ipv6addr_hosts(slicename, node):
 ###################################################
 def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
     hostsFilePath = get_hosts_file_path(slicename)
-    logger.log("tools: %s" % (hostsFilePath) )
+    logger.log("tools: {}".format(hostsFilePath) )
     # debugging purposes:
     #string = "127.0.0.1\tlocalhost\n192.168.100.179\tmyplc-node1-vm.mgmt.local\n"
     #string = "127.0.0.1\tlocalhost\n"
@@ -519,11 +523,11 @@ def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
         with open(hostsFilePath, "a") as file:
             file.write(ipv6addr + " " + node + "\n")
             file.close()
-        logger.log("tools: ADDED IPv6 address to /etc/hosts file of slice=%s" % \
-                   (slicename) )
+        logger.log("tools: ADDED IPv6 address to /etc/hosts file of slice={}"
+                   .format(slicename) )
     except:
-        logger.log("tools: FAILED to add the IPv6 address to /etc/hosts file of slice=%s" % \
-                   (slicename) )
+        logger.log("tools: FAILED to add the IPv6 address to /etc/hosts file of slice={}"
+                   .format(slicename) )
 
 
 
@@ -537,10 +541,10 @@ def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
 # which, OK, is no big deal as long as the command is simple enough,
 # but do not stretch it with arguments that have spaces or need quoting as that will become a nightmare
 def command_in_slice (slicename, argv):
-    virt=get_node_virt()
-    if virt=='vs':
+    virt = get_node_virt()
+    if virt == 'vs':
         return [ 'vserver', slicename, 'exec', ] + argv
-    elif virt=='lxc':
+    elif virt == 'lxc':
         # wrap up argv in a single string for -c
         return [ 'lxcsu', slicename, ] + [ " ".join(argv) ]
     logger.log("command_in_slice: WARNING: could not find a valid virt")
@@ -549,9 +553,9 @@ def command_in_slice (slicename, argv):
 ####################
 def init_signals ():
     def handler (signum, frame):
-        logger.log("Received signal %d - exiting"%signum)
+        logger.log("Received signal {} - exiting".format(signum))
         os._exit(1)
-    signal.signal(signal.SIGHUP,handler)
-    signal.signal(signal.SIGQUIT,handler)
-    signal.signal(signal.SIGINT,handler)
-    signal.signal(signal.SIGTERM,handler)
+    signal.signal(signal.SIGHUP, handler)
+    signal.signal(signal.SIGQUIT, handler)
+    signal.signal(signal.SIGINT, handler)
+    signal.signal(signal.SIGTERM, handler)

@@ -49,7 +49,7 @@ class Sliver_Libvirt(Account):
 
     def __init__(self, rec):
         self.name = rec['name']
-        logger.verbose ('sliver_libvirt: %s init'%(self.name))
+        logger.verbose ('sliver_libvirt: {} init'.format(self.name))
 
         # Assume the directory with the image and config files
         # are in place
@@ -65,8 +65,8 @@ class Sliver_Libvirt(Account):
         try:
             dom = self.conn.lookupByName(self.name)
         except:
-            logger.log('sliver_libvirt: Domain %s does not exist. ' \
-                       'Will try to create it again.' % (self.name))
+            logger.log('sliver_libvirt: Domain {} does not exist. ' \
+                       'Will try to create it again.'.format(self.name))
             self.__class__.create(rec['name'], rec)
             dom = self.conn.lookupByName(self.name)
         self.dom = dom
@@ -74,15 +74,17 @@ class Sliver_Libvirt(Account):
     @staticmethod
     def dom_details (dom):
         output = ""
-        output += " id=%s - OSType=%s"%(dom.ID(), dom.OSType())
+        output += " id={} - OSType={}".format(dom.ID(), dom.OSType())
         # calling state() seems to be working fine
         (state, reason) = dom.state()
-        output += " state=%s, reason=%s"%(STATES.get(state, state),REASONS.get(reason, reason))
+        output += " state={}, reason={}".format(STATES.get(state, state),
+                                                REASONS.get(reason, reason))
         try:
             # try to use info() - this however does not work for some reason on f20
             # info cannot get info operation failed: Cannot read cputime for domain
             [state, maxmem, mem, ncpu, cputime] = dom.info()
-            output += " [info: maxmem = %s, mem = %s, ncpu = %s, cputime = %s]" % (STATES.get(state, state), maxmem, mem, ncpu, cputime)
+            output += " [info: state={}, maxmem = {}, mem = {}, ncpu = {}, cputime = {}]"\
+                      .format(STATES.get(state, state), maxmem, mem, ncpu, cputime)
         except:
             # too bad but libvirt.py prints out stuff on stdout when this fails, don't know how to get rid of that..
             output += " [info: not available]"
@@ -90,7 +92,7 @@ class Sliver_Libvirt(Account):
 
     def __repr__(self):
         ''' Helper method to get a "nice" output of the domain struct for debug purposes'''
-        output = "Domain %s"%self.name
+        output = "Domain {}".format(self.name)
         dom = self.dom
         if dom is None: 
             output += " [no attached dom ?!?]"
@@ -102,7 +104,9 @@ class Sliver_Libvirt(Account):
     # copy of the sliver XML config; I feel like issuing a virsh dumpxml first might be safer
     def repair_veth(self):
         # See workaround email, 2-14-2014, "libvirt 1.2.1 rollout"
-        xml = open("/etc/libvirt/lxc/%s.xml" % self.name).read()
+        xmlfilename = "/etc/libvirt/lxc/{}.xml".format(self.name)
+        with open(xmlfilename) as xmlfile:
+            xml = xmlfile.read()
         veths = re.findall("<target dev='veth[0-9]*'/>", xml)
         veths = [x[13:-3] for x in veths]
         for veth in veths:
@@ -110,12 +114,12 @@ class Sliver_Libvirt(Account):
             logger.log_call(command)
 
         logger.log("trying to redefine the VM")
-        command = ["virsh", "define", "/etc/libvirt/lxc/%s.xml" % self.name]
+        command = [ "virsh", "define", xmlfilename ]
         logger.log_call(command)
 
     def start(self, delay=0):
         '''Just start the sliver'''
-        logger.verbose('sliver_libvirt: %s start'%(self.name))
+        logger.verbose('sliver_libvirt: {} start'.format(self.name))
 
         # Check if it's running to avoid throwing an exception if the
         # domain was already running
@@ -127,27 +131,27 @@ class Sliver_Libvirt(Account):
                 # XXX smbaker: attempt to resolve slivers that are stuck in
                 #   "failed to allocate free veth".
                 if "ailed to allocate free veth" in str(e):
-                     logger.log("failed to allocate free veth on %s" % self.name)
+                     logger.log("failed to allocate free veth on {}".format(self.name))
                      self.repair_veth()
                      logger.log("trying dom.create again")
                      self.dom.create()
                 else:
                     raise
         else:
-            logger.verbose('sliver_libvirt: sliver %s already started'%(self.name))
+            logger.verbose('sliver_libvirt: sliver {} already started'.format(self.name))
 
         # After the VM is started... we can play with the virtual interface
         # Create the ebtables rule to mark the packets going out from the virtual
         # interface to the actual device so the filter canmatch against the mark
-        bwlimit.ebtables("-A INPUT -i veth%d -j mark --set-mark %d" % \
-            (self.xid, self.xid))
+        bwlimit.ebtables("-A INPUT -i veth{} -j mark --set-mark {}"
+                         .format(self.xid, self.xid))
 
     def stop(self):
-        logger.verbose('sliver_libvirt: %s stop'%(self.name))
+        logger.verbose('sliver_libvirt: {} stop'.format(self.name))
 
         # Remove the ebtables rule before stopping 
-        bwlimit.ebtables("-D INPUT -i veth%d -j mark --set-mark %d" % \
-            (self.xid, self.xid))
+        bwlimit.ebtables("-D INPUT -i veth{} -j mark --set-mark {}"
+                         .format(self.xid, self.xid))
 
         try:
             self.dom.destroy()
@@ -158,7 +162,8 @@ class Sliver_Libvirt(Account):
         ''' Return True if the domain is running '''
         (state, _) = self.dom.state()
         result = (state == libvirt.VIR_DOMAIN_RUNNING)
-        logger.verbose('sliver_libvirt.is_running: %s => %s'%(self, result))
+        logger.verbose('sliver_libvirt.is_running: {} => {}'
+                       .format(self, result))
         return result
 
     def configure(self, rec):
@@ -166,7 +171,7 @@ class Sliver_Libvirt(Account):
         #sliver.[LXC/QEMU] tolower case
         #sliver_type = rec['type'].split('.')[1].lower() 
 
-        #BASE_DIR = '/cgroup/libvirt/%s/%s/'%(sliver_type, self.name)
+        #BASE_DIR = '/cgroup/libvirt/{}/{}/'.format(sliver_type, self.name)
 
         # Disk allocation
         # No way through cgroups... figure out how to do that with user/dir quotas.
@@ -181,7 +186,8 @@ class Sliver_Libvirt(Account):
                 # If configure is called before start, then the cgroups won't exist
                 # yet. NM will eventually re-run configure on the next iteration.
                 # TODO: Add a post-start configure, and move this stuff there
-                logger.log("Configure: postponing tag check on %s as cgroups are not yet populated" % self.name)
+                logger.log("Configure: postponing tag check on {} as cgroups are not yet populated"
+                           .format(self.name))
             else:
                 tags = rec["rspec"]["tags"]
                 # It will depend on the FS selection
@@ -214,7 +220,7 @@ class Sliver_Libvirt(Account):
 
     @staticmethod
     def get_unique_vif():
-        return 'veth%s' % random.getrandbits(32)
+        return 'veth{}'.format(random.getrandbits(32))
 
     # A placeholder until we get true VirtualInterface objects
     @staticmethod
@@ -222,9 +228,9 @@ class Sliver_Libvirt(Account):
         xml = """
     <interface type='network'>
       <source network='default'/>
-      <target dev='%s'/>
+      <target dev='{}'/>
     </interface>
-""" % (Sliver_Libvirt.get_unique_vif())
+""".format(Sliver_Libvirt.get_unique_vif())
         try:
             tags = rec['rspec']['tags']
             if 'interface' in tags:
@@ -235,31 +241,31 @@ class Sliver_Libvirt(Account):
                 tag_xml = ""
                 for interface in interfaces:
                     if 'vlan' in interface:
-                        vlanxml = "<vlan><tag id='%s'/></vlan>" % interface['vlan']
+                        vlanxml = "<vlan><tag id='{}'/></vlan>".format(interface['vlan'])
                     else:
                         vlanxml = ""
                     if 'bridge' in interface:
                         tag_xml = tag_xml + """
         <interface type='bridge'>
-          <source bridge='%s'/>
-          %s
+          <source bridge='{}'/>
+          {}
           <virtualport type='openvswitch'/>
-          <target dev='%s'/>
+          <target dev='{}'/>
         </interface>
-    """ % (interface['bridge'], vlanxml, Sliver_Libvirt.get_unique_vif())
+    """.format(interface['bridge'], vlanxml, Sliver_Libvirt.get_unique_vif())
                     else:
                         tag_xml = tag_xml + """
         <interface type='network'>
           <source network='default'/>
-          <target dev='%s'/>
+          <target dev='{}'/>
         </interface>
-    """ % (Sliver_Libvirt.get_unique_vif())
+    """.format(Sliver_Libvirt.get_unique_vif())
 
                 xml = tag_xml
-                logger.log('sliver_libvirty.py: interface XML is: %s' % xml)
+                logger.log('sliver_libvirty.py: interface XML is: {}'.format(xml))
 
         except:
-            logger.log('sliver_libvirt.py: ERROR parsing "interface" tag for slice %s' % rec['name'])
-            logger.log('sliver_libvirt.py: tag value: %s' % tags['interface'])
+            logger.log('sliver_libvirt.py: ERROR parsing "interface" tag for slice {}'.format(rec['name']))
+            logger.log('sliver_libvirt.py: tag value: {}'.format(tags['interface']))
 
         return xml
