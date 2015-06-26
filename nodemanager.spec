@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 16
+%define taglevel 17
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -250,6 +250,12 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Fri Jun 26 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-17
+- first step towards auto slice-reimaging
+- slices that would be reimaged because of a change of slicefamily are
+- identified in the nodemanager's log
+- might have fixed fd leaks (use context managers whenever possible)
+
 * Fri Apr 03 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-16
 - initscript plugin reviewed
 - turn off the initscript machinery completely on hosts that run f>=20
