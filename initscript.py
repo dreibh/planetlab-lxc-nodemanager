@@ -55,13 +55,14 @@ class Initscript:
         enable_link = "/vservers/%s/etc/rc.d/rc3.d/S99vinit" % self.name
         enable_target = "../init.d/vinit"
         # install in sliver
-        code = file(vinit_source).read()
+        with open(vinit_source) as f:
+            code = f.read()
         if tools.replace_file_with_string(vinit_script, code, chmod=0755):
             logger.log("Initscript: %s: installed generic vinit rc script" % self.name)
         # create symlink for runlevel 3
         if not os.path.islink(enable_link):
             try:
-                logger.log("Initscript: %s: creating runlevel3 symlink %s" % (self.name,enable_link))
+                logger.log("Initscript: %s: creating runlevel3 symlink %s" % (self.name, enable_link))
                 os.symlink(enable_target, enable_link)
             except:
                 logger.log_exc("Initscript failed to create runlevel3 symlink %s" % enable_link, name=self.name)
@@ -94,7 +95,8 @@ class Initscript:
         enable_link = "/vservers/%s/etc/systemd/system/multi-user.target.wants/vinit.service" % self.name
         enable_target = "/usr/lib/systemd/system/vinit.service"
         # install in sliver
-        code = file(vinit_source).read()
+        with open(vinit_source) as f:
+            code = f.read()
         if tools.replace_file_with_string(vinit_unit_file, code, chmod=0755):
             logger.log("Initscript: %s: installed vinit.service unit file" % self.name)
         # create symlink for enabling this unit
@@ -103,4 +105,4 @@ class Initscript:
                 logger.log("Initscript: %s: creating enabling symlink %s" % (self.name, enable_link))
                 os.symlink(enable_target, enable_link)
             except:
-                logger.log_exc("Initscript failed to create enabling symlink %s" % enable_link,name=name)
+                logger.log_exc("Initscript failed to create enabling symlink %s" % enable_link, name=name)

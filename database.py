@@ -143,7 +143,7 @@ It may be necessary in the future to do something smarter."""
             # we still need the other ones to be handled
             try:
                 sliver = account.get(name)
-                logger.verbose("database: sync : looping on %s (shell account class from pwd %s)" %(name,sliver._get_class()))
+                logger.verbose("database: sync : looping on %s (shell account class from pwd %s)" %(name, sliver._get_class()))
                 # Make sure we refresh accounts that are running
                 if rec['instantiation'] == 'plc-instantiated':
                     logger.verbose ("database: sync : ensure_create'ing 'instantiation' sliver %s"%name)
@@ -161,7 +161,7 @@ It may be necessary in the future to do something smarter."""
             except SystemExit as e:
                 sys.exit(e)
             except:
-                logger.log_exc("database: sync failed to handle sliver",name=name)
+                logger.log_exc("database: sync failed to handle sliver", name=name)
 
         # Wake up bwmom to update limits.
         bwmon.lock.set()

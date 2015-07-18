@@ -24,7 +24,7 @@ class OvsException (Exception) :
 def start():
     logger.log('private bridge plugin starting up...')
 
-def log_call_read(command,timeout=logger.default_timeout_minutes*60,poll=1):
+def log_call_read(command, timeout=logger.default_timeout_minutes*60, poll=1):
     message=" ".join(command)
     logger.log("log_call: running command %s" % message)
     logger.verbose("log_call: timeout=%r s" % timeout)
@@ -37,7 +37,7 @@ def log_call_read(command,timeout=logger.default_timeout_minutes*60,poll=1):
         stdout = ""
         while True:
             # see if anything can be read within the poll interval
-            (r,w,x)=select.select([child.stdout],[],[],poll)
+            (r, w, x)=select.select([child.stdout], [], [], poll)
             if r: stdout = stdout + child.stdout.read(1)
             # is process over ?
             returncode=child.poll()
@@ -52,16 +52,16 @@ def log_call_read(command,timeout=logger.default_timeout_minutes*60,poll=1):
                     return (returncode, stdout)
                 # child has failed
                 else:
-                    log("log_call:end command (%s) returned with code %d" %(message,returncode))
+                    log("log_call:end command (%s) returned with code %d" %(message, returncode))
                     return (returncode, stdout)
             # no : still within timeout ?
             if time.time() >= trigger:
                 child.terminate()
-                logger.log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message,timeout))
+                logger.log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message, timeout))
                 return (-2, None)
                 break
     except Exception as e:
-        logger.log_exc("failed to run command %s -> %s" % (message,e))
+        logger.log_exc("failed to run command %s -> %s" % (message, e))
 
     return (-1, None)
 
@@ -87,7 +87,7 @@ def ovs_listbridge():
     return stdout.split()
 
 def ovs_addbridge(name):
-    (returncode, stdout) = ovs_vsctl(["add-br",name])
+    (returncode, stdout) = ovs_vsctl(["add-br", name])
     if (returncode != 0): raise OvsException("add-br")
 
 def ovs_listports(name):
@@ -96,7 +96,7 @@ def ovs_listports(name):
     return stdout.split()
 
 def ovs_delbridge(name):
-    (returncode, stdout) = ovs_vsctl(["del-br",name])
+    (returncode, stdout) = ovs_vsctl(["del-br", name])
     if (returncode != 0): raise OvsException("del-br")
 
 def ovs_addport(name, portname, type, remoteip, key):
@@ -110,7 +110,7 @@ def ovs_addport(name, portname, type, remoteip, key):
     if (returncode != 0): raise OvsException("add-port")
 
 def ovs_delport(name, portname):
-    (returncode, stdout) = ovs_vsctl(["del-port",name,portname])
+    (returncode, stdout) = ovs_vsctl(["del-port", name, portname])
     if (returncode != 0): raise OvsException("del-port")
 
 def ensure_slicebridge_created(name, addr):
@@ -171,7 +171,7 @@ def GetSlivers(data, conf = None, plc = None):
     node_id = tools.node_id()
 
     if 'slivers' not in data:
-        logger.log_missing_data("privatebridge.GetSlivers",'slivers')
+        logger.log_missing_data("privatebridge.GetSlivers", 'slivers')
         return
 
     valid_bridges = []
@@ -183,7 +183,7 @@ def GetSlivers(data, conf = None, plc = None):
         for attribute in sliver['attributes']:
             attributes[attribute['tagname']] = attribute['value']
 
-        bridge_name = attributes.get('slice_bridge_name',None)
+        bridge_name = attributes.get('slice_bridge_name', None)
         if bridge_name:
             configure_slicebridge(sliver, attributes)
             valid_bridges.append(bridge_name)

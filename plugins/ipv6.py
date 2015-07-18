@@ -193,7 +193,7 @@ interface virbr0
 
 };
 """ % locals()
-    with open(radvd_conf_file,'w') as f:
+    with open(radvd_conf_file, 'w') as f:
         f.write(configRadvd)
     kill_radvd()
     start_radvd()
@@ -250,7 +250,7 @@ def GetSlivers(data, config, plc):
                             valid_prefix = False
                     else:
                         valid_prefix = False
-                    #logger.log("ipv6: '%s'=%s" % (sliversipv6prefixtag,ipv6addr) )
+                    #logger.log("ipv6: '%s'=%s" % (sliversipv6prefixtag, ipv6addr) )
                     valid_ipv6 = tools.is_valid_ipv6(ipv6addr)
                     if not(valid_ipv6):
                         logger.log("ipv6: the 'sliversipv6prefix' tag presented a non-valid IPv6 address!")
@@ -277,7 +277,7 @@ def GetSlivers(data, config, plc):
                                     tools.reboot_slivers()
                             else:
                                 logger.log("ipv6: starting to redefine the virtual network...")
-                                #network_elem = buildLibvirtDefaultNetConfig(dom,ipv6addr,prefix)
+                                #network_elem = buildLibvirtDefaultNetConfig(dom, ipv6addr, prefix)
                                 network_elem = add_ipv6(dom, ipv6addr, prefix)
                                 set_up(networkLibvirt, connLibvirt, network_elem, ipv6addr, prefix)
                                 logger.log("ipv6: trying to reboot the slivers...")

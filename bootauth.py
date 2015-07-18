@@ -45,12 +45,14 @@ def main():
             config = Config(optval)
         elif opt == "-n" or opt == "--node" or opt == "--nodeid" or opt == "--node-id" or opt == "--node_id":
             if os.path.exists(optval):
-                node_id = file(optval).read().strip()
+                with open(optval) as optfile:
+                    node_id = optfile.read().strip()
             else:
                 node_id = int(optval)
         elif opt == "-k" or opt == "--key":
             if os.path.exists(optval):
-                key = file(optval).read().strip()
+                with open(optval) as optfile:
+                    key = optfile.read().strip()
             else:
                 key = optval
         else:

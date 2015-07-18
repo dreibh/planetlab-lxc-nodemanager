@@ -30,7 +30,7 @@ SUFFIX = "# ----- End -----"
 def GetSlivers(data, config=None, plc=None):
 
     if 'slivers' not in data:
-        logger.log_missing_data("hostmap.GetSlivers",'slivers')
+        logger.log_missing_data("hostmap.GetSlivers", 'slivers')
         return
 
     if 'hostname' not in data:
@@ -48,7 +48,8 @@ def GetSlivers(data, config=None, plc=None):
                 if not os.path.exists(fn):
                     continue
 
-                contents = file(fn,"r").read()
+                with open(fn) as f:
+                    contents = f.read()
 
                 hostmap = []
                 for index, entry in enumerate(tag["value"].split("\n")):
@@ -84,7 +85,8 @@ def GetSlivers(data, config=None, plc=None):
                     contents = contents + hostmap
 
                 try:
-                    file(fn, "w").write(contents)
+                    with open(fn, "w") as f:
+                        f.write(contents)
                 except:
                     logger.log_exc("hostmap (%s): failed to write %s" % (slicename, fn))
 

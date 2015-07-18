@@ -33,31 +33,31 @@ def get_unused_devices():
         in_vg.extend(map(lambda x: x.replace("!", "/"),
                          os.listdir("/sys/block/%s/slaves" % i)))
     # Read the list of partitions
-    partitions = file("/proc/partitions", "r")
-    pat = re.compile("\s+")
-    while True:
-        buf = partitions.readline()
-        if buf == "":
-            break
-        buf = buf.strip()
-        fields = re.split(pat, buf)
-        dev = fields[-1]
-        if (not dev.startswith("dm-") and dev not in in_vg and
-            os.path.exists("/dev/%s" % dev) and
-            (os.minor(os.stat("/dev/%s" % dev).st_rdev) % 2) != 0):
-            devices.append("/dev/%s" % dev)
+    with open("/proc/partitions") as partitions:
+        pat = re.compile("\s+")
+        while True:
+            buf = partitions.readline()
+            if buf == "":
+                break
+            buf = buf.strip()
+            fields = re.split(pat, buf)
+            dev = fields[-1]
+            if (not dev.startswith("dm-") and dev not in in_vg and
+                os.path.exists("/dev/%s" % dev) and
+                (os.minor(os.stat("/dev/%s" % dev).st_rdev) % 2) != 0):
+                devices.append("/dev/%s" % dev)
     partitions.close()
     return devices
 
 def GetSlivers(data, config=None, plc=None):
     if 'slivers' not in data:
-        logger.log_missing_data("rawdisk.GetSlivers",'slivers')
+        logger.log_missing_data("rawdisk.GetSlivers", 'slivers')
         return
 
     devices = get_unused_devices()
     for sliver in data['slivers']:
         for attribute in sliver['attributes']:
-            name = attribute.get('tagname',attribute.get('name',''))
+            name = attribute.get('tagname', attribute.get('name', ''))
             if name == 'rawdisk':
                 for i in devices:
                     st = os.stat(i)

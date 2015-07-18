@@ -69,24 +69,24 @@ def log_trace(msg="", name=None):
 # for some reason the various modules are still triggered even when the
 # data from PLC cannot be reached
 # we show this message instead of the exception stack instead in this case
-def log_missing_data(msg,key):
-    log("%s: could not find the %s key in data (PLC connection down?) - IGNORED"%(msg,key))
+def log_missing_data(msg, key):
+    log("%s: could not find the %s key in data (PLC connection down?) - IGNORED"%(msg, key))
 
-def log_data_in_file(data, file, message="",level=LOG_NODE):
+def log_data_in_file(data, file, message="", level=LOG_NODE):
     if level > LOG_LEVEL:
         return
     import pprint, time
     try:
-        f=open(file,'w')
-        now=time.strftime("Last update: %Y.%m.%d at %H:%M:%S %Z", time.localtime())
-        f.write(now+'\n')
-        if message: f.write('Message:'+message+'\n')
-        pp=pprint.PrettyPrinter(stream=f,indent=2)
-        pp.pprint(data)
-        f.close()
-        verbose("logger:.log_data_in_file Owerwrote %s"%file)
+        with open(file, 'w') as f:
+            now=time.strftime("Last update: %Y.%m.%d at %H:%M:%S %Z", time.localtime())
+            f.write(now+'\n')
+            if message: f.write('Message:'+message+'\n')
+            pp=pprint.PrettyPrinter(stream=f, indent=2)
+            pp.pprint(data)
+            f.close()
+            verbose("logger:.log_data_in_file Owerwrote %s"%file)
     except:
-        log_exc('logger.log_data_in_file failed - file=%s - message=%r'%(file,message))
+        log_exc('logger.log_data_in_file failed - file=%s - message=%r'%(file, message))
 
 def log_slivers(data):
     log_data_in_file(data, LOG_SLIVERS, "raw GetSlivers")
@@ -102,7 +102,7 @@ class Buffer:
         self.buffer = ''
         self.message = message
 
-    def add(self,c):
+    def add(self, c):
         self.buffer += c
         if c=='\n':
             self.flush()
@@ -144,13 +144,13 @@ def log_call(command, timeout=default_timeout_minutes*60, poll=1):
                     break
                 # child has failed
                 else:
-                    log("log_call:end command (%s) returned with code %d" %(message,returncode))
+                    log("log_call:end command (%s) returned with code %d" %(message, returncode))
                     break
             # no : still within timeout ?
             if time.time() >= trigger:
                 buffer.flush()
                 child.terminate()
-                log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message,timeout))
+                log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message, timeout))
                 break
     except:
         log_exc("failed to run command %s" % message)

@@ -482,8 +482,8 @@ def sync(nmdbcopy):
         period, \
         default_MaxRate, \
         default_Maxi2Rate, \
-        default_MaxKByte,\
-        default_Maxi2KByte,\
+        default_MaxKByte, \
+        default_Maxi2KByte, \
         default_Share, \
         dev_default
 
@@ -656,7 +656,7 @@ def sync(nmdbcopy):
             # Update byte counts
             slice.update(kernelhtbs[xid], live[xid]['_rspec'])
 
-    logger.verbose("bwmon: Saving %s slices in %s" % (slices.keys().__len__(),DB_FILE))
+    logger.verbose("bwmon: Saving %s slices in %s" % (slices.keys().__len__(), DB_FILE))
     f = open(DB_FILE, "w")
     pickle.dump((version, slices, deaddb), f)
     f.close()
