@@ -126,7 +126,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         if not os.path.isdir(refImgDir):
             logger.log('sliver_lxc: {}: ERROR Could not create sliver - reference image {} not found'
                        .format(name, vref))
-            logger.log('sliver_lxc: %s: ERROR Expected reference image in {}'.format(name, refImgDir))
+            logger.log('sliver_lxc: {}: ERROR Expected reference image in {}'.format(name, refImgDir))
             return
 
 # this hopefully should be fixed now
