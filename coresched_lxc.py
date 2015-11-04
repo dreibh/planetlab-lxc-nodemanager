@@ -240,9 +240,13 @@ class CoreSched:
     def freezeUnits (self, var_name, freezeList):
         for (slicename, freeze) in freezeList.items():
             try:
-                logger.verbose("CoreSched: setting freezer for " + slicename + " to " + freeze)
                 cgroup_path = cgroups.get_cgroup_path(slicename, 'freezer')
+                logger.verbose("CoreSched: setting freezer for {} to {} - path={} var={}"
+                               .format(slicename,freeze, cgroup_path, var_name))
                 cgroup = os.path.join(cgroup_path, var_name)
+                if not cgroup:
+                    logger.log("Warning: Could not spot 'freezer' cgroup file for slice {} - ignored".format(slicename))
+                    break
 
                 if glo_coresched_simulate:
                         print "F", cgroup
