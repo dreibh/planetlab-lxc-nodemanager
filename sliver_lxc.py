@@ -273,7 +273,9 @@ unset pathmunge
         with open(pl_profile, 'w') as f:
             f.write("export PS1='{}@\H \$ '\n".format(name))
             f.write("{}\n".format(ld_preload_text))
-            f.write("export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
+            f.write("if [ -e /etc/planetlab/lib/bind_public.so ] ; then   # Only preload bind_public if it exists.\n")
+            f.write("   export LD_PRELOAD=/etc/planetlab/lib/bind_public.so\n")
+            f.write("fi\n")
             f.write("{}\n".format(usrmove_path_text))
             f.write("{}\n".format(usrmove_path_code))
 
