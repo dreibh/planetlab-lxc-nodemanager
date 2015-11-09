@@ -126,7 +126,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
         if not os.path.isdir(refImgDir):
             logger.log('sliver_lxc: {}: ERROR Could not create sliver - reference image {} not found'
                        .format(name, vref))
-            logger.log('sliver_lxc: %s: ERROR Expected reference image in {}'.format(name, refImgDir))
+            logger.log('sliver_lxc: {}: ERROR Expected reference image in {}'.format(name, refImgDir))
             return
 
 # this hopefully should be fixed now
@@ -339,13 +339,13 @@ unset pathmunge
         logger.verbose ('sliver_lxc: {} destroy'.format(name))
         conn = Sliver_Libvirt.getConnection(Sliver_LXC.TYPE)
 
-        containerDir = Sliver_LXC.CON_BASE_DIR + '/%s'%(name)
+        containerDir = os.path.join(Sliver_LXC.CON_BASE_DIR, name)
 
         try:
             # Destroy libvirt domain
             dom = conn.lookupByName(name)
         except:
-            logger.verbose('sliver_lxc.destroy: Domain %s does not exist!' % name)
+            logger.verbose('sliver_lxc.destroy: Domain {} does not exist!'.format(name))
             return
 
         # Slivers with vsys running will fail the subvolume delete
@@ -353,16 +353,16 @@ unset pathmunge
         vsys_stopped = removeSliverFromVsys (name)
 
         try:
-            logger.log("sliver_lxc.destroy: destroying domain %s"%name)
+            logger.log("sliver_lxc.destroy: destroying domain {}".format(name))
             dom.destroy()
         except:
-            logger.verbose('sliver_lxc.destroy: Domain %s not running... continuing.' % name)
+            logger.verbose("sliver_lxc.destroy: Domain {} not running... continuing.".format(name))
 
         try:
-            logger.log("sliver_lxc.destroy: undefining domain %s"%name)
+            logger.log("sliver_lxc.destroy: undefining domain {}".format(name))
             dom.undefine()
         except:
-            logger.verbose('sliver_lxc.destroy: Domain %s is not defined... continuing.' % name)
+            logger.verbose('sliver_lxc.destroy: Domain {} is not defined... continuing.'.format(name))
 
         # Remove user after destroy domain to force logout
         command = ['/usr/sbin/userdel', '-f', '-r', name]
@@ -373,7 +373,7 @@ unset pathmunge
         logger.log_call(command, timeout=BTRFS_TIMEOUT)
 
         # ???
-        logger.log("-TMP-ls-l %s"%name)
+        logger.log("-TMP-ls-l {}".format(name))
         command = ['ls', '-lR', containerDir]
         logger.log_call(command)
         logger.log("-TMP-vsys-status")
@@ -398,22 +398,22 @@ unset pathmunge
         # also lsof never shows anything relevant; this is painful..
 
         if not os.path.exists(containerDir):
-            logger.log('sliver_lxc.destroy: %s cleanly destroyed.'%name)
+            logger.log('sliver_lxc.destroy: {} cleanly destroyed.'.format(name))
         else:
             # we're in /
-            #logger.log("-TMP-cwd %s : %s"%(name, os.getcwd()))
+            #logger.log("-TMP-cwd {} : {}".format(name, os.getcwd()))
             # also lsof never shows anything relevant; this is painful..
-            #logger.log("-TMP-lsof %s"%name)
+            #logger.log("-TMP-lsof {}".format(name))
             #command = ['lsof']
             #logger.log_call(command)
-            logger.log("-TMP-ls-l %s"%name)
+            logger.log("-TMP-ls-l {}".format(name))
             command = ['ls', '-lR', containerDir]
             logger.log_call(command)
             logger.log("-TMP-lsof")
             command = ['lsof']
             logger.log_call(command)
             if os.path.exists(containerDir):
-                logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy %s - giving up'%name)
+                logger.log('sliver_lxc.destroy: ERROR could not cleanly destroy {} - giving up'.format(name))
 
         if vsys_stopped:
             vsysStartService()

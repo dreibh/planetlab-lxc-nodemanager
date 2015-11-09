@@ -82,7 +82,7 @@ def get_cgroup_path(name, subsystem="cpuset"):
     if result is None:
         name = name + ".libvirt-lxc"
         result = reduce(lambda a, b: b if name in os.path.basename(b) else a,
-                      get_cgroup_paths(subsystem), None)
+                        get_cgroup_paths(subsystem), None)
 
     return result
 
