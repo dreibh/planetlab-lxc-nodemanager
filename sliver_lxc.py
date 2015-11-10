@@ -117,8 +117,6 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
                 arch = 'i686'
 
 
-
-
         refImgDir    = os.path.join(Sliver_LXC.REF_IMG_BASE_DIR, vref)
         containerDir = os.path.join(Sliver_LXC.CON_BASE_DIR, name)
 

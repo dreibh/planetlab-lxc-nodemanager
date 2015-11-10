@@ -98,12 +98,14 @@ def write(name, key, value, subsystem="cpuset"):
     base_path = get_cgroup_path(name, subsystem)
     with open(os.path.join(base_path, key), 'w') as f:
         print >>f, value
+    logger.verbose("cgroups.write: overwrote {}".format(base_path))
 
 def append(name, key, value, subsystem="cpuset"):
     """ Appends a value to the file key with the cgroup with name """
     base_path = get_cgroup_path(name, subsystem)
     with open(os.path.join(base_path, key), 'a') as f:
         print >>f, value
+    logger.verbose("cgroups.append: appended {}".format(base_path))
 
 if __name__ == '__main__':
 
