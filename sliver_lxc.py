@@ -127,7 +127,9 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             logger.log('sliver_lxc: {}: ERROR Expected reference image in {}'.format(name, refImgDir))
             return
 
-# this hopefully should be fixed now
+# during some time this fragment had been commented out
+# but we're seeing cases where this code might actually be useful, so..
+#        this hopefully should be fixed now
 #        # in fedora20 we have some difficulty in properly cleaning up /vservers/<slicename>
 #        # also note that running e.g. btrfs subvolume create /vservers/.lvref/image /vservers/foo
 #        # behaves differently, whether /vservers/foo exists or not:
@@ -135,15 +137,15 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 #        # but if it does exist, then       it creates /vservers/foo/image !!
 #        # so we need to check the expected container rootfs does not exist yet
 #        # this hopefully could be removed in a future release
-#        if os.path.exists (containerDir):
-#            logger.log("sliver_lxc: {}: WARNING cleaning up pre-existing {}".format(name, containerDir))
-#            command = ['btrfs', 'subvolume', 'delete', containerDir]
-#            logger.log_call(command, BTRFS_TIMEOUT)
-#            # re-check
-#            if os.path.exists (containerDir):
-#                logger.log('sliver_lxc: {}: ERROR Could not create sliver - could not clean up empty {}'
-#                           .format(name, containerDir))
-#                return
+        if os.path.exists (containerDir):
+            logger.log("sliver_lxc: {}: WARNING cleaning up pre-existing {}".format(name, containerDir))
+            command = ['btrfs', 'subvolume', 'delete', containerDir]
+            logger.log_call(command, BTRFS_TIMEOUT)
+            # re-check
+            if os.path.exists (containerDir):
+                logger.log('sliver_lxc: {}: ERROR Could not create sliver - could not clean up empty {}'
+                           .format(name, containerDir))
+                return
 
         # Snapshot the reference image fs
         # this assumes the reference image is in its own subvolume
