@@ -3,52 +3,12 @@
 #
 # Xavi Leon <xleon@ac.upc.edu>
 
-import os
+import os, os.path
 import pyinotify
 import logger
 
 # Base dir for libvirt
 BASE_DIR = '/sys/fs/cgroup'
-SUB_SYSTEMS = ['blkio', 'freezer', 'devices', 'memory', 'cpu,cpuacct', 'cpuset']
-VIRT_TECHS = ['lxc']
-
-# Global cgroup mapping. 
-CGROUPS = dict()
-
-class CgroupWatch(pyinotify.ProcessEvent):
-
-    def process_IN_CREATE(self, event):
-	path = os.path.join(event.path, event.name)
-	CGROUPS[event.name] = path
-	logger.verbose("Cgroup Notify: Created cgroup %s on %s" % \
-			(event.name, event.path))
-        
-    def process_IN_DELETE(self, event):
-        try:
-	    del CGROUPS[event.name]
-        except:
-            logger.verbose("Cgroup Notify: Cgroup %s does not exist, continuing..."%event.name)
-	logger.verbose("Cgroup Notify: Deleted cgroup %s on %s" % \
-			(event.name, event.path))
-
-
-#logger.verbose("Cgroups: Recognizing already existing cgroups...")
-#for virt in VIRT_TECHS:
-#    filenames = os.listdir(os.path.join(BASE_DIR, virt))
-#    for filename in filenames:
-#        path = os.path.join(BASE_DIR, virt, filename)
-#        if os.path.isdir(path):
-#            CGROUPS[filename] = path
-
-#logger.verbose("Cgroups: Initializing watchers...")
-#wm = pyinotify.WatchManager()
-#notifier = pyinotify.ThreadedNotifier(wm, CgroupWatch())
-#for virt in VIRT_TECHS:
-#    wdd = wm.add_watch(os.path.join(BASE_DIR, virt),
-#               pyinotify.IN_DELETE | pyinotify.IN_CREATE,
-#               rec=False)
-#notifier.daemon = True
-#notifier.start()
 
 def get_cgroup_paths(subsystem="cpuset"):
     subsystem_bases = [ 
