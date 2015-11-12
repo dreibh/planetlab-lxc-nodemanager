@@ -163,7 +163,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/ticket.*
 %{_datadir}/NodeManager/tools.*
 %{_datadir}/NodeManager/plugins/__init__.*
-%{_datadir}/NodeManager/plugins/codemux.*
 %{_datadir}/NodeManager/plugins/hostmap.*
 %{_datadir}/NodeManager/plugins/interfaces.*
 %{_datadir}/NodeManager/plugins/omf_resctl.*
@@ -244,6 +243,9 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 %{_datadir}/NodeManager/coresched_vs.*
 # this plugin uses vserver for now
 %{_datadir}/NodeManager/plugins/drl.*
+# in vs only : turn off the codemux plugin in lxc for now as
+# it is responsible for the slice re-creation issue
+%{_datadir}/NodeManager/plugins/codemux.*
 
 %endif
 ##############################
