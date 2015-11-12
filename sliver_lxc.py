@@ -180,7 +180,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
                    'ssh-keygen -t rsa -N "" -f /home/{}/.ssh/id_rsa'.format(name)]
         logger.log_call(command)
 
-        command = ['chown', '-R', '{}.slices'.format(name), '/home/{}/.ssh'.format(name)]
+        command = ['chown', '-R', '{}:slices'.format(name), '/home/{}/.ssh'.format(name)]
         logger.log_call(command)
 
         command = ['mkdir', '{}/root/.ssh'.format(containerDir)]
