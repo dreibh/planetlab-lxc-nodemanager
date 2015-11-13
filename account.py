@@ -73,7 +73,8 @@ def get(name):
     try:
         if name not in name_worker: name_worker[name] = Worker(name)
         return name_worker[name]
-    finally: name_worker_lock.release()
+    finally:
+        name_worker_lock.release()
 
 
 class Account:
@@ -153,9 +154,11 @@ class Account:
     # which is a static method, they need to become static as well
     # needs to be done before sliver starts (checked with vs and lxc)
     @staticmethod
-    def mount_ssh_dir (slicename): return Account._manage_ssh_dir (slicename, do_mount=True)
+    def mount_ssh_dir (slicename):
+        return Account._manage_ssh_dir (slicename, do_mount=True)
     @staticmethod
-    def umount_ssh_dir (slicename): return Account._manage_ssh_dir (slicename, do_mount=False)
+    def umount_ssh_dir (slicename):
+        return Account._manage_ssh_dir (slicename, do_mount=False)
 
     # bind mount / umount root side dir to sliver side
     @staticmethod
@@ -225,7 +228,8 @@ class Worker:
                 # this sliver has the lease, it is safe to start it
                 if not self.is_running():
                     self.start(rec)
-                else: self.configure(rec)
+                else:
+                    self.configure(rec)
             else:
                 # not having the lease, do not start it
                 self.configure(rec)
@@ -266,20 +270,28 @@ class Worker:
         else:
             account_needs_reimage = self._acct.needs_reimage(target_slicefamily)
             if account_needs_reimage:
-                logger.log("Worker.needs_reimage ({}) - account needs reimage (tmp: DRY RUN)".format(self.name))
+                logger.log("Worker.needs_reimage ({}) - account needs reimage (tmp: DRY RUN)"
+                           .format(self.name))
             else:
-                logger.verbose("Worker.needs_reimage ({}) - everything fine".format(self.name))
+                logger.verbose("Worker.needs_reimage ({}) - everything fine"
+                               .format(self.name))
             return account_needs_reimage
     
     def _destroy(self, curr_class):
         self._acct = None
         if curr_class:
             destroy_sem.acquire()
-            try: curr_class.destroy(self.name)
-            finally: destroy_sem.release()
+            try:
+                logger.verbose("account._destroy is callling destroy from {}"
+                               .format(curr_class.__name__))
+                curr_class.destroy(self.name)
+            finally:
+                destroy_sem.release()
 
     def _get_class(self):
-        try: shell = pwd.getpwnam(self.name)[6]
-        except KeyError: return None
+        try:
+            shell = pwd.getpwnam(self.name)[6]
+        except KeyError:
+            return None
         return shell_acct_class[shell]
 

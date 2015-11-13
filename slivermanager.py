@@ -35,10 +35,12 @@ except:
         exit(1)
 
 # just being safe
-try : from plnode.bwlimit import bwmin, bwmax
-except: bwmin, bwmax = 8, 1000*1000*1000
+try:
+    from plnode.bwlimit import bwmin, bwmax
+except:
+    bwmin, bwmax = 8, 1000*1000*1000
 
-priority=10
+priority = 10
 
 
 DEFAULT_ALLOCATION = {
@@ -136,9 +138,12 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     node_id = None
     try:
         f = open('/etc/planetlab/node_id')
-        try: node_id = int(f.read())
-        finally: f.close()
-    except: logger.log_exc("slivermanager: GetSlivers failed to read /etc/planetlab/node_id")
+        try:
+            node_id = int(f.read())
+        finally:
+            f.close()
+    except:
+        logger.log_exc("slivermanager: GetSlivers failed to read /etc/planetlab/node_id")
 
     if data.has_key('node_id') and data['node_id'] != node_id: return
 
@@ -186,7 +191,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         # if tag 'initscript_code' is set, that's what we use
         iscode = attributes.get('initscript_code', '')
         if iscode:
-            rec['initscript']=iscode
+            rec['initscript'] = iscode
         else:
             isname = attributes.get('initscript')
             if isname is not None and isname in iscripts_hash:
@@ -213,10 +218,11 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
                 rspec[key] = attributes[key]
 
         # also export tags in rspec so they make it to the sliver_vs.start call
-        rspec['tags']=attributes
+        rspec['tags'] = attributes
 
         database.db.deliver_record(rec)
-    if fullupdate: database.db.set_min_timestamp(data['timestamp'])
+    if fullupdate:
+        database.db.set_min_timestamp(data['timestamp'])
     # slivers are created here.
     database.db.sync()
 

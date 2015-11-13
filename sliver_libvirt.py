@@ -182,6 +182,7 @@ class Sliver_Libvirt(Account):
         bwlimit.ebtables("-A INPUT -i veth{} -j mark --set-mark {}"
                          .format(self.xid, self.xid))
 
+    ### this is confusing, because it seems it is not used in fact
     def stop(self):
         logger.verbose('sliver_libvirt: {} stop'.format(self.name))
 
