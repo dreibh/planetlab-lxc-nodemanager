@@ -1,4 +1,15 @@
-"""Codemux configurator.  Monitors slice attributes and configures CoDemux to mux port 80 based on HOST field in HTTP request.  Forwards to localhost port belonging to configured slice."""
+"""
+Codemux configurator.
+Monitors slice attributes and configures CoDemux to mux port 80 based on HOST field in HTTP request.
+Forwards to localhost port belonging to configured slice.
+"""
+
+# NOTE
+# in November 2015 it was established that this plugin is the culprit
+# for our long standing slice re-creation issue
+# for this reason this is now turned off on lxc-based hosts
+# as per the spec file this plugin gets packaged as part of
+# nodemanager-vs and not nodemanager-lib anymore
 
 import logger
 import os
@@ -29,8 +40,10 @@ def GetSlivers(data, config, plc = None):
     codemuxslices = {}
 
     # XXX Hack for planetflow
-    if slicesinconf.has_key("root"): _writeconf = False
-    else: _writeconf = True
+    if slicesinconf.has_key("root"):
+        _writeconf = False
+    else:
+        _writeconf = True
 
     # Parse attributes and update dict of scripts
     if 'slivers' not in data:
@@ -41,8 +54,9 @@ def GetSlivers(data, config, plc = None):
             if attribute['tagname'] == 'codemux':
                 # add to conf.  Attribute is [host, port]
                 parts = attribute['value'].split(",")
-                if len(parts)<2:
-                    logger.log("codemux: attribute value (%s) for codemux not separated by comma. Skipping."%attribute['value'])
+                if len(parts) < 2:
+                    logger.log("codemux: attribute value (%s) for codemux not separated by comma. Skipping."
+                               %attribute['value'])
                     continue
                 if len(parts) == 3:
                     ip = parts[2]
@@ -65,7 +79,7 @@ def GetSlivers(data, config, plc = None):
                         codemuxslices.setdefault(sliver['name'], [])
                         codemuxslices[sliver['name']].append(params)
                 except:
-                    logger.log("codemux:  sliver %s not running yet.  Deferring."\
+                    logger.log("codemux:  sliver %s not running yet.  Deferring."
                                 % sliver['name'])
                     pass
 
@@ -76,7 +90,8 @@ def GetSlivers(data, config, plc = None):
             logger.log("codemux:  Removing %s" % deadslice)
             _writeconf = True
 
-    if _writeconf:  writeConf(sortDomains(codemuxslices))
+    if _writeconf:
+        writeConf(sortDomains(codemuxslices))
     # ensure the service is running
     startService()
 
@@ -97,8 +112,10 @@ def writeConf(slivers, conf = CODEMUXCONF):
             f.write("%s %s %s %s\n" % (host, params['slice'], params['port'], params['ip']))
     f.truncate()
     f.close()
-    try:  restartService()
-    except:  logger.log_exc("codemux.writeConf failed to restart service")
+    try:
+        restartService()
+    except:
+        logger.log_exc("codemux.writeConf failed to restart service")
 
 
 def sortDomains(slivers):
@@ -114,7 +131,8 @@ def sortDomains(slivers):
     hosts.reverse()
     # make list of slivers
     sortedslices = []
-    for host in hosts: sortedslices.append({host: dnames[host]})
+    for host in hosts:
+        sortedslices.append({host: dnames[host]})
 
     return sortedslices
 

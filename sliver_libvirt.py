@@ -41,11 +41,33 @@ class Sliver_Libvirt(Account):
 
     @staticmethod
     def getConnection(sliver_type):
-        # TODO: error checking
-        # vtype is of the form sliver.[LXC/QEMU] we need to lower case to lxc/qemu
+        """
+        returns a connection to the underlying libvirt service
+        a single connection is created and shared among slivers
+        this call ensures the connection is alive
+        and will reconnect if it appears to be necessary
+        """
+        # sliver_type comes from rec['type'] and is of the form sliver.{LXC,QEMU}
+        # so we need to lower case to lxc/qemu
         vtype = sliver_type.split('.')[1].lower()
-        uri = vtype + '://'
-        return connections.setdefault(uri, libvirt.open(uri))
+        uri = vtype + ':///'
+        if uri not in connections:
+            # create connection
+            conn = libvirt.open(uri)
+            connections[uri] = conn
+            return conn
+        else:
+            # connection already available : check for health
+            conn = connections[uri]
+            # see if a reconnection is needed
+            try:
+                numDomains = conn.numOfDomains()
+            except:
+                logger.log("libvirt connection to {} looks broken - reconnecting".format(uri))
+                conn = libvirt.open(uri)
+                # if this fails then an expection is thrown outside of this function
+                numDomains = conn.numOfDomains()
+            return conn
 
     def __init__(self, rec):
         self.name = rec['name']
@@ -160,6 +182,7 @@ class Sliver_Libvirt(Account):
         bwlimit.ebtables("-A INPUT -i veth{} -j mark --set-mark {}"
                          .format(self.xid, self.xid))
 
+    ### this is confusing, because it seems it is not used in fact
     def stop(self):
         logger.verbose('sliver_libvirt: {} stop'.format(self.name))
 

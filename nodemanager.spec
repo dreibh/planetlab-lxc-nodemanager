@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 17
+%define taglevel 18
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -163,7 +163,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/ticket.*
 %{_datadir}/NodeManager/tools.*
 %{_datadir}/NodeManager/plugins/__init__.*
-%{_datadir}/NodeManager/plugins/codemux.*
 %{_datadir}/NodeManager/plugins/hostmap.*
 %{_datadir}/NodeManager/plugins/interfaces.*
 %{_datadir}/NodeManager/plugins/omf_resctl.*
@@ -244,12 +243,21 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 %{_datadir}/NodeManager/coresched_vs.*
 # this plugin uses vserver for now
 %{_datadir}/NodeManager/plugins/drl.*
+# in vs only : turn off the codemux plugin in lxc for now as
+# it is responsible for the slice re-creation issue
+%{_datadir}/NodeManager/plugins/codemux.*
 
 %endif
 ##############################
 
 ##############################
 %changelog
+* Fri Nov 13 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-18
+- remove codemux plugin from lxc - was causing slice re-creation issue
+- has reconnect capabilities to libvirt deamon
+- reinstate code from a previous version, that deals with btrfs cleaning up
+- cleaned up cgroups.py
+
 * Fri Jun 26 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-17
 - first step towards auto slice-reimaging
 - slices that would be reimaged because of a change of slicefamily are
