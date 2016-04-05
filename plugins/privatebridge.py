@@ -72,7 +72,7 @@ def log_call_read(command, timeout=logger.default_timeout_minutes*60, poll=1):
 def ovs_available ():
     "return True if ovs-vsctl can be run"
     try:
-        child = subprocess.Popen (['ovs-ovsctl', '--help'])
+        child = subprocess.Popen (['ovs-vsctl', '--help'])
         child.communicate()
         return True
     except:
