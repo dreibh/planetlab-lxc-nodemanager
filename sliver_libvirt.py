@@ -24,12 +24,33 @@ STATES = {
     libvirt.VIR_DOMAIN_CRASHED:  'crashed',
 }
 
-REASONS = {
-    libvirt.VIR_CONNECT_CLOSE_REASON_ERROR: 'Misc I/O error',
-    libvirt.VIR_CONNECT_CLOSE_REASON_EOF: 'End-of-file from server',
-    libvirt.VIR_CONNECT_CLOSE_REASON_KEEPALIVE: 'Keepalive timer triggered',
-    libvirt.VIR_CONNECT_CLOSE_REASON_CLIENT: 'Client requested it',
-}
+# with fedora24 and (broken) libvirt-python-1.3.3-3,
+# the following symbols are not available
+# kashyap on IRC reported that libvirt-python-1.3.5-1.fc24.x86_64
+# did not have the issue though
+try:
+    REASONS = {
+        # 0
+        libvirt.VIR_CONNECT_CLOSE_REASON_ERROR: 'Misc I/O error',
+        # 1
+        libvirt.VIR_CONNECT_CLOSE_REASON_EOF: 'End-of-file from server',
+        # 2
+        libvirt.VIR_CONNECT_CLOSE_REASON_KEEPALIVE: 'Keepalive timer triggered',
+        # 3
+        libvirt.VIR_CONNECT_CLOSE_REASON_CLIENT: 'Client requested it',
+    }
+except:
+    REASONS = {
+        # libvirt.VIR_CONNECT_CLOSE_REASON_ERROR
+        0 : 'Misc I/O error',
+        # libvirt.VIR_CONNECT_CLOSE_REASON_EOF
+        1 : 'End-of-file from server',
+        # libvirt.VIR_CONNECT_CLOSE_REASON_KEEPALIVE
+        2 : 'Keepalive timer triggered',
+        # libvirt.VIR_CONNECT_CLOSE_REASON_CLIENT
+        3 : 'Client requested it',
+    }
+    logger.log("WARNING : using hard-wired constants instead of symbolic names for CONNECT_CLOSE*")
 
 connections = dict()
 
