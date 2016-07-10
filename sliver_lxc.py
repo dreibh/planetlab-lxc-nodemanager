@@ -92,7 +92,7 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
 
         vref = rec['vref']
         if vref is None:
-            vref = "lxc-f18-x86_64"
+            vref = "lxc-f24-x86_64"
             logger.log("sliver_libvirt: {}: WARNING - no vref attached, using hard-wired default {}"
                        .format(name, vref))
 

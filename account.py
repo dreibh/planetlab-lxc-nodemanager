@@ -71,7 +71,8 @@ def get(name):
     """
     name_worker_lock.acquire()
     try:
-        if name not in name_worker: name_worker[name] = Worker(name)
+        if name not in name_worker:
+            name_worker[name] = Worker(name)
         return name_worker[name]
     finally:
         name_worker_lock.release()
@@ -100,7 +101,8 @@ class Account:
         Write <rec['keys']> to my authorized_keys file.
         """
         new_keys = rec['keys']
-        logger.verbose('account: configuring {} with {} keys'.format(self.name, len(new_keys)))
+        nb_keys = len(new_keys) if isinstance(new_keys, list) else 1
+        logger.verbose('account: configuring {} with {} keys'.format(self.name, nb_keys))
         if new_keys != self.keys:
             # get the unix account info
             gid = grp.getgrnam("slices")[2]
@@ -163,7 +165,9 @@ class Account:
     # bind mount / umount root side dir to sliver side
     @staticmethod
     def _manage_ssh_dir (slicename, do_mount):
-        logger.log("_manage_ssh_dir, requested to "+("mount" if do_mount else "umount")+" ssh dir for "+ slicename)
+        logger.log("_manage_ssh_dir, requested to " +
+                   ( "mount" if do_mount else "umount" ) +
+                   " ssh dir for "+ slicename)
         try:
             root_ssh = "/home/{}/.ssh".format(slicename)
             sliver_ssh = "/vservers/{}/home/{}/.ssh".format(slicename, slicename)
@@ -193,8 +197,8 @@ class Account:
                     msg = "OK" if umounted else "WARNING: FAILED"
                     logger.log("_manage_ssh_dir: umounted {} - {}"
                                .format(sliver_ssh, msg))
-        except:
-            logger.log_exc("_manage_ssh_dir failed", name=slicename)
+        except Exception as e:
+            logger.log_exc("_manage_ssh_dir failed : {}".format(e), name=slicename)
 
 class Worker:
 
