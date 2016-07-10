@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 18
+%define taglevel 19
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -252,6 +252,11 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Sun Jul 10 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-19
+- tweak to run against libvirt-python-1.3.3 under f24
+- fix by Thomas Dreibholz - misspelled ovs-ovsctl
+- default vrf is f24 - not that it matters much
+
 * Fri Nov 13 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-18
 - remove codemux plugin from lxc - was causing slice re-creation issue
 - has reconnect capabilities to libvirt deamon
