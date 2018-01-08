@@ -208,6 +208,11 @@ class Sliver_Libvirt(Account):
         if not result:
             logger.log('unable to apply SCTP checksum bug work-around for %s' % self.name)
 
+        # TD: Work-around for missing interface configuration: ensure that networking service is running.
+        result = logger.log_call(['/usr/sbin/lxcsu', '-r', self.name, '/sbin/service', 'network', 'restart'])
+        if not result:
+            logger.log('unable to restart networking service for %s' % self.name)
+
     ### this is confusing, because it seems it is not used in fact
     def stop(self):
         logger.verbose('sliver_libvirt: {} stop'.format(self.name))
