@@ -203,6 +203,11 @@ class Sliver_Libvirt(Account):
         bwlimit.ebtables("-A INPUT -i veth{} -j mark --set-mark {}"
                          .format(self.xid, self.xid))
 
+        # TD: Turn off SCTP checksum offloading. It is currently not working. FIXME: check for a kernel fix!
+        result = logger.log_call(['/usr/sbin/lxcsu', '-r', self.name, '--', '/usr/sbin/ethtool', '-K', 'eth0', 'tx-checksum-sctp', 'off'])
+        if not result:
+            logger.log('unable to apply SCTP checksum bug work-around for %s' % self.name)
+
     ### this is confusing, because it seems it is not used in fact
     def stop(self):
         logger.verbose('sliver_libvirt: {} stop'.format(self.name))
