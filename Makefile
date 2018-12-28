@@ -12,6 +12,8 @@ bindir := /usr/bin
 initdir=/etc/rc.d/init.d
 systemddir := /usr/lib/systemd/system
 
+PYTHON = python3
+
 # call with either WITH_SYSTEMD=true or WITH_INIT=true
 # otherwise we try to guess some reasonable default
 ifeq "$(WITH_INIT)$(WITH_SYSTEMD)" ""
@@ -23,7 +25,7 @@ endif
 endif
 ####################
 all: forward_api_calls
-	python setup.py build
+	$(PYTHON) setup.py build
 
 forward_api_calls: forward_api_calls.c
 	$(CC) -Wall -Os -o $@ $?
@@ -31,18 +33,18 @@ forward_api_calls: forward_api_calls.c
 
 #################### install
 install: install-miscell install-startup
-	python setup.py install \
+	$(PYTHON) setup.py install \
 		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-scripts=$(DESTDIR)/$(bindir)
 
 # might be better in setup.py ?
 # NOTE: the sliver-initscripts/ and sliver-systemd stuff, being, well, for slivers,
-# need to ship on all nodes regardless of WITH_INIT and WITH_SYSTEMD that 
+# need to ship on all nodes regardless of WITH_INIT and WITH_SYSTEMD that
 # impacts how nodemanager itself gets started
 install-miscell:
 	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
-	install -D -m 644 /dev/null $(DESTDIR)/etc/sysconfig/nodemanager 
+	install -D -m 644 /dev/null $(DESTDIR)/etc/sysconfig/nodemanager
 	install -D -m 444 README $(DESTDIR)/$(datadir)/NodeManager/README
 	install -D -m 644 logrotate/nodemanager $(DESTDIR)/etc/logrotate.d/nodemanager
 	mkdir -p $(DESTDIR)/$(datadir)/NodeManager/sliver-initscripts
@@ -71,39 +73,10 @@ install-systemd:
 
 #################### clean
 clean:
-	python setup.py clean
+	$(PYTHON) setup.py clean
 	rm -f forward_api_calls *.pyc build
 
 .PHONY: all install clean
-
-#################### debian-related
-# This is called from the build with the following variables set 
-# (see build/Makefile and target_debian)
-# (.) RPMTARBALL
-# (.) RPMVERSION
-# (.) RPMRELEASE
-# (.) RPMNAME
-DEBVERSION=$(RPMVERSION).$(RPMRELEASE)
-DEBTARBALL=../$(RPMNAME)_$(DEBVERSION).orig.tar.bz2
-DATE=$(shell date -u +"%a, %d %b %Y %T")
-force:
-
-debian: DESTDIR=debian/tmp
-debian: forward_api_calls install debian/changelog debian.source debian.package
-
-debian/changelog: debian/changelog.in
-	sed -e "s|@VERSION@|$(DEBVERSION)|" -e "s|@DATE@|$(DATE)|" debian/changelog.in > debian/changelog
-
-debian.source: force 
-	rsync -a $(RPMTARBALL) $(DEBTARBALL)
-
-debian.package:
-	debuild --set-envvar PREFIX=/usr -uc -us -b
-
-debian.clean:
-	$(MAKE) -f debian/rules clean
-	rm -rf build/ MANIFEST ../*.tar.gz ../*.dsc ../*.build
-	find . -name '*.pyc' -delete
 
 ################################################## devel-oriented
 tags:
@@ -125,7 +98,7 @@ tags:
 # and then just run
 # $ make sync
 
-LOCAL_RSYNC_EXCLUDES	:= --exclude '*.pyc' 
+LOCAL_RSYNC_EXCLUDES	:= --exclude '*.pyc'
 RSYNC_EXCLUDES		:= --exclude .git  --exclude .svn --exclude '*~' --exclude TAGS $(LOCAL_RSYNC_EXCLUDES)
 RSYNC_COND_DRY_RUN	:= $(if $(findstring n,$(MAKEFLAGS)),--dry-run,)
 RSYNC			:= rsync -e "ssh -i $(NODE).key.rsa" -a -v $(RSYNC_COND_DRY_RUN) $(RSYNC_EXCLUDES)

@@ -13,16 +13,10 @@
 %define _unpackaged_files_terminate_build      0
 
 ##############################
-# use initscripts or systemd unit files to start installed services
-%if "%{distro}" == "Fedora" && "%{distrorelease}" >= "18"
+# only systemd unit files to start installed services
 %define make_options WITH_SYSTEMD=true
-%define initdir /usr/lib/systemd/system
+%define systemddir /usr/lib/systemd/system
 %define build_lxc 1
-%else
-%define make_options WITH_INIT=true
-%define initdir %{_initrddir}
-%define build_vs 1
-%endif
 
 ##############################
 Summary: PlanetLab Node Manager Library
@@ -43,14 +37,12 @@ URL: %{SCMURL}
 #BuildArch: noarch
 
 # make sure we can invoke systemctl in post install script
-%if "%{initdir}" != "%{_initrddir}"
 Requires: systemd
-%endif
 
 # Uses function decorators
-Requires: python >= 2.7
+Requires: python3
 # connecting PLC
-Requires: python-pycurl
+Requires: python3-pycurl
 # Signed tickets
 Requires: gnupg
 # sioc/plnet
@@ -84,22 +76,6 @@ rm -rf $RPM_BUILD_ROOT
 
 ##############################
 %post
-########## traditional init
-%if "%{initdir}" == "%{_initrddir}"
-##########
-chkconfig --add conf_files
-chkconfig conf_files on
-chkconfig --add nm
-chkconfig nm on
-chkconfig --add fuse-pl
-chkconfig fuse-pl on
-if [ "$PL_BOOTCD" != "1" ] ; then
-    service nm restart
-    service fuse-pl restart
-fi
-##########
-%else
-########## systemd
 systemctl enable nm.service
 systemctl enable conf_files.service
 # empty
@@ -108,33 +84,15 @@ if [ "$PL_BOOTCD" != "1" ] ; then
     systemctl restart nm.service
 #    systemctl restart fuse-pl.service
 fi
-##########
-%endif
 
 ##############################
 %preun
 # 0 = erase, 1 = upgrade
-########## traditional init
-%if "%{initdir}" == "%{_initrddir}"
-##########
-if [ $1 -eq 0 ] ; then
-    chkconfig fuse-pl off
-    chkconfig --del fuse-pl
-    chkconfig nm off
-    chkconfig --del nm
-    chkconfig conf_files off
-    chkconfig --del conf_files
-fi
-##########
-%else
-########## systemd
 if [ $1 -eq 0 ] ; then
 #    systemctl disable fuse-pl.service
     systemctl disable conf_files.service
     systemctl disable nm.service
 fi
-##########
-%endif
 
 ##############################
 %clean
@@ -179,7 +137,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/NodeManager/sliver-initscripts/
 %{_datadir}/NodeManager/sliver-systemd/
 %{_bindir}/forward_api_calls
-%{initdir}/
+%{systemddir}/
 %{_sysconfdir}/logrotate.d/nodemanager
 /var/lib/nodemanager/
 %config(noreplace) /etc/sysconfig/nodemanager
@@ -192,9 +150,9 @@ Summary: PlanetLab Node Manager Plugin for lxc nodes
 Group: System Environment/Daemons
 # we use libvirt
 Requires: libvirt
-Requires: libvirt-python
+Requires: python3-libvirt
 # cgroups.py needs this
-Requires: python-inotify
+Requires: python3-inotify
 # the common package for nodemanager
 Requires: nodemanager-lib = %{version}
 # the lxc-specific tools for using slice images
@@ -223,7 +181,7 @@ Group: System Environment/Daemons
 
 # old name, when all came as a single package with vserver wired in
 Obsoletes: NodeManager
-# for nodeupdate 
+# for nodeupdate
 Provides: nodemanager
 
 # our interface to the vserver patch
@@ -700,5 +658,5 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 * Wed Oct 03 2007 Faiyaz Ahmed <faiyaza@cs.princeton.edu> .
 - Switched to SVN.
 
-* Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> - 
+* Mon Nov 13 2006 Mark Huang <mlhuang@paris.CS.Princeton.EDU> -
 - Initial build.
