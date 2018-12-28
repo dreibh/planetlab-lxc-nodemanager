@@ -11,7 +11,7 @@
 
 import optparse
 import time
-import xmlrpclib
+import xmlrpc.client
 import socket
 import os
 import sys
@@ -198,11 +198,11 @@ class NodeManager:
             try:
                 other_pid = tools.pid_file()
                 if other_pid != None:
-                    print """There might be another instance of the node manager running as pid {}.
-If this is not the case, please remove the pid file {}. -- exiting""".format(other_pid, tools.PID_FILE)
+                    print("""There might be another instance of the node manager running as pid {}.
+If this is not the case, please remove the pid file {}. -- exiting""".format(other_pid, tools.PID_FILE))
                     return
-            except OSError, err:
-                print "Warning while writing PID file:", err
+            except OSError as err:
+                print("Warning while writing PID file:", err)
 
             # load modules
             self.loaded_modules = []

@@ -125,9 +125,9 @@ class Account:
             tools.write_file(auth_keys, lambda f: f.write(new_keys))
 
             # set access permissions and ownership properly
-            os.chmod(dot_ssh, 0700)
+            os.chmod(dot_ssh, 0o700)
             os.chown(dot_ssh, uid, gid)
-            os.chmod(auth_keys, 0600)
+            os.chmod(auth_keys, 0o600)
             os.chown(auth_keys, uid, gid)
 
             # set self.keys to new_keys only when all of the above ops succeed

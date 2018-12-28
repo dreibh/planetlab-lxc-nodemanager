@@ -11,7 +11,7 @@ def api_methods():
     for func in dir(api_calls):
         try:
             f = api_calls.__getattribute__(func)
-            if 'group' in f.__dict__.keys():
+            if 'group' in list(f.__dict__.keys()):
                 api_function_list += [api_calls.__getattribute__(func)]
         except:
             pass

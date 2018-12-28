@@ -132,7 +132,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     slivers."""
 
     logger.verbose("slivermanager: Entering GetSlivers with fullupdate=%r"%fullupdate)
-    for key in data.keys():
+    for key in list(data.keys()):
         logger.verbose('slivermanager: GetSlivers key : ' + key)
 
     node_id = None
@@ -145,9 +145,9 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
     except:
         logger.log_exc("slivermanager: GetSlivers failed to read /etc/planetlab/node_id")
 
-    if data.has_key('node_id') and data['node_id'] != node_id: return
+    if 'node_id' in data and data['node_id'] != node_id: return
 
-    if data.has_key('networks'):
+    if 'networks' in data:
         for network in data['networks']:
             if network['is_primary'] and network['bwlimit'] is not None:
                 DEFAULT_ALLOCATION['net_max_rate'] = network['bwlimit'] / 1000
@@ -205,7 +205,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
         # extract the implied rspec
         rspec = {}
         rec['rspec'] = rspec
-        for resname, default_amount in DEFAULT_ALLOCATION.iteritems():
+        for resname, default_amount in DEFAULT_ALLOCATION.items():
             try:
                 t = type(default_amount)
                 amount = t.__new__(t, attributes[resname])
@@ -213,7 +213,7 @@ def GetSlivers(data, config = None, plc=None, fullupdate=True):
             rspec[resname] = amount
 
         # add in sysctl attributes into the rspec
-        for key in attributes.keys():
+        for key in list(attributes.keys()):
             if key.find("sysctl.") == 0:
                 rspec[key] = attributes[key]
 
@@ -233,7 +233,7 @@ def start():
     # No default allocation values for LXC yet, think if its necessary given
     # that they are also default allocation values in this module
     if implementation == 'vs':
-        for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.iteritems():
+        for resname, default_amount in sliver_vs.DEFAULT_ALLOCATION.items():
             DEFAULT_ALLOCATION[resname]=default_amount
 
     account.register_class(sliver_class_to_register)

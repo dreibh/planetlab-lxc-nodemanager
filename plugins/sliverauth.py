@@ -88,7 +88,7 @@ def manage_hmac (plc, sliver):
     if not hmac:
         # let python do its thing 
         random.seed()
-        d = [random.choice(string.letters) for x in xrange(32)]
+        d = [random.choice(string.letters) for x in range(32)]
         hmac = "".join(d)
         SetSliverTag(plc, sliver['name'], 'hmac', hmac)
         logger.log("sliverauth: %s: setting hmac" % sliver['name'])
@@ -96,7 +96,7 @@ def manage_hmac (plc, sliver):
     path = '/vservers/%s/etc/planetlab' % sliver['name']
     if os.path.exists(path):
         keyfile = '%s/key' % path
-        if (tools.replace_file_with_string(keyfile, hmac, chmod=0400)):
+        if (tools.replace_file_with_string(keyfile, hmac, chmod=0o400)):
             logger.log ("sliverauth: (over)wrote hmac into %s " % keyfile)
 
 # create the key if needed and returns the key contents
@@ -110,12 +110,12 @@ def generate_sshkey (sliver):
     dotssh=os.path.dirname(keyfile)
     # create dir if needed
     if not os.path.isdir (dotssh):
-        os.mkdir (dotssh, 0700)
+        os.mkdir (dotssh, 0o700)
         logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), dotssh ] )
     if not os.path.isfile(pubfile):
         comment="%s@%s"%(sliver['name'], socket.gethostname())
         logger.log_call( [ 'ssh-keygen', '-t', 'rsa', '-N', '', '-f', keyfile , '-C', comment] )
-        os.chmod (keyfile, 0400)
+        os.chmod (keyfile, 0o400)
         logger.log_call ( [ 'chown', "%s:slices"%(sliver['name']), keyfile, pubfile ] )
     with open(pubfile) as f:
         return f.read().strip()
@@ -127,6 +127,6 @@ def manage_sshkey (plc, sliver):
     # if it's lost b/c e.g. the sliver was destroyed we cannot save the tags content
     ssh_key = generate_sshkey(sliver)
     old_tag = find_tag (sliver, 'ssh_key')
-    if ssh_key <> old_tag:
+    if ssh_key != old_tag:
         SetSliverTag(plc, sliver['name'], 'ssh_key', ssh_key)
         logger.log ("sliverauth: %s: setting ssh_key" % sliver['name'])

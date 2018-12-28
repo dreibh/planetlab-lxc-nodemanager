@@ -156,7 +156,7 @@ class CoreSched:
 
         # allocate the cores to the slivers that have them reserved
         # TODO: Need to sort this from biggest cpu_cores to smallest
-        for name, rec in slivers.iteritems():
+        for name, rec in slivers.items():
             rspec = rec["_rspec"]
             cores = rspec.get(self.slice_attr_name, 0)
             (cores, bestEffort) = self.decodeCoreSpec(cores)
@@ -194,7 +194,7 @@ class CoreSched:
 
         # now check and see if any of our slices had the besteffort flag
         # set
-        for name, rec in slivers.iteritems():
+        for name, rec in slivers.items():
             rspec = rec["_rspec"]
             cores = rspec.get(self.slice_attr_name, 0)
             (cores, bestEffort) = self.decodeCoreSpec(cores)
@@ -240,7 +240,7 @@ class CoreSched:
                 cpus = default
 
             if glo_coresched_simulate:
-                print "R", "/dev/cgroup/" + cgroup + "/" + var_name, self.listToRange(cpus)
+                print("R", "/dev/cgroup/" + cgroup + "/" + var_name, self.listToRange(cpus))
             else:
                 with opwn("/dev/cgroup/{}/{}".format(cgroup, var_name), "w") as f:
                     f.write( self.listToRange(cpus) + "\n" )
@@ -250,7 +250,7 @@ class CoreSched:
             os.makedirs("/etc/vservers/.defaults/cgroup")
 
         if glo_coresched_simulate:
-            print "RDEF", "/etc/vservers/.defaults/cgroup/" + var_name, self.listToRange(cpus)
+            print("RDEF", "/etc/vservers/.defaults/cgroup/" + var_name, self.listToRange(cpus))
         else:
             with open("/etc/vservers/.defaults/cgroup/{}".format(var_name), "w") as f:
                 f.write( self.listToRange(cpus) + "\n" )
@@ -350,17 +350,17 @@ if __name__=="__main__":
 
     x = CoreSched()
 
-    print "cgroups:", ",".join(x.get_cgroups())
+    print("cgroups:", ",".join(x.get_cgroups()))
 
-    print "cpus:", x.listToRange(x.get_cpus())
-    print "sibling map:"
+    print("cpus:", x.listToRange(x.get_cpus()))
+    print("sibling map:")
     for item in x.get_cpus():
-        print " ", item, ",".join([str(y) for y in x.cpu_siblings.get(item, [])])
+        print(" ", item, ",".join([str(y) for y in x.cpu_siblings.get(item, [])]))
 
-    print "mems:", x.listToRange(x.get_mems())
-    print "cpu to memory map:"
+    print("mems:", x.listToRange(x.get_mems()))
+    print("cpu to memory map:")
     for item in x.get_mems():
-        print " ", item, ",".join([str(y) for y in x.mems_map.get(item, [])])
+        print(" ", item, ",".join([str(y) for y in x.mems_map.get(item, [])]))
 
     rspec_sl_test1 = {"cpu_cores": "1"}
     rec_sl_test1 = {"_rspec": rspec_sl_test1}

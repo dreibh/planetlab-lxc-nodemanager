@@ -34,7 +34,7 @@ def log(msg, level=LOG_NODE):
     if level > LOG_LEVEL:
         return
     try:
-        fd = os.open(LOG_FILE, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0600)
+        fd = os.open(LOG_FILE, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
         if not msg.endswith('\n'):
             msg += '\n'
         os.write(fd, '%s: %s' % (time.asctime(time.gmtime()), msg))

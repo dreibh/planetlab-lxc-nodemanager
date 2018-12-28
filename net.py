@@ -59,7 +59,7 @@ def InitNodeLimit(data):
 
     # query running network interfaces
     devs = sioc.gifconf()
-    ips = dict(zip(devs.values(), devs.keys()))
+    ips = dict(list(zip(list(devs.values()), list(devs.keys()))))
     macs = {}
     for dev in devs:
         macs[sioc.gifhwaddr(dev).lower()] = dev
@@ -68,7 +68,7 @@ def InitNodeLimit(data):
         # Get interface name preferably from MAC address, falling
         # back on IP address.
         hwaddr=interface['mac']
-        if hwaddr <> None: hwaddr=hwaddr.lower()
+        if hwaddr != None: hwaddr=hwaddr.lower()
         if hwaddr in macs:
             dev = macs[interface['mac']]
         elif interface['ip'] in ips:
@@ -126,7 +126,7 @@ def InitNAT(plc, data):
 
     # query running network interfaces
     devs = sioc.gifconf()
-    ips = dict(zip(devs.values(), devs.keys()))
+    ips = dict(list(zip(list(devs.values()), list(devs.keys()))))
     macs = {}
     for dev in devs:
         macs[sioc.gifhwaddr(dev).lower()] = dev
@@ -136,7 +136,7 @@ def InitNAT(plc, data):
         # Get interface name preferably from MAC address, falling
         # back on IP address.
         hwaddr=interface['mac']
-        if hwaddr <> None: hwaddr=hwaddr.lower()
+        if hwaddr != None: hwaddr=hwaddr.lower()
         if hwaddr in macs:
             dev = macs[interface['mac']]
         elif interface['ip'] in ips:

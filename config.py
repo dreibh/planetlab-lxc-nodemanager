@@ -17,9 +17,9 @@ class Config:
 
     def __init__(self, file = "/etc/planetlab/plc_config"):
         try:
-            execfile(file, self.__dict__)
+            exec(compile(open(file).read(), file, 'exec'), self.__dict__)
         except:
-            raise Exception, "Could not parse " + file
+            raise Exception("Could not parse " + file)
 
         if int(self.PLC_API_PORT) == 443:
             uri = "https://"
@@ -28,7 +28,7 @@ class Config:
             elif os.path.exists('/usr/boot/cacert.pem'):
                 self.cacert = '/usr/boot/cacert.pem'
             else:
-                raise Exception, "No boot server certificate bundle available"
+                raise Exception("No boot server certificate bundle available")
         else:
             uri = "http://"
             self.cacert = None
@@ -42,6 +42,6 @@ class Config:
 
 if __name__ == '__main__':
     from pprint import pprint
-    for (k, v) in Config().__dict__.iteritems():
+    for (k, v) in Config().__dict__.items():
         if k not in ['__builtins__']:
             pprint ( (k, v), )

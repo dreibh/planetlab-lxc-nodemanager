@@ -62,11 +62,11 @@ def daemon():
     os.setsid()
     if os.fork() != 0: os._exit(0)
     os.chdir('/')
-    os.umask(0022)
+    os.umask(0o022)
     devnull = os.open(os.devnull, os.O_RDWR)
     os.dup2(devnull, 0)
     # xxx fixme - this is just to make sure that nothing gets stupidly lost - should use devnull
-    crashlog = os.open('/var/log/nodemanager.daemon', os.O_RDWR | os.O_APPEND | os.O_CREAT, 0644)
+    crashlog = os.open('/var/log/nodemanager.daemon', os.O_RDWR | os.O_APPEND | os.O_CREAT, 0o644)
     os.dup2(crashlog, 1)
     os.dup2(crashlog, 2)
 
@@ -112,7 +112,7 @@ The return value is the pid of the other running process, or None otherwise.
         handle.close()
         # check for a process with that pid by sending signal 0
         try: os.kill(other_pid, 0)
-        except OSError, e:
+        except OSError as e:
             if e.errno == errno.ESRCH: other_pid = None  # doesn't exist
             else: raise  # who knows
     if other_pid == None:
@@ -199,7 +199,7 @@ def root_context_arch():
 class NMLock:
     def __init__(self, file):
         logger.log("tools: Lock {} initialized.".format(file), 2)
-        self.fd = os.open(file, os.O_RDWR|os.O_CREAT, 0600)
+        self.fd = os.open(file, os.O_RDWR|os.O_CREAT, 0o600)
         flags = fcntl.fcntl(self.fd, fcntl.F_GETFD)
         flags |= fcntl.FD_CLOEXEC
         fcntl.fcntl(self.fd, fcntl.F_SETFD, flags)
@@ -433,7 +433,7 @@ def reboot_slivers():
                 logger.log("tools: REBOOT {}".format(domain.name()) )
             else:
                 raise Exception()
-        except Exception, e:
+        except Exception as e:
             logger.log("tools: FAILED to reboot {} ({})".format(domain.name(), e) )
             logger.log("tools: Trying to DESTROY/CREATE {} instead...".format(domain.name()) )
             try:
@@ -445,7 +445,7 @@ def reboot_slivers():
                 if result==0:
                     logger.log("tools: CREATED {}".format(domain.name()) )
                 else: logger.log("tools: FAILED in the CREATE call of {}".format(domain.name()) )
-            except Exception, e:
+            except Exception as e:
                 logger.log("tools: FAILED to DESTROY/CREATE {} ({})".format(domain.name(), e) )
 
 ###################################################
@@ -503,7 +503,7 @@ def remove_all_ipv6addr_hosts(slicename, node):
                 ipv6candidatestrip = ipv6candidate.strip()
                 valid = is_valid_ipv6(ipv6candidatestrip)
                 if not valid:
-                    print line,
+                    print(line, end=' ')
         fileinput.close()
         logger.log("tools: REMOVED IPv6 address from /etc/hosts file of slice={}"
                    .format(slicename) )

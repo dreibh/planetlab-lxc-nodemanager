@@ -12,7 +12,7 @@ import string
 import curlwrapper
 import logger
 import tools
-import xmlrpclib
+import xmlrpc.client
 from config import Config
 
 # right after net
@@ -63,7 +63,7 @@ class conf_files:
         try:
             logger.verbose("conf_files: retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)
-        except xmlrpclib.ProtocolError as e:
+        except xmlrpc.client.ProtocolError as e:
             logger.log('conf_files: failed to retrieve %s from %s, skipping' % (dest, url))
             return
         if not cf_rec['always_update'] and sha(contents).digest() == self.checksum(dest):
@@ -78,7 +78,7 @@ class conf_files:
         if self.system(cf_rec['postinstall_cmd']): self.system(err_cmd)
 
     def run_once(self, data):
-        if data.has_key("conf_files"):
+        if "conf_files" in data:
             for f in data['conf_files']:
                 try: self.update_conf_file(f)
                 except: logger.log_exc("conf_files: failed to update conf_file")

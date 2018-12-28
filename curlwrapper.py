@@ -7,7 +7,7 @@
 
 from subprocess import PIPE, Popen
 from select import select
-import xmlrpclib
+import xmlrpc.client
 import signal
 import os
 
@@ -30,8 +30,8 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
         command += ('--connect-timeout', str(timeout))
     command += (url, )
     if verbose:
-        print 'Invoking ', command
-        if postdata: print 'with postdata=', postdata
+        print('Invoking ', command)
+        if postdata: print('with postdata=', postdata)
     p = Sopen(command , stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
     if postdata: p.stdin.write(postdata)
     p.stdin.close()
@@ -45,6 +45,6 @@ def retrieve(url, cacert=None, postdata=None, timeout=90):
     if rc != 0: 
         # when this triggers, the error sometimes doesn't get printed
         logger.log ("curlwrapper: retrieve, got stderr <%s>"%err)
-        raise xmlrpclib.ProtocolError(url, rc, err, postdata)
+        raise xmlrpc.client.ProtocolError(url, rc, err, postdata)
     else: 
         return data

@@ -2,7 +2,7 @@
 
 """ Private Bridge configurator.  """
 
-import httplib
+import http.client
 import os
 import select
 import shutil
