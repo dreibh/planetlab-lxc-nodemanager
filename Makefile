@@ -43,7 +43,7 @@ install: install-miscell install-startup
 # need to ship on all nodes regardless of WITH_INIT and WITH_SYSTEMD that
 # impacts how nodemanager itself gets started
 install-miscell:
-	install -d -m 755 forward_api_calls $(DESTDIR)/$(bindir)/forward_api_calls
+	install -D -m 755 forward_api_calls $(DESTDIR)/$(bindir)/forward_api_calls
 	install -d -m 755 $(DESTDIR)/var/lib/nodemanager
 	install -D -m 644 /dev/null $(DESTDIR)/etc/sysconfig/nodemanager
 	install -D -m 444 README $(DESTDIR)/$(datadir)/NodeManager/README
