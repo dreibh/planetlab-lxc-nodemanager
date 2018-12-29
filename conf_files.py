@@ -7,7 +7,6 @@ try:
     from hashlib import sha1 as sha
 except ImportError:
     from sha import sha
-import string
 
 import curlwrapper
 import logger
@@ -41,7 +40,7 @@ class conf_files:
         if not cf_rec['enabled']: return
         dest = cf_rec['dest']
         err_cmd = cf_rec['error_cmd']
-        mode = string.atoi(cf_rec['file_permissions'], base=8)
+        mode = int(cf_rec['file_permissions'], base=8)
         try:
             uid = pwd.getpwnam(cf_rec['file_owner'])[2]
         except:
