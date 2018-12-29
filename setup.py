@@ -55,9 +55,6 @@ setup(
         # this plugin uses vserver for now
         'plugins.drl',
         ],
-    scripts = [
-        'forward_api_calls',
-        ],
     packages =[
         ],
     )
