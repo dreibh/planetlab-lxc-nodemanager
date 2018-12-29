@@ -35,6 +35,7 @@ install: install-miscell install-startup
 		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-scripts=$(DESTDIR)/$(bindir)
+	chmod +x $(DESTDIR)/$(datadir)/NodeManager/conf_files.py
 
 # might be better in setup.py ?
 # NOTE: the sliver-initscripts/ and sliver-systemd stuff, being, well, for slivers,
