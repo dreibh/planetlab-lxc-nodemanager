@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """configuration files"""
 
 import grp
