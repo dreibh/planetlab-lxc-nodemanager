@@ -5,15 +5,12 @@
 import grp
 import os
 import pwd
-try:
-    from hashlib import sha1 as sha
-except ImportError:
-    from sha import sha
+from hashlib import sha1 as sha
+import xmlrpc.client
 
 import curlwrapper
 import logger
 import tools
-import xmlrpc.client
 from config import Config
 
 # right after net
@@ -39,7 +36,8 @@ class conf_files:
         else: return 0
 
     def update_conf_file(self, cf_rec):
-        if not cf_rec['enabled']: return
+        if not cf_rec['enabled']:
+            return
         dest = cf_rec['dest']
         err_cmd = cf_rec['error_cmd']
         mode = int(cf_rec['file_permissions'], base=8)
@@ -56,8 +54,8 @@ class conf_files:
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
         # set node_id at the end of the request - hacky
         if tools.node_id():
-            if url.find('?') >0: url += '&'
-            else:                url += '?'
+            if url.find('?') > 0: url += '&'
+            else:                 url += '?'
             url += "node_id=%d"%tools.node_id()
         else:
             logger.log('conf_files: %s -- WARNING, cannot add node_id to request'%dest)
