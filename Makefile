@@ -9,20 +9,10 @@
 # autoconf compatible variables
 datadir := /usr/share
 bindir := /usr/bin
-initdir=/etc/rc.d/init.d
 systemddir := /usr/lib/systemd/system
 
 PYTHON = python3
 
-# call with either WITH_SYSTEMD=true or WITH_INIT=true
-# otherwise we try to guess some reasonable default
-ifeq "$(WITH_INIT)$(WITH_SYSTEMD)" ""
-ifeq "$(wildcard $systemddir/*)" ""
-WITH_INIT=true
-else
-WITH_SYSTEMD=true
-endif
-endif
 ####################
 all: forward_api_calls
 	$(PYTHON) setup.py build
@@ -35,8 +25,8 @@ forward_api_calls: forward_api_calls.c
 install: install-miscell install-startup
 	$(PYTHON) setup.py install \
 		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager \
-		--install-scripts=$(DESTDIR)/$(bindir)
+		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager
+
 
 # might be better in setup.py ?
 # NOTE: the sliver-initscripts/ and sliver-systemd stuff, being, well, for slivers,
@@ -55,18 +45,7 @@ install-miscell:
 	rsync -av sliver-systemd/ $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd/
 	chmod 755 $(DESTDIR)/$(datadir)/NodeManager/sliver-systemd/
 
-# this now is for the startup of nodemanager itself
-ifneq "$(WITH_SYSTEMD)" ""
 install-startup: install-systemd
-endif
-ifneq "$(WITH_INIT)" ""
-install-startup: install-init
-endif
-
-install-init:
-	mkdir -p $(DESTDIR)$(initdir)
-	chmod 755 initscripts/*
-	rsync -av initscripts/ $(DESTDIR)$(initdir)/
 
 install-systemd:
 	mkdir -p $(DESTDIR)/$(systemddir)
@@ -127,30 +106,9 @@ else
 	@echo WARNING : this target might not be very reliable - use with care
 	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 	+$(RSYNC) $(LXC_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
-#	+$(RSYNC) ./initscripts/ $(NODEURL)/etc/init.d/
 	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
 	-$(SYNC_RESTART) && { ssh -i $(NODE).key.rsa root@$(NODE) service nm restart ; } ||:
 endif
-
-# this is for vs only, we need to exclude the lxc stuff that otherwise messes up everything on node
-# xxx keep this in sync with setup.spec
-VS_EXCLUDES= --exclude sliver_libvirt.py --exclude sliver_lxc.py --exclude cgroups.py --exclude coresched_lxc.py --exclude privatebridge.py
-
-syncvs: $(NODE).key.rsa
-ifeq (,$(NODEURL))
-	@echo "syncvs: You must define NODE on the command line"
-	@echo "  e.g. make sync NODE=vnode01.inria.fr"
-	@exit 1
-else
-	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-	@echo WARNING : this target might not be very reliable - use with care
-	@echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-	+$(RSYNC) $(VS_EXCLUDES) --delete-excluded ./ $(NODEURL)/usr/share/NodeManager/
-	+$(RSYNC) ./initscripts/ $(NODEURL)/etc/init.d/
-#	+$(RSYNC) ./systemd/ $(NODEURL)/usr/lib/systemd/system/
-	-$(SYNC_RESTART) && { ssh -i $(NODE).key.rsa root@$(NODE) service nm restart ; } ||:
-endif
-
 
 ### fetching the key
 

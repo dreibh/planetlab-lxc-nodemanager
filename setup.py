@@ -42,7 +42,7 @@ setup(
         'plugins.vsys',
         'plugins.vsys_privs',
         'plugins.ipv6',
-        'plugins.update_ipv6addr_slivertag', 
+        'plugins.update_ipv6addr_slivertag',
 # lxc
         'sliver_libvirt',
         'sliver_lxc',
@@ -54,7 +54,5 @@ setup(
         'coresched_vs',
         # this plugin uses vserver for now
         'plugins.drl',
-        ],
-    packages =[
         ],
     )
