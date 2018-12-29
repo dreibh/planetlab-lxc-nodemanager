@@ -26,6 +26,7 @@ install: install-miscell install-startup
 	$(PYTHON) setup.py install \
 		--install-purelib=$(DESTDIR)/$(datadir)/NodeManager \
 		--install-platlib=$(DESTDIR)/$(datadir)/NodeManager
+	chmod +x $(DESTDIR)/$(datadir)/NodeManager/conf_files.py
 
 
 # might be better in setup.py ?
