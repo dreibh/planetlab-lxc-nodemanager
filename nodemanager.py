@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Useful information can be found at https://svn.planet-lab.org/wiki/NodeManager
 #

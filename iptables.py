@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 #
 # Author: Daniel Hokka Zakrisson <daniel@hozac.com>
 

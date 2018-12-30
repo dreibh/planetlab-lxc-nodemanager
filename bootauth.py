@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Obtaining a node session key. Usually, the Boot
 # Manager obtains it, then writes it to /etc/planetlab/session.

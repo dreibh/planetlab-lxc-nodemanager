@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 # vim:set ts=4 sw=4 expandtab:
 #
 # NodeManager plugin to support mapping unused raw disks into a slice

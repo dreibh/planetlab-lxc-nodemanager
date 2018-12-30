@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 # vim:set ts=4 sw=4 expandtab:
 #
 # NodeManager plugin for creating credentials in slivers

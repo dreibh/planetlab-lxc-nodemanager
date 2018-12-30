@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Average bandwidth monitoring script. Run periodically via NM db.sync to
 # enforce a soft limit on daily bandwidth usage for each slice. If a
