@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """ Private Bridge configurator.  """
 
@@ -66,8 +66,8 @@ def log_call_read(command, timeout=logger.default_timeout_minutes*60, poll=1):
     return (-1, None)
 
 ### Thierry - 23 Sept 2014
-# regardless of this being shipped on lxc-only or on all nodes, 
-# it is safer to check for the availability of the ovs-vsctl command and just print 
+# regardless of this being shipped on lxc-only or on all nodes,
+# it is safer to check for the availability of the ovs-vsctl command and just print
 # out a warning when it's not there, instead of a nasty traceback
 def ovs_available ():
     "return True if ovs-vsctl can be run"
@@ -202,6 +202,3 @@ def GetSlivers(data, conf = None, plc = None):
         logger.log("privatebridge: deleting unused bridge %s" % bridge_name)
 
         ovs_delbridge(bridge_name)
-
-
-

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # PATHS to be set by the build system
 # this is in ..
@@ -11,7 +11,7 @@ def api_methods():
     for func in dir(api_calls):
         try:
             f = api_calls.__getattribute__(func)
-            if 'group' in list(f.__dict__.keys()):
+            if 'group' in f.__dict__:
                 api_function_list += [api_calls.__getattribute__(func)]
         except:
             pass
