@@ -1,7 +1,11 @@
+"""
+A very simple logger that tries to be concurrency-safe.
+"""
 
-"""A very simple logger that tries to be concurrency-safe."""
+# pylint: disable=c0111
 
-import os, sys
+import sys
+import os
 import time
 import traceback
 import subprocess
@@ -20,24 +24,26 @@ LOG_LEVEL = LOG_NODE
 
 def set_level(level):
     global LOG_LEVEL
-    try:
-        assert level in [LOG_NONE, LOG_NODE, LOG_VERBOSE]
+    if level in (LOG_NONE, LOG_NODE, LOG_VERBOSE):
         LOG_LEVEL = level
-    except:
-        logger.log("Failed to set LOG_LEVEL to %s" % level)
+    else:
+        log("Failed to set LOG_LEVEL to %s" % level)
 
 def verbose(msg):
     log('(v) ' + msg, LOG_VERBOSE)
 
 def log(msg, level=LOG_NODE):
-    """Write <msg> to the log file if level >= current log level (default LOG_NODE)."""
+    """
+    Write <msg> to the log file if level >= current log level (default LOG_NODE).
+    """
     if level > LOG_LEVEL:
         return
     try:
         fd = os.open(LOG_FILE, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
         if not msg.endswith('\n'):
             msg += '\n'
-        os.write(fd, '%s: %s' % (time.asctime(time.gmtime()), msg))
+        to_write = '%s: %s' % (time.asctime(time.gmtime()), msg)
+        os.write(fd, to_write.encode())
         os.close(fd)
     except OSError:
         sys.stderr.write(msg)
