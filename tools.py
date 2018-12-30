@@ -461,7 +461,7 @@ def get_node_virt():
         virt = 'vs' if subprocess.call(['vserver', '--help']) == 0 else 'lxc'
     except:
         virt = 'lxc'
-    with file(virt_stamp, "w") as f:
+    with open(virt_stamp, "w") as f:
         f.write(virt)
     return virt
 
