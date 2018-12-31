@@ -29,7 +29,7 @@ class conf_files:
     def checksum(self, path):
         try:
             with open(path) as feed:
-                return sha(feed.read()).digest()
+                return sha(feed.read().encode()).digest()
         except IOError:
             return None
 
@@ -85,7 +85,7 @@ class conf_files:
             os.makedirs(os.path.dirname(dest))
         except OSError:
             pass
-        tools.write_file(dest, lambda f: f.write(contents),
+        tools.write_file(dest, lambda f: f.write(contents.decode()),
                          mode=mode, uidgid=(uid, gid))
         if self.system(cf_rec['postinstall_cmd']):
             self.system(err_cmd)
