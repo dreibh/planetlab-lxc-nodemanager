@@ -6,9 +6,10 @@
 update local configuration files from PLC
 """
 
-import grp
 import os
+import time
 import pwd
+import grp
 from hashlib import sha1 as sha
 import xmlrpc.client
 
@@ -20,7 +21,7 @@ from config import Config
 # right after net
 priority = 2
 
-class conf_files:
+class ConfFiles:
     def __init__(self, noscripts=False):
         self.config = Config()
         self.noscripts = noscripts
@@ -114,6 +115,8 @@ def GetSlivers(data, config=None, plc=None):
 
 def main():
     from argparse import ArgumentParser
+    from plcapi import PLCAPI
+
     parser = ArgumentParser()
     parser.add_argument('-f', '--config', action='store', dest='config',
                         default='/etc/planetlab/plc_config',
@@ -124,6 +127,11 @@ def main():
     parser.add_argument('--noscripts', action='store_true', dest='noscripts',
                         default=False,
                         help='Do not run pre- or post-install scripts')
+    parser.add_argument('--max-attempts', action='store', dest='max_attempts',
+                        default=10,
+                        help='Max number of attempts')
+    parser.add_argument('--period', action='store', dest='period',
+                        help='Time in seconds to wait between attempts')
     args = parser.parse_args()
 
     # Load /etc/planetlab/plc_config
@@ -136,13 +144,28 @@ def main():
     else:
         session = args.session
 
-    # Initialize XML-RPC client
-    from plcapi import PLCAPI
-    plc = PLCAPI(config.plc_api_uri, config.cacert, auth=session)
-    data = plc.GetSlivers()
+    # loop until it succeeds once
+    # this is a change that comes with python3/fedora29 in late 2018,
+    # because although the conf_files service is defined to systemd
+    # as a dependency of the network, it triggers too early
+    # at a point where eth0 is not ready
 
-    instance = conf_files(args.noscripts)
-    instance.run_once(data)
+    # Initialize XML-RPC client
+    attempts = 0
+    while True:
+        try:
+            plc = PLCAPI(config.plc_api_uri, config.cacert, auth=session)
+            data = plc.GetSlivers()
+            instance = ConfFiles(args.noscripts)
+            instance.run_once(data)
+            return 0
+        except Exception as exc:
+            logger.log_exc("Could not receive GetSlivers() from PLC")
+            attempts += 1
+            if attempts >= args.max_attempts:
+                return 1
+            logger.log("Waiting for {}s before trying again".format(args.period))
+            time.sleep(args.period)
 
 
 if __name__ == '__main__':

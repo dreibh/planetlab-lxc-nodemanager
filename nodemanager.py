@@ -7,18 +7,17 @@
 # Copyright (C) 2008 The Trustees of Princeton University
 
 
-"""Node Manager"""
+"""
+Node Manager
+"""
 
-import optparse
 import time
-import xmlrpc.client
-import socket
 import os
 import sys
 import glob
 import pickle
 import random
-import resource
+from argparse import ArgumentParser
 
 import logger
 import tools
@@ -45,41 +44,54 @@ class NodeManager:
 
     def __init__ (self):
 
-        parser = optparse.OptionParser()
-        parser.add_option('-d', '--daemon', action='store_true', dest='daemon', default=False,
-                          help='run daemonized')
-        parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config',
-                          help='PLC configuration file')
-        parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session',
-                          help='API session key (or file)')
-        parser.add_option('-p', '--period', action='store', dest='period', default=NodeManager.default_period,
-                          help='Polling interval (sec) - default {}'
-                          .format(NodeManager.default_period))
-        parser.add_option('-r', '--random', action='store', dest='random', default=NodeManager.default_random,
-                          help='Range for additional random polling interval (sec) -- default {}'
-                          .format(NodeManager.default_random))
-        parser.add_option('-v', '--verbose', action='store_true', dest='verbose', default=False,
-                          help='more verbose log')
-        parser.add_option('-P', '--path', action='store', dest='path', default=NodeManager.PLUGIN_PATH,
-                          help='Path to plugins directory')
+        parser = ArgumentParser()
+        parser.add_argument(
+            '-d', '--daemon', action='store_true', dest='daemon',
+            default=False,
+            help='run daemonized')
+        parser.add_argument(
+            '-f', '--config', action='store', dest='config',
+            default='/etc/planetlab/plc_config',
+            help='PLC configuration file')
+        parser.add_argument(
+            '-k', '--session', action='store', dest='session',
+            default='/etc/planetlab/session',
+            help='API session key (or file)')
+        parser.add_argument(
+            '-p', '--period', action='store', dest='period',
+            default=NodeManager.default_period,
+            help='Polling interval (sec) - default {}'
+                 .format(NodeManager.default_period))
+        parser.add_argument(
+            '-r', '--random', action='store', dest='random',
+            default=NodeManager.default_random,
+            help='Range for additional random polling interval (sec) -- default {}'
+                 .format(NodeManager.default_random))
+        parser.add_argument(
+            '-v', '--verbose', action='store_true', dest='verbose',
+            default=False,
+            help='more verbose log')
+        parser.add_argument(
+            '-P', '--path', action='store', dest='path',
+            default=NodeManager.PLUGIN_PATH,
+            help='Path to plugins directory')
 
-        # NOTE: BUG the 'help' for this parser.add_option() wont list plugins from the --path argument
-        parser.add_option('-m', '--module', action='store', dest='user_module', default='', help='run a single module')
-        (self.options, args) = parser.parse_args()
-
-        if len(args) != 0:
-            parser.print_help()
-            sys.exit(1)
+        parser.add_argument(
+            '-m', '--module', action='store', dest='user_module',
+            default='',
+            help='run a single module')
+        self.options = parser.parse_args()
 
         # determine the modules to be run
         self.modules = NodeManager.core_modules
         # Deal with plugins directory
         if os.path.exists(self.options.path):
             sys.path.append(self.options.path)
-            plugins = [ os.path.split(os.path.splitext(x)[0])[1]
-                        for x in glob.glob( os.path.join(self.options.path, '*.py') )
-                        if not x.endswith("/__init__.py")
-                        ]
+            plugins = [
+                os.path.split(os.path.splitext(x)[0])[1]
+                for x in glob.glob( os.path.join(self.options.path, '*.py') )
+                if not x.endswith("/__init__.py")
+                ]
             self.modules += plugins
         if self.options.user_module:
             assert self.options.user_module in self.modules
@@ -88,7 +100,9 @@ class NodeManager:
 
 
     def GetSlivers(self, config, plc):
-        """Retrieves GetSlivers at PLC and triggers callbacks defined in modules/plugins"""
+        """
+        Retrieve GetSlivers at PLC and trigger callbacks defined in modules/plugins
+        """
         try:
             logger.log("nodemanager: Syncing w/ PLC")
             # retrieve GetSlivers from PLC
@@ -96,7 +110,7 @@ class NodeManager:
             # use the magic 'default' slice to retrieve system-wide defaults
             self.getPLCDefaults(data, config)
             # tweak the 'vref' attribute from GetSliceFamily
-            self.setSliversVref (data)
+            self.setSliversVref(data)
             # dump it too, so it can be retrieved later in case of comm. failure
             self.dumpSlivers(data)
             # log it for debug purposes, no matter what verbose is
@@ -105,11 +119,12 @@ class NodeManager:
             last_data = data
         except:
             logger.log_exc("nodemanager: failed in GetSlivers")
-            #  XXX So some modules can at least boostrap.
+            # XXX So some modules can at least boostrap.
             logger.log("nodemanager:  Can't contact PLC to GetSlivers().  Continuing.")
             data = {}
             # for modules that request it though the 'persistent_data' property
             last_data = self.loadSlivers()
+
         #  Invoke GetSlivers() functions from the callback modules
         for module in self.loaded_modules:
             logger.verbose('nodemanager: triggering {}.GetSlivers'.format(module.__name__))
@@ -133,15 +148,18 @@ class NodeManager:
         for slice in data.get('slivers'):
             if slice['name'] == config.PLC_SLICE_PREFIX + "_default":
                 attr_dict = {}
-                for attr in slice.get('attributes'): attr_dict[attr['tagname']] = attr['value']
-                if len(attr_dict):
-                    logger.verbose("nodemanager: Found default slice overrides.\n {}".format(attr_dict))
+                for attr in slice.get('attributes'):
+                    attr_dict[attr['tagname']] = attr['value']
+                if attr_dict:
+                    logger.verbose("nodemanager: Found default slice overrides.\n {}"
+                                   .format(attr_dict))
                     config.OVERRIDES = attr_dict
                     return
         # NOTE: if an _default slice existed, it would have been found above and
         #           the routine would return.  Thus, if we've gotten here, then no default
         #           slice is bound to this node.
-        if 'OVERRIDES' in dir(config): del config.OVERRIDES
+        if 'OVERRIDES' in dir(config):
+            del config.OVERRIDES
 
 
     def setSliversVref (self, data):
@@ -157,26 +175,31 @@ class NodeManager:
                     if att['tagname'] == 'vref':
                         att['value'] = slicefamily
                         continue
-                sliver['attributes'].append({ 'tagname':'vref', 'value':slicefamily})
-            except:
-                logger.log_exc("nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",
-                               name=sliver['name'])
+                sliver['attributes'].append(
+                    {'tagname':'vref', 'value':slicefamily})
+            except Exception:
+                logger.log_exc(
+                    "nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",
+                    name=sliver['name'])
+
 
     def dumpSlivers (self, slivers):
-        f = open(NodeManager.DB_FILE, "w")
-        logger.log ("nodemanager: saving successfully fetched GetSlivers in {}".format(NodeManager.DB_FILE))
-        pickle.dump(slivers, f)
-        f.close()
+        with open(NodeManager.DB_FILE, "w") as feed:
+            logger.log ("nodemanager: saving successfully fetched GetSlivers in {}"
+                        .format(NodeManager.DB_FILE))
+            pickle.dump(slivers, feed)
+
 
     def loadSlivers (self):
         try:
-            f = open(NodeManager.DB_FILE, "r+")
-            logger.log("nodemanager: restoring latest known GetSlivers from {}".format(NodeManager.DB_FILE))
-            slivers = pickle.load(f)
-            f.close()
+            with open(NodeManager.DB_FILE, "r+") as feed:
+                logger.log("nodemanager: restoring latest known GetSlivers from {}"
+                           .format(NodeManager.DB_FILE))
+                slivers = pickle.load(feed)
             return slivers
         except:
-            logger.log("Could not restore GetSlivers from {}".format(NodeManager.DB_FILE))
+            logger.log("Could not restore GetSlivers from {}"
+                       .format(NodeManager.DB_FILE))
             return {}
 
     def run(self):
@@ -188,7 +211,7 @@ class NodeManager:
                 tools.daemon()
 
             # set log level
-            if (self.options.verbose):
+            if self.options.verbose:
                 logger.set_level(logger.LOG_VERBOSE)
             tools.init_signals()
 
@@ -197,9 +220,10 @@ class NodeManager:
 
             try:
                 other_pid = tools.pid_file()
-                if other_pid != None:
+                if other_pid is not None:
                     print("""There might be another instance of the node manager running as pid {}.
-If this is not the case, please remove the pid file {}. -- exiting""".format(other_pid, tools.PID_FILE))
+If this is not the case, please remove the pid file {}. -- exiting"""
+                          .format(other_pid, tools.PID_FILE))
                     return
             except OSError as err:
                 print("Warning while writing PID file:", err)
@@ -210,30 +234,35 @@ If this is not the case, please remove the pid file {}. -- exiting""".format(oth
                 try:
                     m = __import__(module)
                     logger.verbose("nodemanager: triggering {}.start".format(m.__name__))
-                    try:        m.start()
-                    except:     logger.log("WARNING: module {} did not start".format(m.__name__))
+                    try:
+                        m.start()
+                    except Exception:
+                        logger.log("WARNING: module {} did not start".format(m.__name__))
                     self.loaded_modules.append(m)
-                except:
+                except Exception:
                     if module not in NodeManager.core_modules:
-                        logger.log_exc ("ERROR while loading module {} - skipped".format(module))
+                        logger.log_exc("ERROR while loading module {} - skipped"
+                                       .format(module))
                     else:
                         logger.log("FATAL : failed to start core module {}".format(module))
                         sys.exit(1)
 
             # sort on priority (lower first)
-            def module_priority (m):
-                return getattr(m, 'priority', NodeManager.default_priority) 
+            def module_priority(module):
+                return getattr(module, 'priority', NodeManager.default_priority)
             self.loaded_modules.sort(key=module_priority)
 
             logger.log('ordered modules:')
             for module in self.loaded_modules:
-                logger.log ('{}: {}'.format(getattr(module, 'priority', NodeManager.default_priority),
-                                            module.__name__))
+                logger.log('{}: {}'
+                           .format(getattr(module, 'priority',
+                                           NodeManager.default_priority),
+                                   module.__name__))
 
             # Load /etc/planetlab/session
             if os.path.exists(self.options.session):
-                with open(self.options.session) as f:
-                    session = f.read().strip()
+                with open(self.options.session) as feed:
+                    session = feed.read().strip()
             else:
                 session = None
 
@@ -247,12 +276,13 @@ If this is not the case, please remove the pid file {}. -- exiting""".format(oth
 
             #check auth
             logger.log("nodemanager: Checking Auth.")
-            while plc.check_authentication() != True:
+            while not plc.check_authentication():
                 try:
                     plc.update_session()
                     logger.log("nodemanager: Authentication Failure. Retrying")
-                except Exception as e:
-                    logger.log("nodemanager: Retry Failed. ({}); Waiting..".format(e))
+                except Exception as exc:
+                    logger.log("nodemanager: Retry Failed. ({}); Waiting.."
+                               .format(exc))
                 time.sleep(iperiod)
             logger.log("nodemanager: Authentication Succeeded!")
 
@@ -271,7 +301,7 @@ If this is not the case, please remove the pid file {}. -- exiting""".format(oth
                 time.sleep(delay)
         except SystemExit:
             pass
-        except: 
+        except:
             logger.log_exc("nodemanager: failed in run")
 
 def run():

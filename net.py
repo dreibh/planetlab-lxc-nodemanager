@@ -1,17 +1,21 @@
-"""network configuration"""
+"""
+network configuration
+"""
 
 # system provided modules
-import os, string, time, socket
+import os
 
 # PlanetLab system modules
 import sioc, plnet
 
 # local modules
 import plnode.bwlimit as bwlimit
-import logger, iptables, tools
+import logger
+import iptables
+import tools
 
 # we can't do anything without a network
-priority=1
+priority = 1
 
 dev_default = tools.get_default_if()
 
