@@ -1,6 +1,8 @@
 [Unit]
 Description=Fetch configuration files as defined by controlling MyPLC
 Before=lxc-sliceimage.service
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=oneshot
