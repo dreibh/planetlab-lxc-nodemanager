@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
-"""configuration files"""
+# pylint: disable=c0111
+
+"""
+update local configuration files from PLC
+"""
 
 import grp
 import os
@@ -24,10 +28,10 @@ class conf_files:
 
     def checksum(self, path):
         try:
-            f = open(path)
-            try: return sha(f.read()).digest()
-            finally: f.close()
-        except IOError: return None
+            with open(path) as feed:
+                return sha(feed.read()).digest()
+        except IOError:
+            return None
 
     def system(self, cmd):
         if not self.noscripts and cmd:
@@ -44,21 +48,26 @@ class conf_files:
         try:
             uid = pwd.getpwnam(cf_rec['file_owner'])[2]
         except:
-            logger.log('conf_files: cannot find user %s -- %s not updated'%(cf_rec['file_owner'], dest))
+            logger.log('conf_files: cannot find user %s -- %s not updated'
+                       %(cf_rec['file_owner'], dest))
             return
         try:
             gid = grp.getgrnam(cf_rec['file_group'])[2]
         except:
-            logger.log('conf_files: cannot find group %s -- %s not updated'%(cf_rec['file_group'], dest))
+            logger.log('conf_files: cannot find group %s -- %s not updated'
+                       %(cf_rec['file_group'], dest))
             return
         url = 'https://%s/%s' % (self.config.PLC_BOOT_HOST, cf_rec['source'])
         # set node_id at the end of the request - hacky
         if tools.node_id():
-            if url.find('?') > 0: url += '&'
-            else:                 url += '?'
+            if url.find('?') > 0:
+                url += '&'
+            else:
+                url += '?'
             url += "node_id=%d"%tools.node_id()
         else:
-            logger.log('conf_files: %s -- WARNING, cannot add node_id to request'%dest)
+            logger.log('conf_files: %s -- WARNING, cannot add node_id to request'
+                       % dest)
         try:
             logger.verbose("conf_files: retrieving URL=%s"%url)
             contents = curlwrapper.retrieve(url, self.config.cacert)
@@ -69,52 +78,72 @@ class conf_files:
             return
         if self.system(cf_rec['preinstall_cmd']):
             self.system(err_cmd)
-            if not cf_rec['ignore_cmd_errors']: return
+            if not cf_rec['ignore_cmd_errors']:
+                return
         logger.log('conf_files: installing file %s from %s' % (dest, url))
-        try: os.makedirs(os.path.dirname(dest))
-        except OSError: pass
-        tools.write_file(dest, lambda f: f.write(contents), mode=mode, uidgid=(uid, gid))
-        if self.system(cf_rec['postinstall_cmd']): self.system(err_cmd)
+        try:
+            os.makedirs(os.path.dirname(dest))
+        except OSError:
+            pass
+        tools.write_file(dest, lambda f: f.write(contents),
+                         mode=mode, uidgid=(uid, gid))
+        if self.system(cf_rec['postinstall_cmd']):
+            self.system(err_cmd)
 
     def run_once(self, data):
         if "conf_files" in data:
-            for f in data['conf_files']:
-                try: self.update_conf_file(f)
-                except: logger.log_exc("conf_files: failed to update conf_file")
+            for file in data['conf_files']:
+                try:
+                    self.update_conf_file(file)
+                except:
+                    logger.log_exc("conf_files: failed to update conf_file")
         else:
             logger.log_missing_data("conf_files.run_once", 'conf_files')
 
 
-def start(): pass
+def start():
+    pass
 
-def GetSlivers(data, config = None, plc = None):
+
+def GetSlivers(data, config=None, plc=None):
     logger.log("conf_files: Running.")
-    cf = conf_files()
-    cf.run_once(data)
+    instance = conf_files()
+    instance.run_once(data)
     logger.log("conf_files: Done.")
 
-if __name__ == '__main__':
-    import optparse
-    parser = optparse.OptionParser()
-    parser.add_option('-f', '--config', action='store', dest='config', default='/etc/planetlab/plc_config', help='PLC configuration file')
-    parser.add_option('-k', '--session', action='store', dest='session', default='/etc/planetlab/session', help='API session key (or file)')
-    parser.add_option('--noscripts', action='store_true', dest='noscripts', default=False, help='Do not run pre- or post-install scripts')
-    (options, args) = parser.parse_args()
+
+def main():
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('-f', '--config', action='store', dest='config',
+                        default='/etc/planetlab/plc_config',
+                        help='PLC configuration file')
+    parser.add_argument('-k', '--session', action='store', dest='session',
+                        default='/etc/planetlab/session',
+                        help='API session key (or file)')
+    parser.add_argument('--noscripts', action='store_true', dest='noscripts',
+                        default=False,
+                        help='Do not run pre- or post-install scripts')
+    args = parser.parse_args()
 
     # Load /etc/planetlab/plc_config
-    config = Config(options.config)
+    config = Config(args.config)
 
     # Load /etc/planetlab/session
-    if os.path.exists(options.session):
-        with open(options.session) as f:
-            session = f.read().strip()
+    if os.path.exists(args.session):
+        with open(args.session) as feed:
+            session = feed.read().strip()
     else:
-        session = options.session
+        session = args.session
 
     # Initialize XML-RPC client
     from plcapi import PLCAPI
-    plc = PLCAPI(config.plc_api_uri, config.cacert, auth = session)
-
-    main = conf_files(options.noscripts)
+    plc = PLCAPI(config.plc_api_uri, config.cacert, auth=session)
     data = plc.GetSlivers()
-    main.run_once(data)
+
+    instance = conf_files(args.noscripts)
+    instance.run_once(data)
+
+
+if __name__ == '__main__':
+    main()
