@@ -176,7 +176,7 @@ class NodeManager:
                         att['value'] = slicefamily
                         continue
                 sliver['attributes'].append(
-                    {'tagname':'vref', 'value':slicefamily})
+                    {'tagname': 'vref', 'value': slicefamily})
             except Exception:
                 logger.log_exc(
                     "nodemanager: Could not overwrite 'vref' attribute from 'GetSliceFamily'",
@@ -184,7 +184,7 @@ class NodeManager:
 
 
     def dumpSlivers (self, slivers):
-        with open(NodeManager.DB_FILE, "w") as feed:
+        with open(NodeManager.DB_FILE, "wb") as feed:
             logger.log ("nodemanager: saving successfully fetched GetSlivers in {}"
                         .format(NodeManager.DB_FILE))
             pickle.dump(slivers, feed)
@@ -192,7 +192,7 @@ class NodeManager:
 
     def loadSlivers (self):
         try:
-            with open(NodeManager.DB_FILE, "r+") as feed:
+            with open(NodeManager.DB_FILE, "rb+") as feed:
                 logger.log("nodemanager: restoring latest known GetSlivers from {}"
                            .format(NodeManager.DB_FILE))
                 slivers = pickle.load(feed)
