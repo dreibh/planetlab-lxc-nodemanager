@@ -108,7 +108,7 @@ def start():
 
 def GetSlivers(data, config=None, plc=None):
     logger.log("conf_files: Running.")
-    instance = conf_files()
+    instance = ConfFiles()
     instance.run_once(data)
     logger.log("conf_files: Done.")
 

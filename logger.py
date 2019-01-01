@@ -130,8 +130,11 @@ def log_call(command, timeout=default_timeout_minutes*60, poll=1):
     trigger=time.time()+timeout
     result = False
     try:
-        child = subprocess.Popen(command, bufsize=1,
-                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
+        child = subprocess.Popen(
+            command, bufsize=1,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            close_fds=True,
+            universal_newlines=True)
         buffer = Buffer()
         while True:
             # see if anything can be read within the poll interval

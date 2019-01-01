@@ -31,8 +31,11 @@ def log_call_read(command, timeout=logger.default_timeout_minutes*60, poll=1):
     logger.verbose("log_call: poll=%r s" % poll)
     trigger=time.time()+timeout
     try:
-        child = subprocess.Popen(command, bufsize=1,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        child = subprocess.Popen(
+            command, bufsize=1,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            close_fds=True,
+            universal_newlines=True)
 
         stdout = ""
         while True:

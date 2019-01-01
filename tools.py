@@ -197,7 +197,7 @@ returns True if a change occurred, or the file is deleted
     # overwrite target file: create a temp in the same directory
     path = os.path.dirname(target) or '.'
     fd, name = tempfile.mkstemp('', 'repl', path)
-    os.write(fd, new_contents)
+    os.write(fd, new_contents.encode())
     os.close(fd)
     if os.path.exists(target):
         os.unlink(target)
