@@ -110,7 +110,7 @@ class Buffer:
 
     def add(self, c):
         self.buffer += c
-        if c=='\n':
+        if c == '\n':
             self.flush()
 
     def flush(self):

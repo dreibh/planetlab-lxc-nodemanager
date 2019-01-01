@@ -80,8 +80,8 @@ class Sliver_LXC(Sliver_Libvirt, Initscript):
             .format(self.name)
         command = plain.split()
         logger.log_call(command, timeout=3)
-                
-        
+
+
     @staticmethod
     def create(name, rec=None):
         '''

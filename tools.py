@@ -168,7 +168,8 @@ def write_temp_file(do_write, mode=None, uidgid=None):
     return temporary_filename
 
 
-def replace_file_with_string(target, new_contents, chmod=None, remove_if_empty=False):
+def replace_file_with_string(target, new_contents,
+                             chmod=None, remove_if_empty=False):
     """
 Replace a target file with a new contents
 checks for changes: does not do anything if previous state was already right
@@ -179,8 +180,8 @@ writes in a tmp file, which is then renamed (from sliverauth originally)
 returns True if a change occurred, or the file is deleted
     """
     try:
-        with open(target) as f:
-            current = f.read()
+        with open(target) as feed:
+            current = feed.read()
     except:
         current = ""
     if current == new_contents:
