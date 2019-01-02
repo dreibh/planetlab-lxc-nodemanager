@@ -183,7 +183,8 @@ It proceeds to handle dump requests forever."""
             dump_requested = False
             db_lock.release()
             try:
-                tools.write_file(DB_FILE, lambda f: f.write(db_pickle))
+                tools.write_file(
+                    DB_FILE, lambda f: f.write(db_pickle.decode()))
                 logger.log_database(db)
             except:
                 logger.log_exc("database.start: failed to pickle/dump")
