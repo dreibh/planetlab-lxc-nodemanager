@@ -196,9 +196,9 @@ class Slice:
         self.bytes = 0
         self.i2bytes = 0
         self.MaxRate = default_MaxRate
-        self.MinRate = bwlimit.bwmin / 1000
+        self.MinRate = bwlimit.bwmin // 1000
         self.Maxi2Rate = default_Maxi2Rate
-        self.Mini2Rate = bwlimit.bwmin / 1000
+        self.Mini2Rate = bwlimit.bwmin // 1000
         self.MaxKByte = default_MaxKByte
         self.ThreshKByte = int(.8 * self.MaxKByte)
         self.Maxi2KByte = default_Maxi2KByte
@@ -209,12 +209,13 @@ class Slice:
         self.capped = False
 
         self.updateSliceTags(rspec)
-        bwlimit.set(xid = self.xid, dev = dev_default,
-                minrate = self.MinRate * 1000,
-                maxrate = self.MaxRate * 1000,
-                maxexemptrate = self.Maxi2Rate * 1000,
-                minexemptrate = self.Mini2Rate * 1000,
-                share = self.Share)
+        bwlimit.set(
+            xid=self.xid, dev=dev_default,
+            minrate=self.MinRate * 1000,
+            maxrate=self.MaxRate * 1000,
+            maxexemptrate=self.Maxi2Rate * 1000,
+            minexemptrate=self.Mini2Rate * 1000,
+            share=self.Share)
 
     def __repr__(self):
         return self.name
@@ -227,7 +228,7 @@ class Slice:
 
         # Sanity check plus policy decision for MinRate:
         # Minrate cant be greater than 25% of MaxRate or NodeCap.
-        MinRate = int(rspec.get("net_min_rate", bwlimit.bwmin / 1000))
+        MinRate = int(rspec.get("net_min_rate", bwlimit.bwmin // 1000))
         if MinRate > int(.25 * default_MaxRate):
             MinRate = int(.25 * default_MaxRate)
         if MinRate != self.MinRate:
@@ -239,7 +240,7 @@ class Slice:
             self.MaxRate = MaxRate
             logger.log("bwmon: Updating %s: Max Rate = %s" %(self.name, self.MaxRate))
 
-        Mini2Rate = int(rspec.get('net_i2_min_rate', bwlimit.bwmin / 1000))
+        Mini2Rate = int(rspec.get('net_i2_min_rate', bwlimit.bwmin // 1000))
         if Mini2Rate != self.Mini2Rate:
             self.Mini2Rate = Mini2Rate
             logger.log("bwmon: Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
@@ -391,7 +392,8 @@ class Slice:
             bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
             # Calcuate new rate. in bit/s
-            new_maxrate = int(((maxbyte - bytesused) * 8)/(period - timeused))
+            new_maxrate = int(((maxbyte - bytesused) * 8)
+                              / (period - timeused))
             # Never go under MinRate
             if new_maxrate < (self.MinRate * 1000):
                 new_maxrate = self.MinRate * 1000
@@ -407,7 +409,8 @@ class Slice:
             i2bytesused = usedi2bytes - self.i2bytes
             timeused = int(time.time() - self.time)
             # Calcuate New Rate.
-            new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)/(period - timeused))
+            new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)
+                                /(period - timeused))
             # Never go under MinRate
             if new_maxi2rate < (self.Mini2Rate * 1000):
                 new_maxi2rate = self.Mini2Rate * 1000
@@ -497,7 +500,7 @@ def sync(nmdbcopy):
     if default_MaxRate == -1:
         default_MaxRate = 1000000
 
-    # xxx $Id$ 
+    # xxx $Id$
     # with svn we used to have a trick to detect upgrades of this file
     # this has gone with the move to git, without any noticeable effect on operations though
     try:
