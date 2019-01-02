@@ -52,14 +52,18 @@ def get_if_from_hwaddr(hwaddr):
 
 
 def as_daemon_thread(run):
-    """Call function <run> with no arguments in its own thread."""
+    """
+    Call function <run> with no arguments in its own thread.
+    """
     thr = threading.Thread(target=run)
     thr.setDaemon(True)
     thr.start()
 
 
 def close_nonstandard_fds():
-    """Close all open file descriptors other than 0, 1, and 2."""
+    """
+    Close all open file descriptors other than 0, 1, and 2.
+    """
     _SC_OPEN_MAX = 4
     for fd in range(3, os.sysconf(_SC_OPEN_MAX)):
         try:
@@ -71,7 +75,9 @@ def close_nonstandard_fds():
 
 
 def daemon():
-    """Daemonize the current process."""
+    """
+    Daemonize the current process.
+    """
     if os.fork() != 0:
         os._exit(0)
     os.setsid()
@@ -90,12 +96,11 @@ def daemon():
 
 def fork_as(su, function, *args):
     """
-fork(), cd / to avoid keeping unused directories open,
-close all nonstandard file descriptors (to avoid capturing open sockets),
-fork() again (to avoid zombies) and call <function>
-with arguments <args> in the grandchild process.
-If <su> is not None, set our group and user ids
- appropriately in the child process.
+    fork(), cd / to avoid keeping unused directories open, close all nonstandard
+    file descriptors (to avoid capturing open sockets), fork() again (to avoid
+    zombies) and call <function> with arguments <args> in the grandchild
+    process. If <su> is not None, set our group and user ids appropriately in
+    the child process.
     """
     child_pid = os.fork()
     if child_pid == 0:
@@ -123,9 +128,10 @@ If <su> is not None, set our group and user ids
 
 def pid_file():
     """
-We use a pid file to ensure that only one copy of NM is running at a given time.
-If successful, this function will write a pid file containing the pid of the current process.
-The return value is the pid of the other running process, or None otherwise.
+    We use a pid file to ensure that only one copy of NM is running at a given
+    time. If successful, this function will write a pid file containing the pid
+    of the current process. The return value is the pid of the other running
+    process, or None otherwise.
     """
     other_pid = None
     if os.access(PID_FILE, os.F_OK):  # check for a pid file
@@ -148,8 +154,8 @@ The return value is the pid of the other running process, or None otherwise.
 
 def write_file(filename, do_write, **kw_args):
     """
-Write file <filename> atomically by opening a temporary file,
-using <do_write> to write that file, and then renaming the temporary file.
+    Write file <filename> atomically by opening a temporary file,
+    using <do_write> to write that file, and then renaming the temporary file.
     """
     shutil.move(write_temp_file(do_write, **kw_args), filename)
 
@@ -172,13 +178,11 @@ def write_temp_file(do_write, mode=None, uidgid=None, binary=False):
 def replace_file_with_string(target, new_contents,
                              chmod=None, remove_if_empty=False):
     """
-Replace a target file with a new contents
-checks for changes: does not do anything if previous state was already right
-can handle chmod if requested
-can also remove resulting file if contents are void, if requested
-performs atomically:
-writes in a tmp file, which is then renamed (from sliverauth originally)
-returns True if a change occurred, or the file is deleted
+    Replace a target file with a new contents checks for changes: does not do
+    anything if previous state was already right can handle chmod if requested
+    can also remove resulting file if contents are void, if requested performs
+    atomically: writes in a tmp file, which is then renamed (from sliverauth
+    originally) returns True if a change occurred, or the file is deleted
     """
     try:
         with open(target) as feed:
