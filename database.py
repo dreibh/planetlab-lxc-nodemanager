@@ -98,10 +98,12 @@ keys."""
         if rec['timestamp'] < self._min_timestamp: return
         name = rec['name']
         old_rec = self.get(name)
-        if old_rec == None: self[name] = rec
+        if old_rec == None:
+            self[name] = rec
         elif rec['timestamp'] > old_rec['timestamp']:
             for key in list(old_rec.keys()):
-                if not key.startswith('_'): del old_rec[key]
+                if not key.startswith('_'):
+                    del old_rec[key]
             old_rec.update(rec)
 
     def set_min_timestamp(self, ts):
