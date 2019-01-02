@@ -154,13 +154,14 @@ using <do_write> to write that file, and then renaming the temporary file.
     shutil.move(write_temp_file(do_write, **kw_args), filename)
 
 
-def write_temp_file(do_write, mode=None, uidgid=None):
+def write_temp_file(do_write, mode=None, uidgid=None, binary=False):
     fd, temporary_filename = tempfile.mkstemp()
     if mode:
         os.chmod(temporary_filename, mode)
     if uidgid:
         os.chown(temporary_filename, *uidgid)
-    f = os.fdopen(fd, 'w')
+    open_mode = 'wb' if binary else 'w'
+    f = os.fdopen(fd, open_mode)
     try:
         do_write(f)
     finally:
