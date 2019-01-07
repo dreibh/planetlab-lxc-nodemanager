@@ -1,8 +1,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name nodemanager-lib
-%define version 5.2
-%define taglevel 19
+%define version 7.0
+%define taglevel 0
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -210,6 +210,12 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Mon Jan 07 2019 Thierry <Parmentelat> - nodemanager-7.0-0
+- ported to python3
+- add a systemd dependency to network-online so the service won't start too early
+- only support systemd, removed init-oriented business
+- also removed debian-oriented business
+
 * Sun Jul 10 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-19
 - tweak to run against libvirt-python-1.3.3 under f24
 - fix by Thomas Dreibholz - misspelled ovs-ovsctl
