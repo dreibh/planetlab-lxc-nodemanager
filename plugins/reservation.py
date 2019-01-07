@@ -100,7 +100,7 @@ class reservation:
         return ((int(time)+granularity/2)/granularity)*granularity
 
     def clear_timers (self):
-        for timer in self.timers.values():
+        for timer in list(self.timers.values()):
             timer.cancel()
         self.timers={}
 
@@ -137,7 +137,7 @@ class reservation:
         timer.start()
 
     def list_timers(self):
-        timestamps=self.timers.keys()
+        timestamps=list(self.timers.keys())
         timestamps.sort()
         for timestamp in timestamps:
             logger.log('reservation: TIMER armed for %s'%reservation.time_printable(timestamp))
@@ -150,7 +150,7 @@ class reservation:
 
     @staticmethod
     def lease_printable (lease):
-        d=dict ( lease.iteritems())
+        d=dict ( iter(lease.items()))
         d['from']=reservation.time_printable(lease['t_from'])
         d['until']=reservation.time_printable(lease['t_from'])
         s=[]

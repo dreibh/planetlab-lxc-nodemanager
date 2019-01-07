@@ -18,7 +18,7 @@ class Initscript:
         self.initscript = new_initscript
         code = self.initscript
         sliver_initscript = "/vservers/%s/etc/rc.d/init.d/vinit.slice" % self.name
-        if tools.replace_file_with_string(sliver_initscript, code, remove_if_empty=True, chmod=0755):
+        if tools.replace_file_with_string(sliver_initscript, code, remove_if_empty=True, chmod=0o755):
             if code:
                 logger.log("Initscript: %s: Installed new initscript in %s" % (self.name, sliver_initscript))
                 if self.is_running():
@@ -57,7 +57,7 @@ class Initscript:
         # install in sliver
         with open(vinit_source) as f:
             code = f.read()
-        if tools.replace_file_with_string(vinit_script, code, chmod=0755):
+        if tools.replace_file_with_string(vinit_script, code, chmod=0o755):
             logger.log("Initscript: %s: installed generic vinit rc script" % self.name)
         # create symlink for runlevel 3
         if not os.path.islink(enable_link):
@@ -97,7 +97,7 @@ class Initscript:
         # install in sliver
         with open(vinit_source) as f:
             code = f.read()
-        if tools.replace_file_with_string(vinit_unit_file, code, chmod=0755):
+        if tools.replace_file_with_string(vinit_unit_file, code, chmod=0o755):
             logger.log("Initscript: %s: installed vinit.service unit file" % self.name)
         # create symlink for enabling this unit
         if not os.path.islink(enable_link):

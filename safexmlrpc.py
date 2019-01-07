@@ -1,11 +1,11 @@
 """Leverage curl to make XMLRPC requests that check the server's credentials."""
 
-import xmlrpclib
+import xmlrpc.client
 
 import curlwrapper
 
 
-class CertificateCheckingSafeTransport (xmlrpclib.Transport):
+class CertificateCheckingSafeTransport (xmlrpc.client.Transport):
 
     def __init__(self, cacert, timeout):
         self.cacert = cacert
@@ -19,11 +19,11 @@ class CertificateCheckingSafeTransport (xmlrpclib.Transport):
                                         cacert = self.cacert,
                                         postdata = request_body,
                                         timeout = self.timeout)
-        return xmlrpclib.loads(contents)[0]
+        return xmlrpc.client.loads(contents)[0]
 
-class ServerProxy(xmlrpclib.ServerProxy):
+class ServerProxy(xmlrpc.client.ServerProxy):
 
     def __init__(self, uri, cacert, timeout = 300, **kwds):
-        xmlrpclib.ServerProxy.__init__(self, uri,
+        xmlrpc.client.ServerProxy.__init__(self, uri,
                                        CertificateCheckingSafeTransport(cacert, timeout),
                                        **kwds)

@@ -1,10 +1,12 @@
 [Unit]
 Description=Fetch configuration files as defined by controlling MyPLC
 Before=lxc-sliceimage.service
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/env python /usr/share/NodeManager/conf_files.py
+ExecStart=/usr/bin/env python3 /usr/share/NodeManager/conf_files.py
 
 [Install]
 WantedBy=multi-user.target

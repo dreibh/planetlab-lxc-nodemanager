@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Setup script for the Node Manager application
 #
@@ -42,7 +42,7 @@ setup(
         'plugins.vsys',
         'plugins.vsys_privs',
         'plugins.ipv6',
-        'plugins.update_ipv6addr_slivertag', 
+        'plugins.update_ipv6addr_slivertag',
 # lxc
         'sliver_libvirt',
         'sliver_lxc',
@@ -54,10 +54,5 @@ setup(
         'coresched_vs',
         # this plugin uses vserver for now
         'plugins.drl',
-        ],
-    scripts = [
-        'forward_api_calls',
-        ],
-    packages =[
         ],
     )

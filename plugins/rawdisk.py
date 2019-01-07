@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 # vim:set ts=4 sw=4 expandtab:
 #
 # NodeManager plugin to support mapping unused raw disks into a slice
@@ -30,8 +30,7 @@ def get_unused_devices():
     for i in os.listdir("/sys/block"):
         if not i.startswith("dm-"):
             continue
-        in_vg.extend(map(lambda x: x.replace("!", "/"),
-                         os.listdir("/sys/block/%s/slaves" % i)))
+        in_vg.extend([x.replace("!", "/") for x in os.listdir("/sys/block/%s/slaves" % i)])
     # Read the list of partitions
     with open("/proc/partitions") as partitions:
         pat = re.compile("\s+")
@@ -73,7 +72,7 @@ def GetSlivers(data, config=None, plc=None):
                     except:
                         pass
                     try:
-                        os.makedirs(os.path.dirname(path), 0755)
+                        os.makedirs(os.path.dirname(path), 0o755)
                     except:
                         pass
                     os.mknod(path, st.st_mode, st.st_rdev)

@@ -28,7 +28,7 @@ class PLCAPI:
         if isinstance(auth, (tuple, list)):
             (self.node_id, self.key) = auth
             self.session = None
-        elif isinstance(auth, (str, unicode)):
+        elif isinstance(auth, str):
             self.node_id = self.key = None
             self.session = auth
         else:
@@ -85,10 +85,10 @@ class PLCAPI:
                     # Yes, the comments in the old implementation are
                     # misleading. Keys of dicts are not included in the
                     # hash.
-                    values += canonicalize(arg.values())
+                    values += canonicalize(list(arg.values()))
                 else:
                     # We use unicode() instead of str().
-                    values.append(unicode(arg))
+                    values.append(str(arg))
 
             return values
 

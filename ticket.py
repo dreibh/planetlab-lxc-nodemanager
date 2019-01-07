@@ -5,7 +5,7 @@ You must already have the key in the keyring.
 """
 
 from subprocess import PIPE, Popen
-from xmlrpclib import dumps, loads
+from xmlrpc.client import dumps, loads
 
 GPG = '/usr/bin/gpg'
 

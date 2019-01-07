@@ -6,6 +6,7 @@ import logger
 import os
 import os.path
 import cgroups
+from functools import reduce
 
 glo_coresched_simulate = False
 joinpath = os.path.join
@@ -168,7 +169,7 @@ class CoreSched:
 
         # allocate the cores to the slivers that have them reserved
         # TODO: Need to sort this from biggest cpu_cores to smallest
-        for name, rec in slivers.iteritems():
+        for name, rec in slivers.items():
             rspec = rec["_rspec"]
             cores = rspec.get(self.slice_attr_name, 0)
             (cores, bestEffort) = self.decodeCoreSpec(cores)
@@ -208,7 +209,7 @@ class CoreSched:
 
         # now check and see if any of our slices had the besteffort flag
         # set
-        for name, rec in slivers.iteritems():
+        for name, rec in slivers.items():
             rspec = rec["_rspec"]
             cores = rspec.get(self.slice_attr_name, 0)
             (cores, bestEffort) = self.decodeCoreSpec(cores)
@@ -238,7 +239,7 @@ class CoreSched:
         self.freezeUnits("freezer.state", freezeList)
 
     def freezeUnits (self, var_name, freezeList):
-        for (slicename, freeze) in freezeList.items():
+        for (slicename, freeze) in list(freezeList.items()):
             try:
                 cgroup_path = cgroups.get_cgroup_path(slicename, 'freezer')
                 logger.verbose("CoreSched: setting freezer for {} to {} - path={} var={}"
@@ -249,7 +250,7 @@ class CoreSched:
                     break
 
                 if glo_coresched_simulate:
-                        print "F", cgroup
+                        print("F", cgroup)
                 else:
                     with open(cgroup, "w") as f:
                         f.write(freeze)
@@ -283,7 +284,7 @@ class CoreSched:
                 cpus = default
 
             if glo_coresched_simulate:
-                print "R", cgroup + "/" + var_name, self.listToRange(cpus)
+                print("R", cgroup + "/" + var_name, self.listToRange(cpus))
             else:
                 cgroups.write(cgroup, var_name, self.listToRange(cpus))
 
@@ -396,17 +397,17 @@ if __name__=="__main__":
 
     x = CoreSched()
 
-    print "cgroups:", ",".join(x.get_cgroups())
+    print("cgroups:", ",".join(x.get_cgroups()))
 
-    print "cpus:", x.listToRange(x.get_cpus())
-    print "sibling map:"
+    print("cpus:", x.listToRange(x.get_cpus()))
+    print("sibling map:")
     for item in x.get_cpus():
-        print " ", item, ",".join([str(y) for y in x.cpu_siblings.get(item, [])])
+        print(" ", item, ",".join([str(y) for y in x.cpu_siblings.get(item, [])]))
 
-    print "mems:", x.listToRange(x.get_mems())
-    print "cpu to memory map:"
+    print("mems:", x.listToRange(x.get_mems()))
+    print("cpu to memory map:")
     for item in x.get_mems():
-        print " ", item, ",".join([str(y) for y in x.mems_map.get(item, [])])
+        print(" ", item, ",".join([str(y) for y in x.mems_map.get(item, [])]))
 
     rspec_sl_test1 = {"cpu_cores": "1"}
     rec_sl_test1 = {"_rspec": rspec_sl_test1}

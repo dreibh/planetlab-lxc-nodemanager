@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Obtaining a node session key. Usually, the Boot
 # Manager obtains it, then writes it to /etc/planetlab/session.
@@ -21,12 +21,12 @@ def main():
 
     # Help
     def usage():
-        print "Usage: %s [OPTION]..." % sys.argv[0]
-        print "Options:"
-        print "     -f, --config=FILE       PLC configuration file (default: /etc/planetlab/plc_config)"
-        print "     -n, --node-id=FILE      Node ID (or file)"
-        print "     -k, --key=FILE          Node key (or file)"
-        print "     --help                  This message"
+        print("Usage: %s [OPTION]..." % sys.argv[0])
+        print("Options:")
+        print("     -f, --config=FILE       PLC configuration file (default: /etc/planetlab/plc_config)")
+        print("     -n, --node-id=FILE      Node ID (or file)")
+        print("     -k, --key=FILE          Node key (or file)")
+        print("     --help                  This message")
         sys.exit(1)
 
     # Get options
@@ -36,8 +36,8 @@ def main():
                                       "node=", "nodeid=", "node-id", "node_id",
                                       "key=",
                                       "help"])
-    except getopt.GetoptError, err:
-        print "Error: " + err.msg
+    except getopt.GetoptError as err:
+        print("Error: " + err.msg)
         usage()
 
     for (opt, optval) in opts:
@@ -72,7 +72,7 @@ def main():
     plc = PLCAPI(config.plc_api_uri, config.cacert, session)
     assert session == plc.GetSession()
 
-    print session
+    print(session)
 
 if __name__ == '__main__':
     main()
