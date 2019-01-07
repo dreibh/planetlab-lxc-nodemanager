@@ -2,7 +2,7 @@
 
 %define name nodemanager-lib
 %define version 5.2
-%define taglevel 19
+%define taglevel 20
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -252,6 +252,9 @@ nodemanager-vs provides the vserver code for the PlanetLab Node Manager.
 
 ##############################
 %changelog
+* Mon Jan 07 2019 Thierry <Parmentelat> - nodemanager-5.2-20
+- simply make conf_files.py executable, so that bootmanager can be py2/py3 compliant
+
 * Sun Jul 10 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - nodemanager-5.2-19
 - tweak to run against libvirt-python-1.3.3 under f24
 - fix by Thomas Dreibholz - misspelled ovs-ovsctl
