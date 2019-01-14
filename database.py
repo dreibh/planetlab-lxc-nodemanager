@@ -15,7 +15,7 @@ partition, the database is constantly being dumped to disk.
 
 import sys
 
-import cPickle
+import pickle
 import threading
 import time
 
@@ -39,7 +39,7 @@ MINIMUM_ALLOCATION = {'cpu_pct': 0,
                       'net_i2_max_rate': 8,
                       'net_share': 1,
                       }
-LOANABLE_RESOURCES = MINIMUM_ALLOCATION.keys()
+LOANABLE_RESOURCES = list(MINIMUM_ALLOCATION.keys())
 
 DB_FILE = '/var/lib/nodemanager/database.pickle'
 
@@ -77,11 +77,11 @@ In order to do the accounting, we store three different rspecs:
  * and variable resid_rspec, which is the amount of resources the sliver
    has after giving out loans but not receiving any."""
         slivers = {}
-        for name, rec in self.iteritems():
+        for name, rec in self.items():
             if 'rspec' in rec:
                 rec['_rspec'] = rec['rspec'].copy()
                 slivers[name] = rec
-        for rec in slivers.itervalues():
+        for rec in slivers.values():
             eff_rspec = rec['_rspec']
             resid_rspec = rec['rspec'].copy()
             for target, resource_name, amount in rec.get('_loans', []):
@@ -98,10 +98,12 @@ keys."""
         if rec['timestamp'] < self._min_timestamp: return
         name = rec['name']
         old_rec = self.get(name)
-        if old_rec == None: self[name] = rec
+        if old_rec == None:
+            self[name] = rec
         elif rec['timestamp'] > old_rec['timestamp']:
-            for key in old_rec.keys():
-                if not key.startswith('_'): del old_rec[key]
+            for key in list(old_rec.keys()):
+                if not key.startswith('_'):
+                    del old_rec[key]
             old_rec.update(rec)
 
     def set_min_timestamp(self, ts):
@@ -109,7 +111,7 @@ keys."""
 We use it to determine if a record is stale.
 This method should be called whenever new GetSlivers() data comes in."""
         self._min_timestamp = ts
-        for name, rec in self.items():
+        for name, rec in list(self.items()):
             if rec['timestamp'] < ts: del self[name]
 
     def sync(self):
@@ -120,7 +122,7 @@ It may be necessary in the future to do something smarter."""
 
         # delete expired records
         now = time.time()
-        for name, rec in self.items():
+        for name, rec in list(self.items()):
             if rec.get('expires', now) < now: del self[name]
 
         self._compute_effective_rspecs()
@@ -138,7 +140,7 @@ It may be necessary in the future to do something smarter."""
             if name not in self:
                 logger.verbose("database: sync : ensure_destroy'ing %s"%name)
                 account.get(name).ensure_destroyed()
-        for name, rec in self.iteritems():
+        for name, rec in self.items():
             # protect this; if anything fails for a given sliver
             # we still need the other ones to be handled
             try:
@@ -179,18 +181,19 @@ It proceeds to handle dump requests forever."""
         while True:
             db_lock.acquire()
             while not dump_requested: db_cond.wait()
-            db_pickle = cPickle.dumps(db, cPickle.HIGHEST_PROTOCOL)
+            db_pickle = pickle.dumps(db, pickle.HIGHEST_PROTOCOL)
             dump_requested = False
             db_lock.release()
             try:
-                tools.write_file(DB_FILE, lambda f: f.write(db_pickle))
+                tools.write_file(
+                    DB_FILE, lambda f: f.write(db_pickle), binary=True)
                 logger.log_database(db)
             except:
                 logger.log_exc("database.start: failed to pickle/dump")
     global db
     try:
         f = open(DB_FILE)
-        try: db = cPickle.load(f)
+        try: db = pickle.load(f)
         finally: f.close()
     except IOError:
         logger.log ("database: Could not load %s -- starting from a fresh database"%DB_FILE)

@@ -6,7 +6,7 @@ import logger
 import os
 import curlwrapper
 import re
-import xmlrpclib
+import xmlrpc.client
 try:
     from hashlib import sha1 as sha
 except ImportError:

@@ -40,7 +40,7 @@ KEEP_LIMIT = vserver.VC_LIM_KEEP
 # populate the sliver/vserver specific default allocations table,
 # which is used to look for slice attributes
 DEFAULT_ALLOCATION = {}
-for rlimit in vserver.RLIMITS.keys():
+for rlimit in list(vserver.RLIMITS.keys()):
     rlim = rlimit.lower()
     DEFAULT_ALLOCATION["{}_min".format(rlim)] = KEEP_LIMIT
     DEFAULT_ALLOCATION["{}_soft".format(rlim)] = KEEP_LIMIT
@@ -61,7 +61,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
             vserver.VServer.__init__(self, name, logfile='/var/log/nodemanager')
             Account.__init__ (self, name)
             Initscript.__init__ (self, name)
-        except Exception, err:
+        except Exception as err:
             if not isinstance(err, vserver.NoSuchVServer):
                 # Probably a bad vserver or vserver configuration file
                 logger.log_exc("sliver_vs:__init__ (first chance)", name=name)
@@ -222,7 +222,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         # get/set the min/soft/hard values for all of the vserver
         # related RLIMITS.  Note that vserver currently only
         # implements support for hard limits.
-        for limit in vserver.RLIMITS.keys():
+        for limit in list(vserver.RLIMITS.keys()):
             type = limit.lower()
             minimum  = self.rspec['{}_min'.format(type)]
             soft = self.rspec['{}_soft'.format(type)]
@@ -241,14 +241,14 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
         cpu_share = self.rspec['cpu_share']
 
         count = 1
-        for key in self.rspec.keys():
+        for key in list(self.rspec.keys()):
             if key.find('sysctl.') == 0:
                 sysctl = key.split('.')
                 try:
                     # /etc/vservers/<guest>/sysctl/<id>/
                     dirname = "/etc/vservers/{}/sysctl/{}".format(self.name, count)
                     try:
-                        os.makedirs(dirname, 0755)
+                        os.makedirs(dirname, 0o755)
                     except:
                         pass
                     with open("{}/setting".format(dirname), "w") as setting:
@@ -259,7 +259,7 @@ class Sliver_VS(vserver.VServer, Account, Initscript):
 
                     logger.log("sliver_vs: {}: writing {}={}"
                                .format(self.name, key, self.rspec[key]))
-                except IOError, e:
+                except IOError as e:
                     logger.log("sliver_vs: {}: could not set {}={}"
                                .format(self.name, key, self.rspec[key]))
                     logger.log("sliver_vs: {}: error = {}".format(self.name, e))

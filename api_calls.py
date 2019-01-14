@@ -9,15 +9,15 @@ domain socket that is accessible by ssh-ing into a delegate account
 with the forward_api_calls shell.
 """
 
-import SimpleXMLRPCServer
-import SocketServer
+import xmlrpc.server
+import socketserver
 import errno
 import os
 import pwd
 import socket
 import struct
 import threading
-import xmlrpclib
+import xmlrpc.client
 import slivermanager
 
 try:
@@ -65,8 +65,8 @@ def export_to_docbook(**kwargs):
     def export(method):
         def args():
             # Inspect method. Remove self from the argument list.
-            max_args = method.func_code.co_varnames[0:method.func_code.co_argcount]
-            defaults = method.func_defaults
+            max_args = method.__code__.co_varnames[0:method.__code__.co_argcount]
+            defaults = method.__defaults__
             if defaults is None:
                 defaults = ()
             min_args = max_args[0:len(max_args) - len(defaults)]
@@ -97,7 +97,7 @@ def export_to_docbook(**kwargs):
 @export_to_api(0)
 def Help():
     """Get a list of functions currently supported by the Node Manager API"""
-    names=api_method_dict.keys()
+    names=list(api_method_dict.keys())
     names.sort()
     return ''.join(['**** ' + api_method_dict[name].__name__ + '\n' + api_method_dict[name].__doc__ + '\n'
                     for name in names])
@@ -120,8 +120,8 @@ def Ticket(ticket):
             deliver_ticket(data)
         logger.log('api_calls: Ticket delivered for %s' % name)
         Create(database.db.get(name))
-    except Exception, err:
-        raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
+    except Exception as err:
+        raise xmlrpc.client.Fault(102, 'Ticket error: ' + str(err))
 
 @export_to_docbook(roles=['self'],
                    accepts=[Parameter(str, 'A ticket returned from GetSlivers()')],
@@ -130,14 +130,14 @@ def Ticket(ticket):
 def AdminTicket(ticket):
     """Admin interface to create slivers based on ticket returned by GetSlivers()."""
     try:
-        data, = xmlrpclib.loads(ticket)[0]
+        data, = xmlrpc.client.loads(ticket)[0]
         name = data['slivers'][0]['name']
         if data != None:
             deliver_ticket(data)
         logger.log('api_calls: Admin Ticket delivered for %s' % name)
         Create(database.db.get(name))
-    except Exception, err:
-        raise xmlrpclib.Fault(102, 'Ticket error: ' + str(err))
+    except Exception as err:
+        raise xmlrpc.client.Fault(102, 'Ticket error: ' + str(err))
 
 
 @export_to_docbook(roles=['self'],
@@ -155,7 +155,7 @@ def GetXIDs():
 def GetSSHKeys():
     """Return an dictionary mapping slice names to SSH keys"""
     keydict = {}
-    for rec in database.db.itervalues():
+    for rec in database.db.values():
         if 'keys' in rec:
             keydict[rec['name']] = rec['keys']
     return keydict
@@ -172,7 +172,7 @@ def Create(sliver_name):
         account.get(rec['name']).ensure_created(rec)
         logger.log("api_calls: Create %s"%rec['name'])
     else:
-        raise Exception, "Only PLC can create non delegated slivers."
+        raise Exception("Only PLC can create non delegated slivers.")
 
 
 @export_to_docbook(roles=['nm-controller', 'self'],
@@ -186,7 +186,7 @@ def Destroy(sliver_name):
         account.get(rec['name']).ensure_destroyed()
         logger.log("api_calls: Destroy %s"%rec['name'])
     else:
-        raise Exception, "Only PLC can destroy non delegated slivers."
+        raise Exception("Only PLC can destroy non delegated slivers.")
 
 
 @export_to_docbook(roles=['nm-controller', 'self'],
@@ -280,7 +280,7 @@ def SetLoans(sliver_name, loans):
     of loss of resources."""
     rec = sliver_name
     if not validate_loans(loans):
-        raise xmlrpclib.Fault(102, 'Invalid argument: the second argument must be a well-formed loan specification')
+        raise xmlrpc.client.Fault(102, 'Invalid argument: the second argument must be a well-formed loan specification')
     rec['_loans'] = loans
     database.db.sync()
 

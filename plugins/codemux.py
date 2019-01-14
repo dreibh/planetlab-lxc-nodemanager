@@ -40,7 +40,7 @@ def GetSlivers(data, config, plc = None):
     codemuxslices = {}
 
     # XXX Hack for planetflow
-    if slicesinconf.has_key("root"):
+    if "root" in slicesinconf:
         _writeconf = False
     else:
         _writeconf = True
@@ -68,7 +68,7 @@ def GetSlivers(data, config, plc = None):
                     # Check to see if sliver is running.  If not, continue
                     if slivermanager.is_running(sliver['name']):
                         # Check if new or needs updating
-                        if (sliver['name'] not in slicesinconf.keys()) \
+                        if (sliver['name'] not in list(slicesinconf.keys())) \
                         or (params not in slicesinconf.get(sliver['name'], [])):
                             logger.log("codemux:  Updating slice %s using %s" % \
                                 (sliver['name'], params['host']))
@@ -107,7 +107,7 @@ def writeConf(slivers, conf = CODEMUXCONF):
         f.write("* root 1080 %s\n" % Config().PLC_API_HOST)
     # Sort items for like domains
     for mapping in slivers:
-        for (host, params) in mapping.iteritems():
+        for (host, params) in mapping.items():
             if params['slice'] == "root":  continue
             f.write("%s %s %s %s\n" % (host, params['slice'], params['port'], params['ip']))
     f.truncate()
@@ -121,10 +121,10 @@ def writeConf(slivers, conf = CODEMUXCONF):
 def sortDomains(slivers):
     '''Given a dict of {slice: {domainname, port}}, return array of slivers with lower order domains first'''
     dnames = {} # {host: slice}
-    for (slice, params) in slivers.iteritems():
+    for (slice, params) in slivers.items():
         for mapping in params:
             dnames[mapping['host']] = {"slice":slice, "port": mapping['port'], "ip": mapping['ip']}
-    hosts = dnames.keys()
+    hosts = list(dnames.keys())
     # sort by length
     hosts.sort(key=str.__len__)
     # longer first

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Average bandwidth monitoring script. Run periodically via NM db.sync to
 # enforce a soft limit on daily bandwidth usage for each slice. If a
@@ -196,9 +196,9 @@ class Slice:
         self.bytes = 0
         self.i2bytes = 0
         self.MaxRate = default_MaxRate
-        self.MinRate = bwlimit.bwmin / 1000
+        self.MinRate = bwlimit.bwmin // 1000
         self.Maxi2Rate = default_Maxi2Rate
-        self.Mini2Rate = bwlimit.bwmin / 1000
+        self.Mini2Rate = bwlimit.bwmin // 1000
         self.MaxKByte = default_MaxKByte
         self.ThreshKByte = int(.8 * self.MaxKByte)
         self.Maxi2KByte = default_Maxi2KByte
@@ -209,12 +209,13 @@ class Slice:
         self.capped = False
 
         self.updateSliceTags(rspec)
-        bwlimit.set(xid = self.xid, dev = dev_default,
-                minrate = self.MinRate * 1000,
-                maxrate = self.MaxRate * 1000,
-                maxexemptrate = self.Maxi2Rate * 1000,
-                minexemptrate = self.Mini2Rate * 1000,
-                share = self.Share)
+        bwlimit.set(
+            xid=self.xid, dev=dev_default,
+            minrate=self.MinRate * 1000,
+            maxrate=self.MaxRate * 1000,
+            maxexemptrate=self.Maxi2Rate * 1000,
+            minexemptrate=self.Mini2Rate * 1000,
+            share=self.Share)
 
     def __repr__(self):
         return self.name
@@ -227,7 +228,7 @@ class Slice:
 
         # Sanity check plus policy decision for MinRate:
         # Minrate cant be greater than 25% of MaxRate or NodeCap.
-        MinRate = int(rspec.get("net_min_rate", bwlimit.bwmin / 1000))
+        MinRate = int(rspec.get("net_min_rate", bwlimit.bwmin // 1000))
         if MinRate > int(.25 * default_MaxRate):
             MinRate = int(.25 * default_MaxRate)
         if MinRate != self.MinRate:
@@ -239,7 +240,7 @@ class Slice:
             self.MaxRate = MaxRate
             logger.log("bwmon: Updating %s: Max Rate = %s" %(self.name, self.MaxRate))
 
-        Mini2Rate = int(rspec.get('net_i2_min_rate', bwlimit.bwmin / 1000))
+        Mini2Rate = int(rspec.get('net_i2_min_rate', bwlimit.bwmin // 1000))
         if Mini2Rate != self.Mini2Rate:
             self.Mini2Rate = Mini2Rate
             logger.log("bwmon: Updating %s: Min i2 Rate = %s" %(self.name, self.Mini2Rate))
@@ -391,7 +392,8 @@ class Slice:
             bytesused = usedbytes - self.bytes
             timeused = int(time.time() - self.time)
             # Calcuate new rate. in bit/s
-            new_maxrate = int(((maxbyte - bytesused) * 8)/(period - timeused))
+            new_maxrate = int(((maxbyte - bytesused) * 8)
+                              / (period - timeused))
             # Never go under MinRate
             if new_maxrate < (self.MinRate * 1000):
                 new_maxrate = self.MinRate * 1000
@@ -407,7 +409,8 @@ class Slice:
             i2bytesused = usedi2bytes - self.i2bytes
             timeused = int(time.time() - self.time)
             # Calcuate New Rate.
-            new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)/(period - timeused))
+            new_maxi2rate = int(((maxi2byte - i2bytesused) * 8)
+                                /(period - timeused))
             # Never go under MinRate
             if new_maxi2rate < (self.Mini2Rate * 1000):
                 new_maxi2rate = self.Mini2Rate * 1000
@@ -497,7 +500,7 @@ def sync(nmdbcopy):
     if default_MaxRate == -1:
         default_MaxRate = 1000000
 
-    # xxx $Id$ 
+    # xxx $Id$
     # with svn we used to have a trick to detect upgrades of this file
     # this has gone with the move to git, without any noticeable effect on operations though
     try:
@@ -520,35 +523,35 @@ def sync(nmdbcopy):
 
     # Since root is required for sanity, its not in the API/plc database, so pass {}
     # to use defaults.
-    if root_xid not in slices.keys():
+    if root_xid not in list(slices.keys()):
         slices[root_xid] = Slice(root_xid, "root", {})
         slices[root_xid].reset({}, {})
 
     # Used by bwlimit.  pass {} since there is no rspec (like above).
-    if default_xid not in slices.keys():
+    if default_xid not in list(slices.keys()):
         slices[default_xid] = Slice(default_xid, "default", {})
         slices[default_xid].reset({}, {})
 
     live = {}
     # Get running slivers that should be on this node (from plc). {xid: name}
     # db keys on name, bwmon keys on xid.  db doesnt have xid either.
-    for plcSliver in nmdbcopy.keys():
+    for plcSliver in list(nmdbcopy.keys()):
         live[bwlimit.get_xid(plcSliver)] = nmdbcopy[plcSliver]
 
-    logger.verbose("bwmon: Found %s instantiated slices" % live.keys().__len__())
-    logger.verbose("bwmon: Found %s slices in dat file" % slices.values().__len__())
+    logger.verbose("bwmon: Found %s instantiated slices" % list(live.keys()).__len__())
+    logger.verbose("bwmon: Found %s slices in dat file" % list(slices.values()).__len__())
 
     # Get actual running values from tc.
     # Update slice totals and bandwidth. {xid: {values}}
     kernelhtbs = gethtbs(root_xid, default_xid)
-    logger.verbose("bwmon: Found %s running HTBs" % kernelhtbs.keys().__len__())
+    logger.verbose("bwmon: Found %s running HTBs" % list(kernelhtbs.keys()).__len__())
 
     # The dat file has HTBs for slices, but the HTBs aren't running
     nohtbslices =  set(slices.keys()) - set(kernelhtbs.keys())
     logger.verbose( "bwmon: Found %s slices in dat but not running." % nohtbslices.__len__())
     # Reset tc counts.
     for nohtbslice in nohtbslices:
-        if live.has_key(nohtbslice):
+        if nohtbslice in live:
             slices[nohtbslice].reset( {}, live[nohtbslice]['_rspec'] )
         else:
             logger.log("bwmon: Removing abondoned slice %s from dat." % nohtbslice)
@@ -559,7 +562,7 @@ def sync(nmdbcopy):
     logger.verbose( "bwmon: Found %s slices with HTBs but not in dat" % slicesnodat.__len__())
     for slicenodat in slicesnodat:
         # But slice is running
-        if live.has_key(slicenodat):
+        if slicenodat in live:
             # init the slice.  which means start accounting over since kernel
             # htb was already there.
             slices[slicenodat] = Slice(slicenodat,
@@ -575,9 +578,9 @@ def sync(nmdbcopy):
     for newslice in newslicesxids:
         # Delegated slices dont have xids (which are uids) since they haven't been
         # instantiated yet.
-        if newslice != None and live[newslice].has_key('_rspec') == True:
+        if newslice != None and ('_rspec' in live[newslice]) == True:
             # Check to see if we recently deleted this slice.
-            if live[newslice]['name'] not in deaddb.keys():
+            if live[newslice]['name'] not in list(deaddb.keys()):
                 logger.log( "bwmon: new slice %s" % live[newslice]['name'] )
                 # _rspec is the computed rspec:  NM retrieved data from PLC, computed loans
                 # and made a dict of computed values.
@@ -615,17 +618,17 @@ def sync(nmdbcopy):
         if deadxid == root_xid or deadxid == default_xid:
             continue
         logger.log("bwmon: removing dead slice %s " % deadxid)
-        if slices.has_key(deadxid) and kernelhtbs.has_key(deadxid):
+        if deadxid in slices and deadxid in kernelhtbs:
             # add slice (by name) to deaddb
             logger.log("bwmon: Saving bandwidth totals for %s." % slices[deadxid].name)
             deaddb[slices[deadxid].name] = {'slice': slices[deadxid], 'htb': kernelhtbs[deadxid]}
             del slices[deadxid]
-        if kernelhtbs.has_key(deadxid):
+        if deadxid in kernelhtbs:
             logger.verbose("bwmon: Removing HTB for %s." % deadxid)
             bwlimit.off(deadxid, dev = dev_default)
 
     # Clean up deaddb
-    for deadslice in deaddb.keys():
+    for deadslice in list(deaddb.keys()):
         if (time.time() >= (deaddb[deadslice]['slice'].time + period)):
             logger.log("bwmon: Removing dead slice %s from dat." \
                         % deaddb[deadslice]['slice'].name)
@@ -634,10 +637,10 @@ def sync(nmdbcopy):
     # Get actual running values from tc since we've added and removed buckets.
     # Update slice totals and bandwidth. {xid: {values}}
     kernelhtbs = gethtbs(root_xid, default_xid)
-    logger.verbose("bwmon: now %s running HTBs" % kernelhtbs.keys().__len__())
+    logger.verbose("bwmon: now %s running HTBs" % list(kernelhtbs.keys()).__len__())
 
     # Update all byte limites on all slices
-    for (xid, slice) in slices.iteritems():
+    for (xid, slice) in slices.items():
         # Monitor only the specified slices
         if xid == root_xid or xid == default_xid: continue
         if names and name not in names:
@@ -656,7 +659,7 @@ def sync(nmdbcopy):
             # Update byte counts
             slice.update(kernelhtbs[xid], live[xid]['_rspec'])
 
-    logger.verbose("bwmon: Saving %s slices in %s" % (slices.keys().__len__(), DB_FILE))
+    logger.verbose("bwmon: Saving %s slices in %s" % (list(slices.keys()).__len__(), DB_FILE))
     f = open(DB_FILE, "w")
     pickle.dump((version, slices, deaddb), f)
     f.close()
@@ -687,7 +690,7 @@ def allOff():
     kernelhtbs = gethtbs(root_xid, default_xid)
     if len(kernelhtbs):
         logger.log("bwmon: Disabling all running HTBs.")
-        for htb in kernelhtbs.keys(): bwlimit.off(htb, dev = dev_default)
+        for htb in list(kernelhtbs.keys()): bwlimit.off(htb, dev = dev_default)
 
 
 lock = threading.Event()

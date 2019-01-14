@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 # vim:set ts=4 sw=4 expandtab:
 #
 # NodeManager plugin for installing SFA GID's in slivers
@@ -109,7 +109,7 @@ def install_trusted_certs(api):
         trusted_gid_names.append(relative_filename)
         gid_filename = trusted_certs_dir + os.sep + relative_filename
         if verbose:
-            print "Writing GID for %s as %s" % (gid.get_hrn(), gid_filename)
+            print("Writing GID for %s as %s" % (gid.get_hrn(), gid_filename))
         gid.save_to_file(gid_filename, save_parents=True)
 
     # remove old certs
@@ -117,7 +117,7 @@ def install_trusted_certs(api):
     for gid_name in all_gids_names:
         if gid_name not in trusted_gid_names:
             if verbose:
-                print "Removing old gid ", gid_name
+                print("Removing old gid ", gid_name)
             os.unlink(trusted_certs_dir + os.sep + gid_name)
     
 

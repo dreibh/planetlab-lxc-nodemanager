@@ -34,5 +34,5 @@ def add_shell(shell):
     etc_shells.close()
     if shell not in valid_shells:
         etc_shells = open('/etc/shells', 'a')
-        print >>etc_shells, shell
+        print(shell, file=etc_shells)
         etc_shells.close()

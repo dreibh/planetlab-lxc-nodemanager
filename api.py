@@ -9,15 +9,15 @@ domain socket that is accessible by ssh-ing into a delegate account
 with the forward_api_calls shell.
 """
 
-import SimpleXMLRPCServer
-import SocketServer
+import xmlrpc.server
+import socketserver
 import errno
 import os
 import pwd
 import socket
 import struct
 import threading
-import xmlrpclib
+import xmlrpc.client
 import sys
 
 import database
@@ -36,7 +36,7 @@ except:
 API_SERVER_PORT = 812
 UNIX_ADDR = '/tmp/nodemanager.api'
 
-class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
+class APIRequestHandler(xmlrpc.server.SimpleXMLRPCRequestHandler):
     # overriding _dispatch to achieve this effect is officially deprecated,
     # but I can't figure out how to get access to .request without
     # duplicating SimpleXMLRPCServer code here, which is more likely to
@@ -47,13 +47,13 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
         method_name = str(method_name_unicode)
         try: method = api_method_dict[method_name]
         except KeyError:
-            api_method_list = api_method_dict.keys()
+            api_method_list = list(api_method_dict.keys())
             api_method_list.sort()
-            raise xmlrpclib.Fault(100, 'Invalid API method %s.  Valid choices are %s' % \
+            raise xmlrpc.client.Fault(100, 'Invalid API method %s.  Valid choices are %s' % \
                 (method_name, ', '.join(api_method_list)))
         expected_nargs = nargs_dict[method_name]
         if len(args) != expected_nargs:
-            raise xmlrpclib.Fault(101, 'Invalid argument count: got %d, expecting %d.' % \
+            raise xmlrpc.client.Fault(101, 'Invalid argument count: got %d, expecting %d.' % \
                 (len(args), expected_nargs))
         else:
             # Figure out who's calling.
@@ -66,11 +66,11 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             # Special case : the sfa component manager
             if caller_name == PLC_SLICE_PREFIX+"_sfacm":
                 try: result = method(*args)
-                except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
+                except Exception as err: raise xmlrpc.client.Fault(104, 'Error in call: %s' %err)
             # Anyone can call these functions
             elif method_name in ('Help', 'Ticket', 'GetXIDs', 'GetSSHKeys'):
                 try: result = method(*args)
-                except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
+                except Exception as err: raise xmlrpc.client.Fault(104, 'Error in call: %s' %err)
             else: # Execute anonymous call.
                 # Authenticate the caller if not in the above fncts.
                 if method_name == "GetRecord":
@@ -83,19 +83,19 @@ class APIRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
 
                 # only work on slivers or self. Sanity check.
                 if not (target_rec and target_rec['type'].startswith('sliver.')):
-                    raise xmlrpclib.Fault(102, \
+                    raise xmlrpc.client.Fault(102, \
                         'Invalid argument: the first argument must be a sliver name.')
 
                 # only manipulate slivers who delegate you authority
                 if caller_name in (target_name, target_rec['delegations']):
                     try: result = method(target_rec, *args[1:])
-                    except Exception, err: raise xmlrpclib.Fault(104, 'Error in call: %s' %err)
+                    except Exception as err: raise xmlrpc.client.Fault(104, 'Error in call: %s' %err)
                 else:
-                    raise xmlrpclib.Fault(108, '%s: Permission denied.' % caller_name)
+                    raise xmlrpc.client.Fault(108, '%s: Permission denied.' % caller_name)
             if result == None: result = 1
             return result
 
-class APIServer_INET(SocketServer.ThreadingMixIn, SimpleXMLRPCServer.SimpleXMLRPCServer): allow_reuse_address = True
+class APIServer_INET(socketserver.ThreadingMixIn, xmlrpc.server.SimpleXMLRPCServer): allow_reuse_address = True
 
 class APIServer_UNIX(APIServer_INET): address_family = socket.AF_UNIX
 
@@ -105,8 +105,8 @@ def start():
     serv1 = APIServer_INET(('127.0.0.1', API_SERVER_PORT), requestHandler=APIRequestHandler, logRequests=0)
     tools.as_daemon_thread(serv1.serve_forever)
     try: os.unlink(UNIX_ADDR)
-    except OSError, e:
+    except OSError as e:
         if e.errno != errno.ENOENT: raise
     serv2 = APIServer_UNIX(UNIX_ADDR, requestHandler=APIRequestHandler, logRequests=0)
     tools.as_daemon_thread(serv2.serve_forever)
-    os.chmod(UNIX_ADDR, 0666)
+    os.chmod(UNIX_ADDR, 0o666)

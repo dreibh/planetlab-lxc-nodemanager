@@ -10,7 +10,7 @@ After=network.target
 EnvironmentFile=/etc/sysconfig/nodemanager
 Type=forking
 PIDFile=/var/run/nodemanager.pid
-ExecStart=/usr/bin/env python /usr/share/NodeManager/nodemanager.py -d $OPTIONS
+ExecStart=/usr/bin/env python3 /usr/share/NodeManager/nodemanager.py -d $OPTIONS
 
 [Install]
 WantedBy=multi-user.target

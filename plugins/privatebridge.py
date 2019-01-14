@@ -1,44 +1,44 @@
-#!/usr/bin/env python
+"""
+Private Bridge configurator.
+"""
 
-""" Private Bridge configurator.  """
-
-import httplib
-import os
 import select
-import shutil
 import subprocess
 import time
 import tools
 
-from threading import Thread
 import logger
-import tools
 
 priority = 9
 
 class OvsException (Exception) :
-    def __init__ (self, message="no message"):
-        self.message=message
-    def __repr__ (self): return message
+    def __init__(self, message="no message"):
+        self.message = message
+    def __repr__(self):
+        return self.message
 
 def start():
     logger.log('private bridge plugin starting up...')
 
 def log_call_read(command, timeout=logger.default_timeout_minutes*60, poll=1):
-    message=" ".join(command)
+    message = " ".join(command)
     logger.log("log_call: running command %s" % message)
     logger.verbose("log_call: timeout=%r s" % timeout)
     logger.verbose("log_call: poll=%r s" % poll)
-    trigger=time.time()+timeout
+    trigger = time.time()+timeout
     try:
-        child = subprocess.Popen(command, bufsize=1,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        child = subprocess.Popen(
+            command, bufsize=1,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            close_fds=True,
+            universal_newlines=True)
 
         stdout = ""
         while True:
             # see if anything can be read within the poll interval
-            (r, w, x)=select.select([child.stdout], [], [], poll)
-            if r: stdout = stdout + child.stdout.read(1)
+            (r, w, x) = select.select([child.stdout], [], [], poll)
+            if r:
+                stdout = stdout + child.stdout.read(1)
             # is process over ?
             returncode=child.poll()
             # yes
@@ -52,12 +52,14 @@ def log_call_read(command, timeout=logger.default_timeout_minutes*60, poll=1):
                     return (returncode, stdout)
                 # child has failed
                 else:
-                    log("log_call:end command (%s) returned with code %d" %(message, returncode))
+                    log("log_call:end command (%s) returned with code %d"
+                        %(message, returncode))
                     return (returncode, stdout)
             # no : still within timeout ?
             if time.time() >= trigger:
                 child.terminate()
-                logger.log("log_call:end terminating command (%s) - exceeded timeout %d s"%(message, timeout))
+                logger.log("log_call:end terminating command (%s) - exceeded timeout %d s"
+                           %(message, timeout))
                 return (-2, None)
                 break
     except Exception as e:
@@ -66,8 +68,8 @@ def log_call_read(command, timeout=logger.default_timeout_minutes*60, poll=1):
     return (-1, None)
 
 ### Thierry - 23 Sept 2014
-# regardless of this being shipped on lxc-only or on all nodes, 
-# it is safer to check for the availability of the ovs-vsctl command and just print 
+# regardless of this being shipped on lxc-only or on all nodes,
+# it is safer to check for the availability of the ovs-vsctl command and just print
 # out a warning when it's not there, instead of a nasty traceback
 def ovs_available ():
     "return True if ovs-vsctl can be run"
@@ -106,8 +108,9 @@ def ovs_addport(name, portname, type, remoteip, key):
     if key:
         args = args + ["options:key=" + str(key)]
 
-    (returncode, stdout) = ovs_vsctl(args)
-    if (returncode != 0): raise OvsException("add-port")
+    returncode, stdout = ovs_vsctl(args)
+    if (returncode != 0):
+        raise OvsException("add-port")
 
 def ovs_delport(name, portname):
     (returncode, stdout) = ovs_vsctl(["del-port", name, portname])
@@ -179,7 +182,7 @@ def GetSlivers(data, conf = None, plc = None):
         sliver_name = sliver['name']
 
         # build a dict of attributes, because it's more convenient
-        attributes={}
+        attributes = {}
         for attribute in sliver['attributes']:
             attributes[attribute['tagname']] = attribute['value']
 
@@ -202,6 +205,3 @@ def GetSlivers(data, conf = None, plc = None):
         logger.log("privatebridge: deleting unused bridge %s" % bridge_name)
 
         ovs_delbridge(bridge_name)
-
-
-

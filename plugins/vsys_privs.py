@@ -34,9 +34,9 @@ def GetSlivers(data, config=None, plc=None):
             tag = attribute['tagname']
             value = attribute['value']
             if tag.startswith('vsys_'):
-                if (privs.has_key(slice)):
+                if (slice in privs):
                     slice_priv = privs[slice]
-                    if (slice_priv.has_key(tag)):
+                    if (tag in slice_priv):
                         slice_priv[tag].append(value)
                     else:
                         slice_priv[tag]=[value]
@@ -74,17 +74,17 @@ def read_privs():
     return cur_privs
 
 def write_privs(cur_privs, privs):
-    for slice in privs.keys():
+    for slice in list(privs.keys()):
         variables = privs[slice]
         slice_dir = os.path.join(VSYS_PRIV_DIR, slice)
         if (not os.path.exists(slice_dir)):
             os.mkdir(slice_dir)
 
         # Add values that do not exist
-        for k in variables.keys():
+        for k in list(variables.keys()):
             v = variables[k]
-            if (cur_privs.has_key(slice)
-                    and cur_privs[slice].has_key(k)
+            if (slice in cur_privs
+                    and k in cur_privs[slice]
                     and cur_privs[slice][k] == v):
                 # The binding has not changed
                 pass
@@ -98,21 +98,21 @@ def write_privs(cur_privs, privs):
 
     # Remove files and directories
     # that are invalid
-    for slice in cur_privs.keys():
+    for slice in list(cur_privs.keys()):
         variables = cur_privs[slice]
         slice_dir = os.path.join(VSYS_PRIV_DIR, slice)
 
         # Add values that do not exist
-        for k in variables.keys():
-            if (privs.has_key(slice)
-                    and cur_privs[slice].has_key(k)):
+        for k in list(variables.keys()):
+            if (slice in privs
+                    and k in cur_privs[slice]):
                 # ok, spare this tag
-                print "Sparing  %s, %s "%(slice, k)
+                print("Sparing  %s, %s "%(slice, k))
             else:
                 v_file = os.path.join(slice_dir, k)
                 os.remove(v_file)
 
-        if (not privs.has_key(slice)):
+        if (slice not in privs):
             os.rmdir(slice_dir)
 
 

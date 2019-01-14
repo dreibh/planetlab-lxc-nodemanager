@@ -184,7 +184,7 @@ class Sliver_Libvirt(Account):
             try:
                 # create actually means start
                 self.dom.create()
-            except Exception, e:
+            except Exception as e:
                 # XXX smbaker: attempt to resolve slivers that are stuck in
                 #   "failed to allocate free veth".
                 if "ailed to allocate free veth" in str(e):
@@ -250,7 +250,7 @@ class Sliver_Libvirt(Account):
 
         # Btrfs support quota per volumes
 
-        if rec.has_key("rspec") and rec["rspec"].has_key("tags"):
+        if "rspec" in rec and "tags" in rec["rspec"]:
             if cgroups.get_cgroup_path(self.name) == None:
                 # If configure is called before start, then the cgroups won't exist
                 # yet. NM will eventually re-run configure on the next iteration.
@@ -260,7 +260,7 @@ class Sliver_Libvirt(Account):
             else:
                 tags = rec["rspec"]["tags"]
                 # It will depend on the FS selection
-                if tags.has_key('disk_max'):
+                if 'disk_max' in tags:
                     disk_max = tags['disk_max']
                     if disk_max == 0:
                         # unlimited
@@ -270,17 +270,17 @@ class Sliver_Libvirt(Account):
                         pass
 
                 # Memory allocation
-                if tags.has_key('memlock_hard'):
+                if 'memlock_hard' in tags:
                     mem = str(int(tags['memlock_hard']) * 1024) # hard limit in bytes
                     cgroups.write(self.name, 'memory.limit_in_bytes', mem, subsystem="memory")
-                if tags.has_key('memlock_soft'):
+                if 'memlock_soft' in tags:
                     mem = str(int(tags['memlock_soft']) * 1024) # soft limit in bytes
                     cgroups.write(self.name, 'memory.soft_limit_in_bytes', mem, subsystem="memory")
 
                 # CPU allocation
                 # Only cpu_shares until figure out how to provide limits and guarantees
                 # (RT_SCHED?)
-                if tags.has_key('cpu_share'):
+                if 'cpu_share' in tags:
                     cpu_share = tags['cpu_share']
                     cgroups.write(self.name, 'cpu.shares', cpu_share)
 

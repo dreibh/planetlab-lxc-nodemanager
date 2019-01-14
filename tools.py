@@ -2,7 +2,8 @@
 
 """A few things that didn't seem to fit anywhere else."""
 
-import os, os.path
+import os
+import os.path
 import pwd
 import tempfile
 import fcntl
@@ -18,10 +19,14 @@ import logger
 PID_FILE = '/var/run/nodemanager.pid'
 
 ####################
+
+
 def get_default_if():
     interface = get_if_from_hwaddr(get_hwaddr_from_plnode())
-    if not interface: interface = "eth0"
+    if not interface:
+        interface = "eth0"
     return interface
+
 
 def get_hwaddr_from_plnode():
     try:
@@ -32,52 +37,70 @@ def get_hwaddr_from_plnode():
         pass
     return None
 
+
 def get_if_from_hwaddr(hwaddr):
     import sioc
     devs = sioc.gifconf()
     for dev in devs:
         dev_hwaddr = sioc.gifhwaddr(dev)
-        if dev_hwaddr == hwaddr: return dev
+        if dev_hwaddr == hwaddr:
+            return dev
     return None
 
 ####################
 # daemonizing
+
+
 def as_daemon_thread(run):
-    """Call function <run> with no arguments in its own thread."""
+    """
+    Call function <run> with no arguments in its own thread.
+    """
     thr = threading.Thread(target=run)
     thr.setDaemon(True)
     thr.start()
 
+
 def close_nonstandard_fds():
-    """Close all open file descriptors other than 0, 1, and 2."""
+    """
+    Close all open file descriptors other than 0, 1, and 2.
+    """
     _SC_OPEN_MAX = 4
     for fd in range(3, os.sysconf(_SC_OPEN_MAX)):
-        try: os.close(fd)
-        except OSError: pass  # most likely an fd that isn't open
+        try:
+            os.close(fd)
+        except OSError:
+            pass  # most likely an fd that isn't open
 
 # after http://www.erlenstar.demon.co.uk/unix/faq_2.html
+
+
 def daemon():
-    """Daemonize the current process."""
-    if os.fork() != 0: os._exit(0)
+    """
+    Daemonize the current process.
+    """
+    if os.fork() != 0:
+        os._exit(0)
     os.setsid()
-    if os.fork() != 0: os._exit(0)
+    if os.fork() != 0:
+        os._exit(0)
     os.chdir('/')
-    os.umask(0022)
+    os.umask(0o022)
     devnull = os.open(os.devnull, os.O_RDWR)
     os.dup2(devnull, 0)
     # xxx fixme - this is just to make sure that nothing gets stupidly lost - should use devnull
-    crashlog = os.open('/var/log/nodemanager.daemon', os.O_RDWR | os.O_APPEND | os.O_CREAT, 0644)
+    crashlog = os.open('/var/log/nodemanager.daemon',
+                       os.O_RDWR | os.O_APPEND | os.O_CREAT, 0o644)
     os.dup2(crashlog, 1)
     os.dup2(crashlog, 2)
 
+
 def fork_as(su, function, *args):
     """
-fork(), cd / to avoid keeping unused directories open,
-close all nonstandard file descriptors (to avoid capturing open sockets),
-fork() again (to avoid zombies) and call <function>
-with arguments <args> in the grandchild process.
-If <su> is not None, set our group and user ids
- appropriately in the child process.
+    fork(), cd / to avoid keeping unused directories open, close all nonstandard
+    file descriptors (to avoid capturing open sockets), fork() again (to avoid
+    zombies) and call <function> with arguments <args> in the grandchild
+    process. If <su> is not None, set our group and user ids appropriately in
+    the child process.
     """
     child_pid = os.fork()
     if child_pid == 0:
@@ -89,21 +112,26 @@ If <su> is not None, set our group and user ids
                 os.setegid(pw_ent[3])
                 os.seteuid(pw_ent[2])
             child_pid = os.fork()
-            if child_pid == 0: function(*args)
+            if child_pid == 0:
+                function(*args)
         except:
             os.seteuid(os.getuid())  # undo su so we can write the log file
             os.setegid(os.getgid())
             logger.log_exc("tools: fork_as")
         os._exit(0)
-    else: os.waitpid(child_pid, 0)
+    else:
+        os.waitpid(child_pid, 0)
 
 ####################
 # manage files
+
+
 def pid_file():
     """
-We use a pid file to ensure that only one copy of NM is running at a given time.
-If successful, this function will write a pid file containing the pid of the current process.
-The return value is the pid of the other running process, or None otherwise.
+    We use a pid file to ensure that only one copy of NM is running at a given
+    time. If successful, this function will write a pid file containing the pid
+    of the current process. The return value is the pid of the other running
+    process, or None otherwise.
     """
     other_pid = None
     if os.access(PID_FILE, os.F_OK):  # check for a pid file
@@ -111,70 +139,87 @@ The return value is the pid of the other running process, or None otherwise.
         other_pid = int(handle.read())
         handle.close()
         # check for a process with that pid by sending signal 0
-        try: os.kill(other_pid, 0)
-        except OSError, e:
-            if e.errno == errno.ESRCH: other_pid = None  # doesn't exist
-            else: raise  # who knows
+        try:
+            os.kill(other_pid, 0)
+        except OSError as e:
+            if e.errno == errno.ESRCH:
+                other_pid = None  # doesn't exist
+            else:
+                raise  # who knows
     if other_pid == None:
         # write a new pid file
         write_file(PID_FILE, lambda f: f.write(str(os.getpid())))
     return other_pid
 
+
 def write_file(filename, do_write, **kw_args):
     """
-Write file <filename> atomically by opening a temporary file,
-using <do_write> to write that file, and then renaming the temporary file.
+    Write file <filename> atomically by opening a temporary file,
+    using <do_write> to write that file, and then renaming the temporary file.
     """
     shutil.move(write_temp_file(do_write, **kw_args), filename)
 
-def write_temp_file(do_write, mode=None, uidgid=None):
+
+def write_temp_file(do_write, mode=None, uidgid=None, binary=False):
     fd, temporary_filename = tempfile.mkstemp()
-    if mode: os.chmod(temporary_filename, mode)
-    if uidgid: os.chown(temporary_filename, *uidgid)
-    f = os.fdopen(fd, 'w')
-    try: do_write(f)
-    finally: f.close()
+    if mode:
+        os.chmod(temporary_filename, mode)
+    if uidgid:
+        os.chown(temporary_filename, *uidgid)
+    open_mode = 'wb' if binary else 'w'
+    f = os.fdopen(fd, open_mode)
+    try:
+        do_write(f)
+    finally:
+        f.close()
     return temporary_filename
 
-def replace_file_with_string (target, new_contents, chmod=None, remove_if_empty=False):
+
+def replace_file_with_string(target, new_contents,
+                             chmod=None, remove_if_empty=False):
     """
-Replace a target file with a new contents
-checks for changes: does not do anything if previous state was already right
-can handle chmod if requested
-can also remove resulting file if contents are void, if requested
-performs atomically:
-writes in a tmp file, which is then renamed (from sliverauth originally)
-returns True if a change occurred, or the file is deleted
+    Replace a target file with a new contents checks for changes: does not do
+    anything if previous state was already right can handle chmod if requested
+    can also remove resulting file if contents are void, if requested performs
+    atomically: writes in a tmp file, which is then renamed (from sliverauth
+    originally) returns True if a change occurred, or the file is deleted
     """
     try:
-        with open(target) as f:
-            current = f.read()
+        with open(target) as feed:
+            current = feed.read()
     except:
         current = ""
     if current == new_contents:
         # if turns out to be an empty string, and remove_if_empty is set,
         # then make sure to trash the file if it exists
         if remove_if_empty and not new_contents and os.path.isfile(target):
-            logger.verbose("tools.replace_file_with_string: removing file {}".format(target))
-            try: os.unlink(target)
-            finally: return True
+            logger.verbose(
+                "tools.replace_file_with_string: removing file {}".format(target))
+            try:
+                os.unlink(target)
+            finally:
+                return True
         return False
     # overwrite target file: create a temp in the same directory
     path = os.path.dirname(target) or '.'
     fd, name = tempfile.mkstemp('', 'repl', path)
-    os.write(fd, new_contents)
+    os.write(fd, new_contents.encode())
     os.close(fd)
     if os.path.exists(target):
         os.unlink(target)
     shutil.move(name, target)
-    if chmod: os.chmod(target, chmod)
+    if chmod:
+        os.chmod(target, chmod)
     return True
 
 ####################
 # utilities functions to get (cached) information from the node
 
+
 # get node_id from /etc/planetlab/node_id and cache it
 _node_id = None
+
+
 def node_id():
     global _node_id
     if _node_id is None:
@@ -185,7 +230,10 @@ def node_id():
             _node_id = ""
     return _node_id
 
+
 _root_context_arch = None
+
+
 def root_context_arch():
     global _root_context_arch
     if not _root_context_arch:
@@ -199,15 +247,18 @@ def root_context_arch():
 class NMLock:
     def __init__(self, file):
         logger.log("tools: Lock {} initialized.".format(file), 2)
-        self.fd = os.open(file, os.O_RDWR|os.O_CREAT, 0600)
+        self.fd = os.open(file, os.O_RDWR | os.O_CREAT, 0o600)
         flags = fcntl.fcntl(self.fd, fcntl.F_GETFD)
         flags |= fcntl.FD_CLOEXEC
         fcntl.fcntl(self.fd, fcntl.F_SETFD, flags)
+
     def __del__(self):
         os.close(self.fd)
+
     def acquire(self):
         logger.log("tools: Lock acquired.", 2)
         fcntl.lockf(self.fd, fcntl.LOCK_SH)
+
     def release(self):
         logger.log("tools: Lock released.", 2)
         fcntl.lockf(self.fd, fcntl.LOCK_UN)
@@ -215,6 +266,7 @@ class NMLock:
 ####################
 # Utilities for getting the IP address of a LXC/Openvswitch slice. Do this by
 # running ifconfig inside of the slice's context.
+
 
 def get_sliver_process(slice_name, process_cmdline):
     """
@@ -228,7 +280,8 @@ def get_sliver_process(slice_name, process_cmdline):
         output = os.popen(cmd).readlines()
     except:
         # the slice couldn't be found
-        logger.log("get_sliver_process: couldn't find slice {}".format(slice_name))
+        logger.log(
+            "get_sliver_process: couldn't find slice {}".format(slice_name))
         return (None, None)
 
     cgroup_fn = None
@@ -281,6 +334,7 @@ def get_sliver_process(slice_name, process_cmdline):
 # Added by Guilherme Sperb Machado <gsm@machados.org>
 ###################################################
 
+
 try:
     import re
     import socket
@@ -297,6 +351,7 @@ try:
 except:
     logger.log("Could not import 'sliver_lxc' or 'libvirt' or 'sliver_libvirt'.")
 ###################################################
+
 
 def get_sliver_ifconfig(slice_name, device="eth0"):
     """
@@ -326,17 +381,20 @@ def get_sliver_ifconfig(slice_name, device="eth0"):
         setns.chcontext(path)
 
         args = ["/sbin/ifconfig", device]
-        sub = subprocess.Popen(args, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+        sub = subprocess.Popen(
+            args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         sub.wait()
 
         if (sub.returncode != 0):
-            logger.log("get_slice_ifconfig: error in ifconfig: {}".format(sub.stderr.read()))
+            logger.log("get_slice_ifconfig: error in ifconfig: {}".format(
+                sub.stderr.read()))
 
         result = sub.stdout.read()
     finally:
         setns.chcontext("/proc/1/ns/net")
 
     return result
+
 
 def get_sliver_ip(slice_name):
     ifconfig = get_sliver_ifconfig(slice_name)
@@ -358,13 +416,16 @@ def get_sliver_ip(slice_name):
 # Get the slice ipv6 address
 # Only for LXC!
 ###################################################
+
+
 def get_sliver_ipv6(slice_name):
     ifconfig = get_sliver_ifconfig(slice_name)
     if not ifconfig:
         return None, None
 
     # example: 'inet6 2001:67c:16dc:1302:5054:ff:fea7:7882  prefixlen 64  scopeid 0x0<global>'
-    prog = re.compile(r'inet6\s+(.*)\s+prefixlen\s+(\d+)\s+scopeid\s+(.+)<global>')
+    prog = re.compile(
+        r'inet6\s+(.*)\s+prefixlen\s+(\d+)\s+scopeid\s+(.+)<global>')
     for line in ifconfig.split("\n"):
         search = prog.search(line)
         if search:
@@ -378,6 +439,8 @@ def get_sliver_ipv6(slice_name):
 ###################################################
 # Check if the address is a AF_INET6 family address
 ###################################################
+
+
 def is_valid_ipv6(ipv6addr):
     try:
         socket.inet_pton(socket.AF_INET6, ipv6addr)
@@ -385,12 +448,15 @@ def is_valid_ipv6(ipv6addr):
         return False
     return True
 
-### this returns the kind of virtualization on the node
+
+# this returns the kind of virtualization on the node
 # either 'vs' or 'lxc'
 # also caches it in /etc/planetlab/virt for next calls
 # could be promoted to core nm if need be
 virt_stamp = "/etc/planetlab/virt"
-def get_node_virt ():
+
+
+def get_node_virt():
     try:
         with open(virt_stamp) as f:
             return f.read().strip()
@@ -398,20 +464,23 @@ def get_node_virt ():
         pass
     logger.log("Computing virt..")
     try:
-        virt = 'vs' if subprocess.call ([ 'vserver', '--help' ]) == 0 else 'lxc'
+        virt = 'vs' if subprocess.call(['vserver', '--help']) == 0 else 'lxc'
     except:
-        virt='lxc'
-    with file(virt_stamp, "w") as f:
+        virt = 'lxc'
+    with open(virt_stamp, "w") as f:
         f.write(virt)
     return virt
 
-### this return True or False to indicate that systemctl is present on that box
+
+# this return True or False to indicate that systemctl is present on that box
 # cache result in memory as _has_systemctl
 _has_systemctl = None
-def has_systemctl ():
+
+
+def has_systemctl():
     global _has_systemctl
     if _has_systemctl is None:
-        _has_systemctl = (subprocess.call([ 'systemctl', '--help' ]) == 0)
+        _has_systemctl = (subprocess.call(['systemctl', '--help']) == 0)
     return _has_systemctl
 
 ###################################################
@@ -420,6 +489,8 @@ def has_systemctl ():
 # This method was developed to support the ipv6 plugin
 # Only for LXC!
 ###################################################
+
+
 def reboot_slivers():
     type = 'sliver.LXC'
     # connecting to the libvirtd
@@ -430,29 +501,38 @@ def reboot_slivers():
             # set the flag VIR_DOMAIN_REBOOT_INITCTL, which uses "initctl"
             result = domain.reboot(0x04)
             if result == 0:
-                logger.log("tools: REBOOT {}".format(domain.name()) )
+                logger.log("tools: REBOOT {}".format(domain.name()))
             else:
                 raise Exception()
-        except Exception, e:
-            logger.log("tools: FAILED to reboot {} ({})".format(domain.name(), e) )
-            logger.log("tools: Trying to DESTROY/CREATE {} instead...".format(domain.name()) )
+        except Exception as e:
+            logger.log("tools: FAILED to reboot {} ({})".format(
+                domain.name(), e))
+            logger.log(
+                "tools: Trying to DESTROY/CREATE {} instead...".format(domain.name()))
             try:
                 result = domain.destroy()
-                if result==0:
-                    logger.log("tools: DESTROYED {}".format(domain.name()) )
-                else: logger.log("tools: FAILED in the DESTROY call of {}".format(domain.name()) )
+                if result == 0:
+                    logger.log("tools: DESTROYED {}".format(domain.name()))
+                else:
+                    logger.log(
+                        "tools: FAILED in the DESTROY call of {}".format(domain.name()))
                 result = domain.create()
-                if result==0:
-                    logger.log("tools: CREATED {}".format(domain.name()) )
-                else: logger.log("tools: FAILED in the CREATE call of {}".format(domain.name()) )
-            except Exception, e:
-                logger.log("tools: FAILED to DESTROY/CREATE {} ({})".format(domain.name(), e) )
+                if result == 0:
+                    logger.log("tools: CREATED {}".format(domain.name()))
+                else:
+                    logger.log(
+                        "tools: FAILED in the CREATE call of {}".format(domain.name()))
+            except Exception as e:
+                logger.log(
+                    "tools: FAILED to DESTROY/CREATE {} ({})".format(domain.name(), e))
 
 ###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
 ###################################################
 # Get the /etc/hosts file path
 ###################################################
+
+
 def get_hosts_file_path(slicename):
     containerDir = os.path.join(sliver_lxc.Sliver_LXC.CON_BASE_DIR, slicename)
     return os.path.join(containerDir, 'etc', 'hosts')
@@ -465,6 +545,8 @@ def get_hosts_file_path(slicename):
 # If the parameter 'ipv6addr' is None, then search
 # for any ipv6 address
 ###################################################
+
+
 def search_ipv6addr_hosts(slicename, ipv6addr):
     hostsFilePath = get_hosts_file_path(slicename)
     found = False
@@ -493,32 +575,37 @@ def search_ipv6addr_hosts(slicename, ipv6addr):
 # Removes all ipv6 addresses from the /etc/hosts
 # file of a given slice
 ###################################################
+
+
 def remove_all_ipv6addr_hosts(slicename, node):
     hostsFilePath = get_hosts_file_path(slicename)
     try:
         for line in fileinput.input(r'{}'.format(hostsFilePath), inplace=True):
-            search = re.search(r'^(.*)\s+({}|{})$'.format(node, 'localhost'), line)
+            search = re.search(
+                r'^(.*)\s+({}|{})$'.format(node, 'localhost'), line)
             if search:
                 ipv6candidate = search.group(1)
                 ipv6candidatestrip = ipv6candidate.strip()
                 valid = is_valid_ipv6(ipv6candidatestrip)
                 if not valid:
-                    print line,
+                    print(line, end=' ')
         fileinput.close()
         logger.log("tools: REMOVED IPv6 address from /etc/hosts file of slice={}"
-                   .format(slicename) )
+                   .format(slicename))
     except:
         logger.log("tools: FAILED to remove the IPv6 address from /etc/hosts file of slice={}"
-                   .format(slicename) )
+                   .format(slicename))
 
 ###################################################
 # Author: Guilherme Sperb Machado <gsm@machados.org>
 ###################################################
 # Adds an ipv6 address to the /etc/hosts file within a slice
 ###################################################
+
+
 def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
     hostsFilePath = get_hosts_file_path(slicename)
-    logger.log("tools: {}".format(hostsFilePath) )
+    logger.log("tools: {}".format(hostsFilePath))
     # debugging purposes:
     #string = "127.0.0.1\tlocalhost\n192.168.100.179\tmyplc-node1-vm.mgmt.local\n"
     #string = "127.0.0.1\tlocalhost\n"
@@ -527,11 +614,10 @@ def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
             file.write(ipv6addr + " " + node + "\n")
             file.close()
         logger.log("tools: ADDED IPv6 address to /etc/hosts file of slice={}"
-                   .format(slicename) )
+                   .format(slicename))
     except:
         logger.log("tools: FAILED to add the IPv6 address to /etc/hosts file of slice={}"
-                   .format(slicename) )
-
+                   .format(slicename))
 
 
 # how to run a command in a slice
@@ -543,19 +629,21 @@ def add_ipv6addr_hosts_line(slicename, node, ipv6addr):
 # lxc: lxcsu slicename "command and its arguments"
 # which, OK, is no big deal as long as the command is simple enough,
 # but do not stretch it with arguments that have spaces or need quoting as that will become a nightmare
-def command_in_slice (slicename, argv):
+def command_in_slice(slicename, argv):
     virt = get_node_virt()
     if virt == 'vs':
-        return [ 'vserver', slicename, 'exec', ] + argv
+        return ['vserver', slicename, 'exec', ] + argv
     elif virt == 'lxc':
         # wrap up argv in a single string for -c
-        return [ 'lxcsu', slicename, ] + [ " ".join(argv) ]
+        return ['lxcsu', slicename, ] + [" ".join(argv)]
     logger.log("command_in_slice: WARNING: could not find a valid virt")
     return argv
 
 ####################
-def init_signals ():
-    def handler (signum, frame):
+
+
+def init_signals():
+    def handler(signum, frame):
         logger.log("Received signal {} - exiting".format(signum))
         os._exit(1)
     signal.signal(signal.SIGHUP, handler)

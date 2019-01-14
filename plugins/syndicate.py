@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 """ Syndicate configurator.  """
 
-import httplib
+import http.client
 import os
 import shutil
 import tools
@@ -21,7 +21,7 @@ def syndicate_op(op, mountpoint, syndicate_ip):
     logger.log("Syndicate: Http op %s on url %s to host %s" % (op, mountpoint, syndicate_ip))
 
     try:
-        conn = httplib.HTTPSConnection(syndicate_ip, timeout=60)
+        conn = http.client.HTTPSConnection(syndicate_ip, timeout=60)
         conn.request(op, mountpoint)
         r1 = conn.getresponse()
     except:

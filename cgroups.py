@@ -6,6 +6,7 @@
 import os, os.path
 import pyinotify
 import logger
+from functools import reduce
 
 # Base dir for libvirt
 BASE_DIR = '/sys/fs/cgroup'
@@ -51,20 +52,20 @@ def get_base_path():
 
 def get_cgroups():
     """ Returns the list of cgroups active at this moment on the node """
-    return map(os.path.basename, get_cgroup_paths())
+    return list(map(os.path.basename, get_cgroup_paths()))
 
 def write(name, key, value, subsystem="cpuset"):
     """ Writes a value to the file key with the cgroup with name """
     base_path = get_cgroup_path(name, subsystem)
     with open(os.path.join(base_path, key), 'w') as f:
-        print >>f, value
+        print(value, file=f)
     logger.verbose("cgroups.write: overwrote {}".format(base_path))
 
 def append(name, key, value, subsystem="cpuset"):
     """ Appends a value to the file key with the cgroup with name """
     base_path = get_cgroup_path(name, subsystem)
     with open(os.path.join(base_path, key), 'a') as f:
-        print >>f, value
+        print(value, file=f)
     logger.verbose("cgroups.append: appended {}".format(base_path))
 
 if __name__ == '__main__':
@@ -75,7 +76,7 @@ if __name__ == '__main__':
     subsystems = 'blkio cpu cpu,cpuacct cpuacct cpuset devices freezer memory net_cls perf_event systemd'.split()
 
     for subsystem in subsystems:
-        print 'get_cgroup_path({}, {}) =  {}'.\
-            format(name, subsystem, get_cgroup_path(name, subsystem))
+        print('get_cgroup_path({}, {}) =  {}'.\
+            format(name, subsystem, get_cgroup_path(name, subsystem)))
 
 #        print 'get_cgroup_paths = {}'.format(get_cgroup_paths(subsystem))

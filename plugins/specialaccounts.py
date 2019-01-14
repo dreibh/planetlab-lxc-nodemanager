@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 # vim:set ts=4 sw=4 expandtab:
 #
 #
@@ -56,9 +56,9 @@ def GetSlivers(data, conf = None, plc = None):
             logger.log("specialaccounts: keys file changed: %s" % auth_keys)
 
         # always set permissions properly
-        os.chmod(dot_ssh, 0700)
+        os.chmod(dot_ssh, 0o700)
         os.chown(dot_ssh, uid, gid)
-        os.chmod(auth_keys, 0600)
+        os.chmod(auth_keys, 0o600)
         os.chown(auth_keys, uid, gid)
 
         logger.log('specialaccounts: installed ssh keys for %s' % name)

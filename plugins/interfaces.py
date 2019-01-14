@@ -5,7 +5,7 @@ Configure interfaces inside a container by pulling down files via URL.
 import logger
 import os
 import curlwrapper
-import xmlrpclib
+import xmlrpc.client
 try:
     from hashlib import sha1 as sha
 except ImportError:
@@ -55,7 +55,7 @@ def GetSlivers(data, config=None, plc=None):
                         url = mydict['url']
                         try:
                             contents = curlwrapper.retrieve(url)
-                        except xmlrpclib.ProtocolError as e:
+                        except xmlrpc.client.ProtocolError as e:
                             logger.log('interfaces (%s): failed to retrieve %s' % (slicename, url))
                             continue
                     else:
@@ -66,7 +66,7 @@ def GetSlivers(data, config=None, plc=None):
                             logger.log('interfaces (%s): no DEVICE specified' % slicename)
                             continue
 
-                        for key, value in mydict.items():
+                        for key, value in list(mydict.items()):
                             if key in ['bridge', 'vlan']:
                                 continue
                             contents += '%s="%s"\n' % (key, value)

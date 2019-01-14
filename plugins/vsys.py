@@ -39,7 +39,7 @@ def GetSlivers(data, config=None, plc=None):
                     # add to conf
                     slices.append(sliver['name'])
                     _restart = createVsysDir(sliver['name']) or _restart
-                if attribute['value'] in scripts.keys():
+                if attribute['value'] in list(scripts.keys()):
                     scripts[attribute['value']].append(sliver['name'])
 
     # Write the conf
@@ -105,7 +105,7 @@ def writeAcls(currentscripts, oldscripts):
     # not the same as length of values of new scripts,
     # and length of non intersection along new scripts is not 0,
     # then dicts are different.
-    for (acl, oldslivers) in oldscripts.iteritems():
+    for (acl, oldslivers) in oldscripts.items():
         try:
             if (len(oldslivers) != len(currentscripts[acl])) or \
             (len(set(oldslivers) - set(currentscripts[acl])) != 0):
