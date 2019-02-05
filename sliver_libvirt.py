@@ -221,7 +221,6 @@ class Sliver_Libvirt(Account):
         bwlimit.ebtables("-D INPUT -i veth{} -j mark --set-mark {}"
                          .format(self.xid, self.xid))
 
-        logger.log('CHECK: STOPPING %s ' % (self.name))
         try:
             self.dom.destroy()
         except:

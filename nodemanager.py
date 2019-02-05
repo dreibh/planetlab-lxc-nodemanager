@@ -306,7 +306,6 @@ If this is not the case, please remove the pid file {}. -- exiting"""
 
 def run():
     logger.log("======================================== Entering nodemanager.py")
-
     NodeManager().run()
 
 if __name__ == '__main__':
