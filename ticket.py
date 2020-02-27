@@ -7,7 +7,9 @@ You must already have the key in the keyring.
 from subprocess import PIPE, Popen
 from xmlrpc.client import dumps, loads
 
-GPG = '/usr/bin/gpg'
+# see also myplc/plc.d/gpg
+import os.path
+GPG = '/usr/bin/gpg1' if os.path.exists("/usr/bin/gpg1") else "/usr/bin/gpg"
 
 def _popen_gpg(*args):
     """Return a Popen object to GPG."""

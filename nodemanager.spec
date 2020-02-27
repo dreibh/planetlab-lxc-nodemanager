@@ -44,7 +44,12 @@ Requires: python3
 # connecting PLC
 Requires: python3-pycurl
 # Signed tickets
+# see myplc/plc.d/gpg for more details on the gnupg / gpg topic
+%if "%{distro}" == "Fedora" && %{distrorelease} >= 31
+Requires: gnupg1
+%else
 Requires: gnupg
+%endif
 # sioc/plnet
 Requires: pyplnet >= 4.3
 # we do need the slice images in any case
